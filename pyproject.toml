@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "discord-tron-worker"
+version = "0.1.0"
+description = "A worker process for PyTorch nodes that connect to the central Discord bot hub."
+authors = ["bghira <bghira@users.github.com>"]
+license = "GPL3"
+readme = "README.md"
+packages = [{include = "discord_tron_worker"}]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.12"
+websockets = "^10.4"
+poetry = "^1.4.1"
+flask = "^2.2.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
