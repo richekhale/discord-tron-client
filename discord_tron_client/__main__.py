@@ -1,13 +1,9 @@
 import asyncio
 from .ws_client import websocket_client
 import logging
+logging.basicConfig(level=logging.INFO)
 from discord_tron_client.classes.app_config import AppConfig
 config = AppConfig()
-
-
-async def main():
-    logging.info("Starting WebSocket client...")
-    await websocket_client(config)
 
 if __name__ == '__main__':
     try:
@@ -16,28 +12,27 @@ if __name__ == '__main__':
         from discord_tron_client.classes.auth import Auth
         current_ticket = config.get_auth_ticket()
         auth = Auth(config, current_ticket["access_token"], current_ticket["refresh_token"], current_ticket["expires_in"], current_ticket["issued_at"])
-        try:
-            is_expired = auth.is_token_expired()
-        except Exception as e:
-            logging.error(f"Error checking token expiration: {e}")
-            is_expired = True
-        if is_expired:
-            logging.warning("Access token is expired. Attempting to refresh...")
-            new_ticket = auth.refresh_client_token(current_ticket["refresh_token"])
-            import json
-            print(f"New ticket: {json.dumps(new_ticket, indent=4)}")
+        auth.get()
 
         # Start the WebSocket client in the background
-        asyncio.get_event_loop().run_until_complete(websocket_client(config))
+        startup_sequence = []
+        from discord_tron_client.classes.message import WebsocketMessage
+        # Add any startup sequence here
+        from discord_tron_client.classes.hardware import HardwareInfo
+        hardware_info = HardwareInfo()
+        machine_info = hardware_info.get_machine_info()
+        hardware_info_message = WebsocketMessage(message_type="hardware_info", module_name="system", module_command="update", data=machine_info)
+        startup_sequence.append(hardware_info_message.to_json())
+        asyncio.get_event_loop().run_until_complete(websocket_client(config, startup_sequence))
 
         # Start the Flask server
         from discord_tron_client.app_factory import create_app
         app = create_app()
         app.run()
-        asyncio.run(main())
     except KeyboardInterrupt:
         logging.info("Shutting down...")
         exit(0)
     except Exception as e:
-        logging.error(f"An error occurred: {e}")
+        import traceback
+        logging.error(f"Stack trace: {traceback.format_exc()}")
         exit(1)

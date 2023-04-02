@@ -26,7 +26,11 @@ class AppConfig:
     # Retrieve the OAuth ticket information.
     def get_auth_ticket(self):
         with open(self.auth_ticket_path, "r") as auth_ticket:
-            return json.load(auth_ticket)
+            auth_data = json.load(auth_ticket)
+            return auth_data["access_token"]
+
+    def get_master_api_key(self):
+        return self.config.get("master_api_key", None)
 
     def get_concurrent_slots(self):
         return self.config.get("concurrent_slots", 1)
