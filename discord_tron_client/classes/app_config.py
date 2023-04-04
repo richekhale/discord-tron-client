@@ -27,7 +27,7 @@ class AppConfig:
     def get_auth_ticket(self):
         with open(self.auth_ticket_path, "r") as auth_ticket:
             auth_data = json.load(auth_ticket)
-            return auth_data["access_token"]
+            return auth_data
 
     def get_master_api_key(self):
         return self.config.get("master_api_key", None)

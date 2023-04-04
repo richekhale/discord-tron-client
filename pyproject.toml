@@ -12,6 +12,7 @@ python = ">=3.9,<3.12"
 websockets = "^10.4"
 poetry = "^1.4.1"
 flask = "^2.2.3"
+psutil = "^5.9.4"
 
 [build-system]
 requires = ["poetry-core"]

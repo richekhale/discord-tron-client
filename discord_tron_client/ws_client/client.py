@@ -1,4 +1,5 @@
 import json, logging
+logging.basicConfig(level=logging.INFO)
 import ssl, websockets
 from discord_tron_client.classes.app_config import AppConfig
 
@@ -26,6 +27,6 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
                 logging.debug(f"Sending startup sequence message: {message}")
                 await websocket.send(json.dumps(message))
         else:
-            logging.info("No startup sequence found.")
+            logging.error("No startup sequence found.")
         async for message in websocket:
-            logging.debug(f"Received message: {message}")
+            logging.info(f"Received message: {message}")

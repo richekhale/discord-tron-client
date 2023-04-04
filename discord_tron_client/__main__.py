@@ -21,7 +21,11 @@ if __name__ == '__main__':
         from discord_tron_client.classes.hardware import HardwareInfo
         hardware_info = HardwareInfo()
         machine_info = hardware_info.get_machine_info()
-        hardware_info_message = WebsocketMessage(message_type="hardware_info", module_name="system", module_command="update", data=machine_info)
+        register_data = hardware_info.get_register_data(worker_id=hardware_info.get_system_hostname())
+        register_data["hardware"] = hardware_info.get_simple_hardware_info()
+        hello_world_message = WebsocketMessage(message_type="hello_world", module_name="worker", module_command="register", arguments=register_data)
+        startup_sequence.append(hello_world_message.to_json())
+        hardware_info_message = WebsocketMessage(message_type="hardware_info", module_name="system", module_command="update", arguments=machine_info)
         startup_sequence.append(hardware_info_message.to_json())
         asyncio.get_event_loop().run_until_complete(websocket_client(config, startup_sequence))
 
