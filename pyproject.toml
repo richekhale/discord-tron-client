@@ -20,7 +20,17 @@ websocket = "^0.2.1"
 diffusers = "^0.14.0"
 transformers = "^4.27.4"
 tensorflow = "^2.12.0"
+accelerate = "^0.18.0"
 
+numpy = ">=1.23.2"
+torch = { version = ">=1.12.1", source="torch"}
+torchaudio = { version = ">=0.12.1", source="torch"}
+torchvision = { version = ">=0.13.1", source="torch"}
+
+[[tool.poetry.source]]
+name = "torch"
+url = "https://download.pytorch.org/whl/cu118"
+secondary = true
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

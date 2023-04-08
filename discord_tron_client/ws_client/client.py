@@ -31,6 +31,8 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
                     for message in startup_sequence:
                         logging.debug(f"Sending startup sequence message: {message}")
                         await websocket.send(message.to_json())
+                    if message:
+                        del message
                 else:
                     logging.error("No startup sequence found.")
                 async for message in websocket:
@@ -38,5 +40,6 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
                     payload = json.loads(message)
                     await processor.process_command(payload=payload, websocket=websocket)
         except Exception as e:
-            logging.error(f"Fatal Error: {e}")
+            import traceback
+            logging.error(f"Fatal Error: {e}, traceback: {traceback.format_exc()}")
             await asyncio.sleep(5)

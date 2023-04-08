@@ -26,6 +26,18 @@ class WorkerProcessor:
             logging.info("Executing incoming " + str(handler) + " for module " + str(payload["module_name"]) + ", command " + payload["module_command"] + ", payload: " + str(payload))
             return await handler(payload, websocket)
         except Exception as e:
+            # enable tracemalloc:
+            import tracemalloc
+            tracemalloc.start()
+            # take a snapshot:
+            snapshot = tracemalloc.take_snapshot()
+            # show top 10 lines
+            top_stats = snapshot.statistics('lineno')
+            for stat in top_stats[:10]:
+                print(stat)
+            # disable tracemalloc:
+            tracemalloc.stop()
+            
             logging.error("Error processing command: " + str(e))
             
             return json.dumps({"error": str(e)})

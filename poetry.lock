@@ -13,6 +13,35 @@ files = [
 ]
 
 [[package]]
+name = "accelerate"
+version = "0.18.0"
+description = "Accelerate"
+category = "main"
+optional = false
+python-versions = ">=3.7.0"
+files = [
+    {file = "accelerate-0.18.0-py3-none-any.whl", hash = "sha256:41a84ac94407d7dcf030caf0cdadc70496594aec27ea680207bdb15b95f8a602"},
+    {file = "accelerate-0.18.0.tar.gz", hash = "sha256:1dd36fd972de4a6d0cffe5e4d6d30622fd853765f773b5582cf0796deefe1016"},
+]
+
+[package.dependencies]
+numpy = ">=1.17"
+packaging = ">=20.0"
+psutil = "*"
+pyyaml = "*"
+torch = ">=1.4.0"
+
+[package.extras]
+dev = ["black (>=23.1,<24.0)", "datasets", "deepspeed", "evaluate", "hf-doc-builder (>=0.3.0)", "parameterized", "pytest", "pytest-subtests", "pytest-xdist", "rich", "ruff (>=0.0.241)", "scikit-learn", "scipy", "tqdm", "transformers"]
+quality = ["black (>=23.1,<24.0)", "hf-doc-builder (>=0.3.0)", "ruff (>=0.0.241)"]
+rich = ["rich"]
+sagemaker = ["sagemaker"]
+test-dev = ["datasets", "deepspeed", "evaluate", "scikit-learn", "scipy", "tqdm", "transformers"]
+test-prod = ["parameterized", "pytest", "pytest-subtests", "pytest-xdist"]
+test-trackers = ["comet-ml", "tensorboard", "wandb"]
+testing = ["datasets", "deepspeed", "evaluate", "parameterized", "pytest", "pytest-subtests", "pytest-xdist", "scikit-learn", "scipy", "tqdm", "transformers"]
+
+[[package]]
 name = "astunparse"
 version = "1.6.3"
 description = "An AST unparser for Python"
@@ -958,14 +987,14 @@ files = [
 
 [[package]]
 name = "importlib-metadata"
-version = "6.1.0"
+version = "6.2.0"
 description = "Read metadata from Python packages"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "importlib_metadata-6.1.0-py3-none-any.whl", hash = "sha256:ff80f3b5394912eb1b108fcfd444dc78b7f1f3e16b16188054bd01cb9cb86f09"},
-    {file = "importlib_metadata-6.1.0.tar.gz", hash = "sha256:43ce9281e097583d758c2c708c4376371261a02c34682491a8e98352365aad20"},
+    {file = "importlib_metadata-6.2.0-py3-none-any.whl", hash = "sha256:8388b74023a138c605fddd0d47cb81dd706232569f56c9aca7d9c7fdb54caeba"},
+    {file = "importlib_metadata-6.2.0.tar.gz", hash = "sha256:9127aad2f49d7203e7112098c12b92e4fd1061ccd18548cdfdc49171a8c073cc"},
 ]
 
 [package.dependencies]
@@ -1454,175 +1483,6 @@ files = [
     {file = "numpy-1.23.5-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:01dd17cbb340bf0fc23981e52e1d18a9d4050792e8fb8363cecbf066a84b827d"},
     {file = "numpy-1.23.5.tar.gz", hash = "sha256:1b1766d6f397c18153d40015ddfc79ddb715cabadc04d2d228d4e5a8bc4ded1a"},
 ]
-
-[[package]]
-name = "nvidia-cublas-cu11"
-version = "11.10.3.66"
-description = "CUBLAS native runtime libraries"
-category = "main"
-optional = false
-python-versions = ">=3"
-files = [
-    {file = "nvidia_cublas_cu11-11.10.3.66-py3-none-manylinux1_x86_64.whl", hash = "sha256:d32e4d75f94ddfb93ea0a5dda08389bcc65d8916a25cb9f37ac89edaeed3bded"},
-    {file = "nvidia_cublas_cu11-11.10.3.66-py3-none-win_amd64.whl", hash = "sha256:8ac17ba6ade3ed56ab898a036f9ae0756f1e81052a317bf98f8c6d18dc3ae49e"},
-]
-
-[package.dependencies]
-setuptools = "*"
-wheel = "*"
-
-[[package]]
-name = "nvidia-cuda-cupti-cu11"
-version = "11.7.101"
-description = "CUDA profiling tools runtime libs."
-category = "main"
-optional = false
-python-versions = ">=3"
-files = [
-    {file = "nvidia_cuda_cupti_cu11-11.7.101-py3-none-manylinux1_x86_64.whl", hash = "sha256:e0cfd9854e1f2edaa36ca20d21cd0bdd5dcfca4e3b9e130a082e05b33b6c5895"},
-    {file = "nvidia_cuda_cupti_cu11-11.7.101-py3-none-win_amd64.whl", hash = "sha256:7cc5b8f91ae5e1389c3c0ad8866b3b016a175e827ea8f162a672990a402ab2b0"},
-]
-
-[package.dependencies]
-setuptools = "*"
-wheel = "*"
-
-[[package]]
-name = "nvidia-cuda-nvrtc-cu11"
-version = "11.7.99"
-description = "NVRTC native runtime libraries"
-category = "main"
-optional = false
-python-versions = ">=3"
-files = [
-    {file = "nvidia_cuda_nvrtc_cu11-11.7.99-2-py3-none-manylinux1_x86_64.whl", hash = "sha256:9f1562822ea264b7e34ed5930567e89242d266448e936b85bc97a3370feabb03"},
-    {file = "nvidia_cuda_nvrtc_cu11-11.7.99-py3-none-manylinux1_x86_64.whl", hash = "sha256:f7d9610d9b7c331fa0da2d1b2858a4a8315e6d49765091d28711c8946e7425e7"},
-    {file = "nvidia_cuda_nvrtc_cu11-11.7.99-py3-none-win_amd64.whl", hash = "sha256:f2effeb1309bdd1b3854fc9b17eaf997808f8b25968ce0c7070945c4265d64a3"},
-]
-
-[package.dependencies]
-setuptools = "*"
-wheel = "*"
-
-[[package]]
-name = "nvidia-cuda-runtime-cu11"
-version = "11.7.99"
-description = "CUDA Runtime native Libraries"
-category = "main"
-optional = false
-python-versions = ">=3"
-files = [
-    {file = "nvidia_cuda_runtime_cu11-11.7.99-py3-none-manylinux1_x86_64.whl", hash = "sha256:cc768314ae58d2641f07eac350f40f99dcb35719c4faff4bc458a7cd2b119e31"},
-    {file = "nvidia_cuda_runtime_cu11-11.7.99-py3-none-win_amd64.whl", hash = "sha256:bc77fa59a7679310df9d5c70ab13c4e34c64ae2124dd1efd7e5474b71be125c7"},
-]
-
-[package.dependencies]
-setuptools = "*"
-wheel = "*"
-
-[[package]]
-name = "nvidia-cudnn-cu11"
-version = "8.5.0.96"
-description = "cuDNN runtime libraries"
-category = "main"
-optional = false
-python-versions = ">=3"
-files = [
-    {file = "nvidia_cudnn_cu11-8.5.0.96-2-py3-none-manylinux1_x86_64.whl", hash = "sha256:402f40adfc6f418f9dae9ab402e773cfed9beae52333f6d86ae3107a1b9527e7"},
-    {file = "nvidia_cudnn_cu11-8.5.0.96-py3-none-manylinux1_x86_64.whl", hash = "sha256:71f8111eb830879ff2836db3cccf03bbd735df9b0d17cd93761732ac50a8a108"},
-]
-
-[package.dependencies]
-setuptools = "*"
-wheel = "*"
-
-[[package]]
-name = "nvidia-cufft-cu11"
-version = "10.9.0.58"
-description = "CUFFT native runtime libraries"
-category = "main"
-optional = false
-python-versions = ">=3"
-files = [
-    {file = "nvidia_cufft_cu11-10.9.0.58-py3-none-manylinux1_x86_64.whl", hash = "sha256:222f9da70c80384632fd6035e4c3f16762d64ea7a843829cb278f98b3cb7dd81"},
-    {file = "nvidia_cufft_cu11-10.9.0.58-py3-none-win_amd64.whl", hash = "sha256:c4d316f17c745ec9c728e30409612eaf77a8404c3733cdf6c9c1569634d1ca03"},
-]
-
-[[package]]
-name = "nvidia-curand-cu11"
-version = "10.2.10.91"
-description = "CURAND native runtime libraries"
-category = "main"
-optional = false
-python-versions = ">=3"
-files = [
-    {file = "nvidia_curand_cu11-10.2.10.91-py3-none-manylinux1_x86_64.whl", hash = "sha256:eecb269c970fa599a2660c9232fa46aaccbf90d9170b96c462e13bcb4d129e2c"},
-    {file = "nvidia_curand_cu11-10.2.10.91-py3-none-win_amd64.whl", hash = "sha256:f742052af0e1e75523bde18895a9ed016ecf1e5aa0ecddfcc3658fd11a1ff417"},
-]
-
-[package.dependencies]
-setuptools = "*"
-wheel = "*"
-
-[[package]]
-name = "nvidia-cusolver-cu11"
-version = "11.4.0.1"
-description = "CUDA solver native runtime libraries"
-category = "main"
-optional = false
-python-versions = ">=3"
-files = [
-    {file = "nvidia_cusolver_cu11-11.4.0.1-2-py3-none-manylinux1_x86_64.whl", hash = "sha256:72fa7261d755ed55c0074960df5904b65e2326f7adce364cbe4945063c1be412"},
-    {file = "nvidia_cusolver_cu11-11.4.0.1-py3-none-manylinux1_x86_64.whl", hash = "sha256:700b781bfefd57d161443aff9ace1878584b93e0b2cfef3d6e9296d96febbf99"},
-    {file = "nvidia_cusolver_cu11-11.4.0.1-py3-none-win_amd64.whl", hash = "sha256:00f70b256add65f8c1eb3b6a65308795a93e7740f6df9e273eccbba770d370c4"},
-]
-
-[package.dependencies]
-setuptools = "*"
-wheel = "*"
-
-[[package]]
-name = "nvidia-cusparse-cu11"
-version = "11.7.4.91"
-description = "CUSPARSE native runtime libraries"
-category = "main"
-optional = false
-python-versions = ">=3"
-files = [
-    {file = "nvidia_cusparse_cu11-11.7.4.91-py3-none-manylinux1_x86_64.whl", hash = "sha256:a3389de714db63321aa11fbec3919271f415ef19fda58aed7f2ede488c32733d"},
-    {file = "nvidia_cusparse_cu11-11.7.4.91-py3-none-win_amd64.whl", hash = "sha256:304a01599534f5186a8ed1c3756879282c72c118bc77dd890dc1ff868cad25b9"},
-]
-
-[package.dependencies]
-setuptools = "*"
-wheel = "*"
-
-[[package]]
-name = "nvidia-nccl-cu11"
-version = "2.14.3"
-description = "NVIDIA Collective Communication Library (NCCL) Runtime"
-category = "main"
-optional = false
-python-versions = ">=3"
-files = [
-    {file = "nvidia_nccl_cu11-2.14.3-py3-none-manylinux1_x86_64.whl", hash = "sha256:5e5534257d1284b8e825bc3a182c6f06acd6eb405e9f89d49340e98cd8f136eb"},
-]
-
-[[package]]
-name = "nvidia-nvtx-cu11"
-version = "11.7.91"
-description = "NVIDIA Tools Extension"
-category = "main"
-optional = false
-python-versions = ">=3"
-files = [
-    {file = "nvidia_nvtx_cu11-11.7.91-py3-none-manylinux1_x86_64.whl", hash = "sha256:b22c64eee426a62fc00952b507d6d29cf62b4c9df7a480fcc417e540e05fd5ac"},
-    {file = "nvidia_nvtx_cu11-11.7.91-py3-none-win_amd64.whl", hash = "sha256:dfd7fcb2a91742513027d63a26b757f38dd8b07fecac282c4d132a9d373ff064"},
-]
-
-[package.dependencies]
-setuptools = "*"
-wheel = "*"
 
 [[package]]
 name = "oauthlib"
@@ -2678,59 +2538,95 @@ files = [
 
 [[package]]
 name = "torch"
-version = "2.0.0"
+version = "2.0.0+cu118"
 description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
 category = "main"
 optional = false
 python-versions = ">=3.8.0"
 files = [
-    {file = "torch-2.0.0-1-cp310-cp310-manylinux2014_aarch64.whl", hash = "sha256:c9090bda7d2eeeecd74f51b721420dbeb44f838d4536cc1b284e879417e3064a"},
-    {file = "torch-2.0.0-1-cp311-cp311-manylinux2014_aarch64.whl", hash = "sha256:bd42db2a48a20574d2c33489e120e9f32789c4dc13c514b0c44272972d14a2d7"},
-    {file = "torch-2.0.0-1-cp38-cp38-manylinux2014_aarch64.whl", hash = "sha256:8969aa8375bcbc0c2993e7ede0a7f889df9515f18b9b548433f412affed478d9"},
-    {file = "torch-2.0.0-1-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:ab2da16567cb55b67ae39e32d520d68ec736191d88ac79526ca5874754c32203"},
-    {file = "torch-2.0.0-cp310-cp310-manylinux1_x86_64.whl", hash = "sha256:7a9319a67294ef02459a19738bbfa8727bb5307b822dadd708bc2ccf6c901aca"},
-    {file = "torch-2.0.0-cp310-cp310-manylinux2014_aarch64.whl", hash = "sha256:9f01fe1f6263f31bd04e1757946fd63ad531ae37f28bb2dbf66f5c826ee089f4"},
-    {file = "torch-2.0.0-cp310-cp310-win_amd64.whl", hash = "sha256:527f4ae68df7b8301ee6b1158ca56350282ea633686537b30dbb5d7b4a52622a"},
-    {file = "torch-2.0.0-cp310-none-macosx_10_9_x86_64.whl", hash = "sha256:ce9b5a49bd513dff7950a5a07d6e26594dd51989cee05ba388b03e8e366fd5d5"},
-    {file = "torch-2.0.0-cp310-none-macosx_11_0_arm64.whl", hash = "sha256:53e1c33c6896583cdb9a583693e22e99266444c4a43392dddc562640d39e542b"},
-    {file = "torch-2.0.0-cp311-cp311-manylinux1_x86_64.whl", hash = "sha256:09651bff72e439d004c991f15add0c397c66f98ab36fe60d5514b44e4da722e8"},
-    {file = "torch-2.0.0-cp311-cp311-manylinux2014_aarch64.whl", hash = "sha256:d439aec349c98f12819e8564b8c54008e4613dd4428582af0e6e14c24ca85870"},
-    {file = "torch-2.0.0-cp311-cp311-win_amd64.whl", hash = "sha256:2802f84f021907deee7e9470ed10c0e78af7457ac9a08a6cd7d55adef835fede"},
-    {file = "torch-2.0.0-cp311-none-macosx_10_9_x86_64.whl", hash = "sha256:01858620f25f25e7a9ec4b547ff38e5e27c92d38ec4ccba9cfbfb31d7071ed9c"},
-    {file = "torch-2.0.0-cp311-none-macosx_11_0_arm64.whl", hash = "sha256:9a2e53b5783ef5896a6af338b36d782f28e83c8ddfc2ac44b67b066d9d76f498"},
-    {file = "torch-2.0.0-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:ec5fff2447663e369682838ff0f82187b4d846057ef4d119a8dea7772a0b17dd"},
-    {file = "torch-2.0.0-cp38-cp38-manylinux2014_aarch64.whl", hash = "sha256:11b0384fe3c18c01b8fc5992e70fc519cde65e44c51cc87be1838c1803daf42f"},
-    {file = "torch-2.0.0-cp38-cp38-win_amd64.whl", hash = "sha256:e54846aa63855298cfb1195487f032e413e7ac9cbfa978fda32354cc39551475"},
-    {file = "torch-2.0.0-cp38-none-macosx_10_9_x86_64.whl", hash = "sha256:cc788cbbbbc6eb4c90e52c550efd067586c2693092cf367c135b34893a64ae78"},
-    {file = "torch-2.0.0-cp38-none-macosx_11_0_arm64.whl", hash = "sha256:d292640f0fd72b7a31b2a6e3b635eb5065fcbedd4478f9cad1a1e7a9ec861d35"},
-    {file = "torch-2.0.0-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:6befaad784004b7af357e3d87fa0863c1f642866291f12a4c2af2de435e8ac5c"},
-    {file = "torch-2.0.0-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:a83b26bd6ae36fbf5fee3d56973d9816e2002e8a3b7d9205531167c28aaa38a7"},
-    {file = "torch-2.0.0-cp39-cp39-win_amd64.whl", hash = "sha256:c7e67195e1c3e33da53954b026e89a8e1ff3bc1aeb9eb32b677172d4a9b5dcbf"},
-    {file = "torch-2.0.0-cp39-none-macosx_10_9_x86_64.whl", hash = "sha256:6e0b97beb037a165669c312591f242382e9109a240e20054d5a5782d9236cad0"},
-    {file = "torch-2.0.0-cp39-none-macosx_11_0_arm64.whl", hash = "sha256:297a4919aff1c0f98a58ebe969200f71350a1d4d4f986dbfd60c02ffce780e99"},
+    {file = "torch-2.0.0+cu118-cp310-cp310-linux_x86_64.whl", hash = "sha256:4b690e2b77f21073500c65d8bb9ea9656b8cb4e969f357370bbc992a3b074764"},
+    {file = "torch-2.0.0+cu118-cp310-cp310-win_amd64.whl", hash = "sha256:5ee2b7c19265b9c869525c378fcdf350510b8f3fc08af26da1a2587a34cea8f5"},
+    {file = "torch-2.0.0+cu118-cp311-cp311-linux_x86_64.whl", hash = "sha256:238573d362c564113451046f6708c3b8158fe6b1b7f6c03b7273327d955deb54"},
+    {file = "torch-2.0.0+cu118-cp311-cp311-win_amd64.whl", hash = "sha256:dbba5b085722d24d617102954d9a9023ee4f7584148a9e465afb0c9696d15517"},
+    {file = "torch-2.0.0+cu118-cp38-cp38-linux_x86_64.whl", hash = "sha256:1f8efaebfcbb7ec3962fd8c7c3be02c6666eff53a12043006a749d647656163e"},
+    {file = "torch-2.0.0+cu118-cp38-cp38-win_amd64.whl", hash = "sha256:2588926725750c9ba799c133d4f6ee8fa477f6f0d88d6c2cebfe5bcfe8d7d7c3"},
+    {file = "torch-2.0.0+cu118-cp39-cp39-linux_x86_64.whl", hash = "sha256:eab97a9fe59e7e31d6562b186f435e717b1df3331cadc776e6c0732239a9ed39"},
+    {file = "torch-2.0.0+cu118-cp39-cp39-win_amd64.whl", hash = "sha256:893f6dd205316a104b04b69877bc40ab9908428274920094c17b81396a8c985c"},
 ]
 
 [package.dependencies]
 filelock = "*"
 jinja2 = "*"
 networkx = "*"
-nvidia-cublas-cu11 = {version = "11.10.3.66", markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""}
-nvidia-cuda-cupti-cu11 = {version = "11.7.101", markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""}
-nvidia-cuda-nvrtc-cu11 = {version = "11.7.99", markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""}
-nvidia-cuda-runtime-cu11 = {version = "11.7.99", markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""}
-nvidia-cudnn-cu11 = {version = "8.5.0.96", markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""}
-nvidia-cufft-cu11 = {version = "10.9.0.58", markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""}
-nvidia-curand-cu11 = {version = "10.2.10.91", markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""}
-nvidia-cusolver-cu11 = {version = "11.4.0.1", markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""}
-nvidia-cusparse-cu11 = {version = "11.7.4.91", markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""}
-nvidia-nccl-cu11 = {version = "2.14.3", markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""}
-nvidia-nvtx-cu11 = {version = "11.7.91", markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""}
 sympy = "*"
 triton = {version = "2.0.0", markers = "platform_system == \"Linux\" and platform_machine == \"x86_64\""}
 typing-extensions = "*"
 
 [package.extras]
 opt-einsum = ["opt-einsum (>=3.3)"]
+
+[package.source]
+type = "legacy"
+url = "https://download.pytorch.org/whl/cu118"
+reference = "torch"
+
+[[package]]
+name = "torchaudio"
+version = "2.0.1+cu118"
+description = "An audio package for PyTorch"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "torchaudio-2.0.1+cu118-cp310-cp310-linux_x86_64.whl", hash = "sha256:19c4ef9012324c4fb80ea66934551b7807d97148c28538e2eabafe16ab50e91c"},
+    {file = "torchaudio-2.0.1+cu118-cp310-cp310-win_amd64.whl", hash = "sha256:c7054eebe9f0f0ff74cb5bf883375f8164db6a89ed08007040cb336f6010375b"},
+    {file = "torchaudio-2.0.1+cu118-cp311-cp311-linux_x86_64.whl", hash = "sha256:1a2722b6f66578edc563e77b4cc07a22d663a2bb5ee5c9de2539661a98a14db9"},
+    {file = "torchaudio-2.0.1+cu118-cp311-cp311-win_amd64.whl", hash = "sha256:3e884a271e6a1eb67a8694042bccb9f25a71bcdfbf0037222ac034193a176ead"},
+    {file = "torchaudio-2.0.1+cu118-cp38-cp38-linux_x86_64.whl", hash = "sha256:94b0e9c76ca91d1e0289895920fbfe8c117464d757b64b5dfadb1308cf9904f9"},
+    {file = "torchaudio-2.0.1+cu118-cp38-cp38-win_amd64.whl", hash = "sha256:8acb163aa31e694b7bba96d659146d8cb10ea3faab8950b97406f3bcf0395005"},
+    {file = "torchaudio-2.0.1+cu118-cp39-cp39-linux_x86_64.whl", hash = "sha256:070b3849696142be3d91e0b27076da1f3f8cb432abcce35cd956d191fc0d8187"},
+    {file = "torchaudio-2.0.1+cu118-cp39-cp39-win_amd64.whl", hash = "sha256:8cdc67cf83b5c77432c78f5b6adcc8c2c69ddf98744543a2216d26d7ce614546"},
+]
+
+[package.dependencies]
+torch = "2.0.0"
+
+[package.source]
+type = "legacy"
+url = "https://download.pytorch.org/whl/cu118"
+reference = "torch"
+
+[[package]]
+name = "torchvision"
+version = "0.15.1+cu118"
+description = "image and video datasets and models for torch deep learning"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "torchvision-0.15.1+cu118-cp310-cp310-linux_x86_64.whl", hash = "sha256:9a679fa37a741018c804234693bbac3d487fb3dd55ee73f6b33677b177c8c07a"},
+    {file = "torchvision-0.15.1+cu118-cp310-cp310-win_amd64.whl", hash = "sha256:473ea5fba33c0e8fc482cf70ced986521f2a3d79497b0bdaa435353ca8752e5e"},
+    {file = "torchvision-0.15.1+cu118-cp311-cp311-linux_x86_64.whl", hash = "sha256:9ced2c90ee782bbb415b0de65bcc10d4fe811131864679b707442c9d9e8aaafd"},
+    {file = "torchvision-0.15.1+cu118-cp311-cp311-win_amd64.whl", hash = "sha256:9ff719de1c09f1825492e3e39f4e49c42782e559298529e4b47d3f1404c45d1f"},
+    {file = "torchvision-0.15.1+cu118-cp38-cp38-linux_x86_64.whl", hash = "sha256:9104730d655abf282c2845d4cd472bb08936f3c85083a28aefd76ad9eeaff261"},
+    {file = "torchvision-0.15.1+cu118-cp38-cp38-win_amd64.whl", hash = "sha256:22fe045677a74afecf7cd2f4146dca93dc926f40d0a658aa1bed3275f87dc7de"},
+    {file = "torchvision-0.15.1+cu118-cp39-cp39-linux_x86_64.whl", hash = "sha256:5ece279c8f521f8f6373bf971f2adc63a961d694c4aced538df81294210ee4ba"},
+    {file = "torchvision-0.15.1+cu118-cp39-cp39-win_amd64.whl", hash = "sha256:4008dee965103030a196d385ca8d84a9c20fc52585f5753fc8360219a7a06c4e"},
+]
+
+[package.dependencies]
+numpy = "*"
+pillow = ">=5.3.0,<8.3.0 || >=8.4.0"
+requests = "*"
+torch = "2.0.0"
+
+[package.extras]
+scipy = ["scipy"]
+
+[package.source]
+type = "legacy"
+url = "https://download.pytorch.org/whl/cu118"
+reference = "torch"
 
 [[package]]
 name = "tqdm"
@@ -3326,4 +3222,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "f68aced5e8b023c7f6df5fed4becdd5d74bb4d2b64d1a7fdd884fa9bc9109bba"
+content-hash = "b7a1b16ccdcb6b1708be07b9bbe7ae078b347ef71d2453fc6e3b973a54390914"

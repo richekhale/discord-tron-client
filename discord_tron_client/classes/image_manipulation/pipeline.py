@@ -1,22 +1,53 @@
-import logging, sys, torch, tqdm, traceback, time
+import logging, sys, torch, traceback, time, asyncio
+from tqdm import tqdm
+from discord_tron_client.classes.app_config import AppConfig
 from discord_tron_client.classes.image_manipulation.resolution import ResolutionManager
-
+from discord_tron_client.classes.tqdm_capture import TqdmCapture
+from discord_tron_client.classes.discord_progress_bar import DiscordProgressBar
+from discord_tron_client.message.discord import DiscordMessage
 
 class PipelineRunner:
-    def __init__(self, model_manager, pipeline_manager, config):
+    def __init__(self, model_manager, pipeline_manager, app_config, user_config, discord_msg, websocket):
+        # General AppConfig() object access.
+        self.config = app_config
+        main_loop = asyncio.get_event_loop()
+        if main_loop is None:
+            raise Exception("AppConfig.main_loop is not set!")
+        # The received user_config item from TRON master.
+        self.user_config = user_config
+        # Managers.
         self.model_manager = model_manager
         self.pipeline_manager = pipeline_manager
-        self.config = config
+        # A message template for the WebSocket events.
+        self.progress_bar_message = DiscordMessage(websocket=websocket, context=discord_msg, module_command="edit")
+        # logging.info("Created a Progress Bar WebSocket Message: " + str(self.progress_bar_message.to_json()))
+        # An object to manage a progress bar for Discord.
+        print(f"Websocket? {websocket}")
+        self.progress_bar = DiscordProgressBar(websocket=websocket, websocket_message=self.progress_bar_message, progress_bar_steps=100, progress_bar_length=20, discord_first_message=discord_msg)
+        self.tqdm_capture = TqdmCapture(self.progress_bar, main_loop)
+        self.websocket = websocket
+
 
     def _prepare_pipe(self, model_id, use_attention_scaling):
         logging.info("Retrieving pipe for model " + str(model_id))
         pipe = self.pipeline_manager.get_pipe(model_id, use_attention_scaling)
         logging.info("Copied pipe to the local context")
         return pipe
-
+    async def _generate_image_with_pipe_async(self, pipe, prompt, side_x, side_y, steps, negative_prompt):
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, # Use the default ThreadPoolExecutor
+            self._generate_image_with_pipe,
+            pipe,
+            prompt,
+            side_x,
+            side_y,
+            steps,
+            negative_prompt
+        )
     def _generate_image_with_pipe(self, pipe, prompt, side_x, side_y, steps, negative_prompt):
         with torch.no_grad():
-            with tqdm(total=steps, ncols=100, file=sys.stderr) as pbar:
+            with tqdm(total=steps, ncols=100, file=self.tqdm_capture) as pbar:
                 image = pipe(
                     prompt=prompt,
                     height=side_y,
@@ -26,9 +57,8 @@ class PipelineRunner:
                 ).images[0]
         return image
 
-    def generate_image( self, prompt, model_id, resolution, negative_prompt, steps, positive_prompt, user_config, discord_msg, websocket):
-        logging.info("Initializing image generation pipeline...")
-        tqdm_capture = tqdm.tqdm.write
+    async def generate_image( self, prompt, model_id, resolution, negative_prompt, steps, positive_prompt, user_config, discord_msg, websocket):
+        logging.info("Initializing image generation pipeline...") 
         use_attention_scaling, steps = self.check_attention_scaling(resolution, steps)
         aspect_ratio, side_x, side_y = ResolutionManager.get_aspect_ratio_and_sides(self.config, resolution)
 
@@ -36,14 +66,14 @@ class PipelineRunner:
         logging.info("REDIRECTING THE PRECIOUS, STDOUT... SORRY IF THAT UPSETS YOU")
 
         original_stderr = sys.stderr
-        sys.stderr = tqdm_capture
+        sys.stderr = self.tqdm_capture
 
         entire_prompt = self.combine_prompts(prompt, positive_prompt)
 
         for attempt in range(1, 6):
             try:
                 logging.info(f"Attempt {attempt}: Generating image...")
-                image = self._generate_image_with_pipe(pipe, entire_prompt, side_x, side_y, steps, negative_prompt)
+                image = await self._generate_image_with_pipe_async(pipe, entire_prompt, side_x, side_y, steps, negative_prompt)
                 logging.info("Image generation successful!")
 
                 scaling_target = ResolutionManager.nearest_scaled_resolution(resolution, user_config, self.config.get_max_resolution_by_aspect_ratio(aspect_ratio))

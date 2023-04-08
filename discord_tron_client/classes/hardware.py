@@ -10,6 +10,7 @@ class HardwareInfo:
         self.video_memory_amount = None
         self.disk_space_total = None
         self.disk_space_used = None
+        self.get_system_capabilities()
 
     def get_register_data(self, worker_id: str):
         return {

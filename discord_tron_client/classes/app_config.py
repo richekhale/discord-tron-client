@@ -4,9 +4,12 @@ import json
 import os
 
 class AppConfig:
+    # Class variables
+    main_loop = None
+
+    # Initialize the config object.
     def __init__(self):
         from pathlib import Path
-
         parent = os.path.dirname(Path(__file__).resolve().parent)
         config_path = os.path.join(parent, "config")
         self.config_path = os.path.join(config_path, "config.json")
@@ -23,6 +26,14 @@ class AppConfig:
         with open(self.config_path, "r") as config_file:
             self.config = json.load(config_file)
 
+    @classmethod
+    def set_loop(cls, loop):
+        cls.main_loop = loop
+
+    @classmethod
+    def get_loop(cls):
+        return cls.main_loop
+
     # Retrieve the OAuth ticket information.
     def get_auth_ticket(self):
         with open(self.auth_ticket_path, "r") as auth_ticket:
@@ -37,12 +48,14 @@ class AppConfig:
 
     def get_command_prefix(self):
         return self.config.get("cmd_prefix", "+")
+    def get_max_resolution_by_aspect_ratio(self, aspect_ratio: str):
+        return self.config.get("maxres", {}).get(aspect_ratio, {"width": self.get_max_resolution_width(aspect_ratio=aspect_ratio), "height": self.get_max_resolution_height(aspect_ratio=aspect_ratio)})
 
     def get_max_resolution_width(self, aspect_ratio: str):
-        return self.config.get("maxres", {}).get(aspect_ratio, {}).get("width", 800)
+        return self.config.get("maxres", {}).get(aspect_ratio, {}).get("width", 512)
 
     def get_max_resolution_height(self, aspect_ratio: str):
-        return self.config.get("maxres", {}).get(aspect_ratio, {}).get("height", 456)
+        return self.config.get("maxres", {}).get(aspect_ratio, {}).get("height", 768)
 
     def get_attention_scaling_status(self):
         return self.config.get("use_attn_scaling", False)
