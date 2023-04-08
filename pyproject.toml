@@ -1,11 +1,14 @@
 [tool.poetry]
-name = "discord-tron-worker"
+name = "discord-tron-client"
 version = "0.1.0"
 description = "A worker process for PyTorch nodes that connect to the central Discord bot hub."
 authors = ["bghira <bghira@users.github.com>"]
 license = "GPL3"
 readme = "README.md"
-packages = [{include = "discord_tron_worker"}]
+packages = [{include = "discord_tron_client"}]
+
+[tool.poetry.scripts]
+client = "discord_tron_client.__main__:main"
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.12"
@@ -13,6 +16,10 @@ websockets = "^10.4"
 poetry = "^1.4.1"
 flask = "^2.2.3"
 psutil = "^5.9.4"
+websocket = "^0.2.1"
+diffusers = "^0.14.0"
+transformers = "^4.27.4"
+tensorflow = "^2.12.0"
 
 [build-system]
 requires = ["poetry-core"]

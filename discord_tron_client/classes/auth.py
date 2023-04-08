@@ -21,7 +21,7 @@ class Auth:
         response = requests.post(url, json=payload)
         
         if response.status_code == 200:
-            self.write_auth_ticket(response)
+            self.write_auth_ticket(response.json())
             return response.json()
         else:
             raise Exception("Error refreshing token: {}".format(response.text))
@@ -55,6 +55,9 @@ class Auth:
         from discord_tron_client.classes.app_config import AppConfig
         config = AppConfig()
         with open(config.auth_ticket_path, "w") as f:
+            if response is None:
+                raise Exception("Error writing auth ticket: response is None")
+
             output = json.dumps(response)
             f.write(output)
 
