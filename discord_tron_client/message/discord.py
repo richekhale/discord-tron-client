@@ -4,6 +4,8 @@ from PIL import Image
 import logging, websocket
 import base64
 from io import BytesIO
+from discord_tron_client.classes.hardware import HardwareInfo
+hardware = HardwareInfo()
 
 class DiscordMessage(WebsocketMessage):
     def __init__(self, websocket: websocket,  context, module_command: str = "send", message: str = "Loading the model and preparing to generate your image!", image: Image = None):
@@ -28,6 +30,7 @@ class DiscordMessage(WebsocketMessage):
     
     @staticmethod
     def print_prompt(payload):
+        system_hw = hardware.get_machine_info()
         user_config = payload["config"]
         prompt = payload["image_prompt"]
         model_id = user_config["model"]
@@ -41,6 +44,5 @@ class DiscordMessage(WebsocketMessage):
                 f"**Steps**: {steps}, **Strength (img2img)**: {strength}, **Temperature (txt2txt)**: {temperature}\n" \
                 f"**Model**: {model_id}\n" \
                 f"**Resolution (txt2img)**: " + str(resolution["width"]) + "x" + str(resolution["height"]) + "\n" \
-                f"**Negative prompt**: {negative_prompt}\n" \
-                f"**Positive prompt**: {positive_prompt}\n"
+                f"**{hardware.get_system_hostname()}**: {system_hw['gpu_type']} ({system_hw['video_memory_amount']}G), on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
                 

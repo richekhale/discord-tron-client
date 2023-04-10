@@ -38,7 +38,7 @@ async def variate_image(payload, websocket):
 
     except Exception as e:
         import traceback
-        logging.error(f"Error generating image: {e}")
+        logging.error(f"Error generating image: {e}\n\nStack trace:\n{traceback.format_exc()}")
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete_errors")
         await websocket.send(discord_msg.to_json())
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message=f"It seems we had an error while generating this image!\n```{e}\n{clean_traceback(traceback.format_exc())}\n```")

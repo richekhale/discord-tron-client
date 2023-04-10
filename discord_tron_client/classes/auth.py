@@ -24,7 +24,7 @@ class Auth:
             self.write_auth_ticket(response.json())
             return response.json()
         else:
-            raise Exception("Error refreshing token: {}".format(response.text))
+            raise Exception("Error refreshing client token: {}".format(response.text))
 
     # Before the token expires, we can get a new one normally.
     def get_access_token(self):
@@ -39,7 +39,7 @@ class Auth:
 
         import requests
         response = requests.post(url, json=payload)
-        
+        print(f"Response: {response.text}")
         if response.status_code == 200:
             new_ticket = response.json()['access_token']
             self.write_auth_ticket(response.json()["access_token"])
@@ -73,6 +73,7 @@ class Auth:
     def get(self):
         try:
             is_expired = self.is_token_expired()
+            self.get_access_token()
         except Exception as e:
             logging.error(f"Error checking token expiration: {e}")
             is_expired = True
@@ -82,4 +83,3 @@ class Auth:
             current_ticket = self.refresh_client_token(current_ticket["refresh_token"])
             import json
             print(f"New ticket: {json.dumps(current_ticket, indent=4)}")
-        self.get_access_token()
