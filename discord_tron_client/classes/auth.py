@@ -65,7 +65,8 @@ class Auth:
         token_received_at = datetime.fromisoformat(self.token_received_at).timestamp()
         expires_in = int(self.expires_in)
         test = time.time() >= (token_received_at + expires_in)
-        logging.info(f"Token expired? {test}")
+        if test:
+            logging.warning(f"Token expired. Token received at {token_received_at}, expires in {expires_in}, current time is {time.time()}.")
         return test
 
     # Request an access token from the auth server, refreshing it if necessary.

@@ -10,7 +10,7 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
     while True:
         try:
             websocket_config = config.get_websocket_config()
-            logging.info(f"Retrieved websocket config: {websocket_config}")
+            logging.debug(f"Retrieved websocket config: {websocket_config}")
             hub_url = str(websocket_config["protocol"]) + "://" + str(websocket_config["host"]) + ":" + str(websocket_config["port"])
             tls = websocket_config['tls']
             ssl_context = None
@@ -24,10 +24,9 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
                 "Authorization": f"Bearer {access_token}",
             }
             logging.info(f"Connecting to {hub_url}...")
-            async with websockets.connect(hub_url, ssl=ssl_context, extra_headers=headers) as websocket:
+            async with websockets.connect(hub_url, ssl=ssl_context, extra_headers=headers, max_size=33554432) as websocket:
                 # Send the startup sequence
                 if startup_sequence:
-                    logging.info(f"Sending startup sequence {startup_sequence}")
                     for message in startup_sequence:
                         logging.debug(f"Sending startup sequence message: {message}")
                         await websocket.send(message.to_json())
@@ -36,7 +35,8 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
                 else:
                     logging.error("No startup sequence found.")
                 async for message in websocket:
-                    logging.info(f"Received message: {message}")
+                    logging.info(f"Received message from master")
+                    logging.debug(f"{message}")
                     payload = json.loads(message)
                     await processor.process_command(payload=payload, websocket=websocket)
         except Exception as e:

@@ -1,5 +1,6 @@
 from discord_tron_client.classes.message import WebsocketMessage
 from discord_tron_client.modules.image_generation import generator as image_generator
+from discord_tron_client.modules.image_generation import variation as image_variator
 from typing import Dict, Any
 import logging, json, websocket
 
@@ -7,14 +8,17 @@ class WorkerProcessor:
     def __init__(self):
         self.command_handlers = {
             "image_generation": {
-                "generate_image": image_generator.generate_image
+                "generate_image": image_generator.generate_image,
             },
+            "image_variation": {
+                "variation_image": image_variator.variate_image,
+            }
             # Add more command handlers as needed
         }
 
     async def process_command(self, payload: Dict, websocket: websocket) -> None:
         try:
-            logging.info(f"Entered process_command via WebSocket, payload: {payload}")
+            logging.debug(f"Entered process_command via WebSocket, payload: {payload}")
             if "module_name" not in payload:
                 logging.warn("Not executing command payload via WorkerProcessor, as it does not contain a module_name: " + str(payload))
                 return
@@ -23,7 +27,8 @@ class WorkerProcessor:
                 # No handler found for the command
                 logging.error(f"No handler found in module " + str(payload["module_name"]) + " for command " + payload["module_command"] + ", payload: " + str(payload))
                 return
-            logging.info("Executing incoming " + str(handler) + " for module " + str(payload["module_name"]) + ", command " + payload["module_command"] + ", payload: " + str(payload))
+            logging.info(f"Running handler for command: {payload['module_command']} in module: {payload['module_name']}")
+            logging.debug("Executing incoming " + str(handler) + " for module " + str(payload["module_name"]) + ", command " + payload["module_command"] + ", payload: " + str(payload))
             return await handler(payload, websocket)
         except Exception as e:
             # enable tracemalloc:

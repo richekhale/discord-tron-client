@@ -1,7 +1,6 @@
 # classes/app_config.py
 
-import json
-import os
+import json, os, logging
 
 class AppConfig:
     # Class variables
@@ -15,14 +14,14 @@ class AppConfig:
         self.config_path = os.path.join(config_path, "config.json")
         self.example_config_path = os.path.join(config_path, "example.json")
         self.auth_ticket_path = os.path.join(config_path, "auth.json")
+        self.reload_config()
 
+    def reload_config(self):
         if not os.path.exists(self.config_path):
             with open(self.example_config_path, "r") as example_file:
                 example_config = json.load(example_file)
-
             with open(self.config_path, "w") as config_file:
-                json.dump(example_config, config_file)
-
+                json.dump(example_config, config_file, indent=4)
         with open(self.config_path, "r") as config_file:
             self.config = json.load(config_file)
 
@@ -33,6 +32,12 @@ class AppConfig:
     @classmethod
     def get_loop(cls):
         return cls.main_loop
+
+    def get_log_level(self):
+        self.reload_config()
+        level = self.config.get("log_level", "INFO")
+        result = getattr(logging, level.upper(), "ERROR")
+        return result
 
     # Retrieve the OAuth ticket information.
     def get_auth_ticket(self):
@@ -61,7 +66,9 @@ class AppConfig:
         return self.config.get("use_attn_scaling", False)
 
     def get_master_url(self):
-        return self.config.get("master_url", "http://localhost:5000")
+        hostname = str(self.get_websocket_hub_host())
+        logging.debug("Websucket hub host: "+hostname)
+        return self.config.get("master_url", "http://"+hostname+":5000")
     def get_websocket_hub_host(self):
         return self.config.get("websocket_hub", {}).get("host", "localhost")
     def get_websocket_hub_port(self):
@@ -75,7 +82,10 @@ class AppConfig:
         return {'host': self.get_websocket_hub_host(), 'port': self.get_websocket_hub_port(), 'tls': self.get_websocket_hub_tls(), 'protocol': protocol}
 
     def get_huggingface_api_key(self):
-        return self.config["huggingface_api"].get("api_key", None)
+        return self.config.get("huggingface_api", {}).get("api_key", None)
+    def get_huggingface_model_path(self):
+        return self.config.get("huggingface_api", {}).get("model_path", "/root/.cache/huggingface/hub")
+
     def get_discord_api_key(self):
         return self.config.get("discord", {}).get("api_key", None)
     def get_local_model_path(self):

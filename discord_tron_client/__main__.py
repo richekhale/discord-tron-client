@@ -1,7 +1,8 @@
 import asyncio
 from .ws_client import websocket_client
 import logging
-logging.basicConfig(level=logging.INFO)
+from discord_tron_client.classes import log_format
+
 from discord_tron_client.classes.app_config import AppConfig
 config = AppConfig()
 

@@ -14,7 +14,7 @@ class DiscordProgressBar:
     async def update_progress_bar(self, step: int):
         if step < self.current_step:
             # We do not want time going backwards for a progress bar.
-            logging.info("Time went backwards, Marty!")
+            logging.debug("Time went backwards, Marty!")
             return
         self.current_step = step
         progress = self.current_step / self.total_steps
@@ -24,15 +24,15 @@ class DiscordProgressBar:
         progress_text = "`" + f"[{bar}] {percent}% complete`"
         we_have_another_fifth_of_progress = percent % 20
         if we_have_another_fifth_of_progress == 0:
-            logging.info(f"Current document for websocket_msg: {self.websocket_msg.to_json()}")
-            logging.info(f"Update variables: {progress}, {filled_length}, {bar}, {percent}, {progress_text}, {we_have_another_fifth_of_progress}")
+            logging.debug(f"Current document for websocket_msg: {self.websocket_msg.to_json()}")
+            logging.debug(f"Update variables: {progress}, {filled_length}, {bar}, {percent}, {progress_text}, {we_have_another_fifth_of_progress}")
             # await self.discord_first_message.edit(content=progress_text)
-            logging.info("Sending to websocket!")
+            logging.info("Sending progress bar to websocket!")
             try:
                 # Update the websocket message template
                 self.websocket_msg.update(arguments={"message": progress_text})
                 to_send = self.websocket_msg.to_json()
-                logging.info(f"Sending data: {to_send}")
+                logging.debug(f"Sending data: {to_send}")
                 await self.websocket.send(str(to_send))
             except Exception as e:
                 logging.error("Traceback: ", exc_info=True)

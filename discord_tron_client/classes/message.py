@@ -13,7 +13,7 @@ class WebsocketMessage:
         self.arguments = None
 
     def update(self, message_type = None, module_name = None, module_command = None, data = None, arguments = None):
-        logging.info(f"Calling update on message: {message_type}, {module_name}, {module_command}, {data}, {arguments}")
+        logging.debug(f"Calling update on message: {message_type}, {module_name}, {module_command}, {data}, {arguments}")
         if message_type:
             self.message_type = message_type
         if module_name:
@@ -24,7 +24,7 @@ class WebsocketMessage:
             self.data = data
         if arguments:
             self.arguments = arguments
-            logging.info(f"Updated arguments: {self.arguments}")
+            logging.debug(f"Updated arguments: {self.arguments}")
 
     @staticmethod
     def encode_image_to_base64(image: Image) -> str:
@@ -41,9 +41,8 @@ class WebsocketMessage:
 
     def to_dict(self):
         # Check if "arguments" property exists, and use it. Otherwise, use base_arguments:
-        logging.info("Entering to_dict")
         if self.arguments is None:
-            logging.info("Addon arguments not found. Using constructor args.")
+            logging.debug("Addon arguments not found. Using constructor args.")
             self.arguments = self.base_arguments
         output = {
             "message_type": self.message_type,
@@ -53,7 +52,6 @@ class WebsocketMessage:
             "data": self.data,
             "arguments": self.arguments
         }
-        logging.info(f"Calling super dick method: {output}")
         return output
         
     def to_json(self):

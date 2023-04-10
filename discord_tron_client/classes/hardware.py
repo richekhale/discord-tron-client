@@ -114,7 +114,7 @@ class HardwareInfo:
 
         config = AppConfig()
         target_partition = config.config.get("target_partition", "/")
-        logging.info("Looking for disk space info for partition: " + target_partition)
+        logging.debug("Looking for disk space info for partition: " + target_partition)
         partitions = psutil.disk_partitions()
         for partition in partitions:
             if partition.device != target_partition:

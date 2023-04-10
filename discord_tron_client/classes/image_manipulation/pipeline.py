@@ -5,6 +5,7 @@ from discord_tron_client.classes.image_manipulation.resolution import Resolution
 from discord_tron_client.classes.tqdm_capture import TqdmCapture
 from discord_tron_client.classes.discord_progress_bar import DiscordProgressBar
 from discord_tron_client.message.discord import DiscordMessage
+from PIL import Image
 
 class PipelineRunner:
     def __init__(self, model_manager, pipeline_manager, app_config, user_config, discord_msg, websocket):
@@ -20,22 +21,35 @@ class PipelineRunner:
         self.pipeline_manager = pipeline_manager
         # A message template for the WebSocket events.
         self.progress_bar_message = DiscordMessage(websocket=websocket, context=discord_msg, module_command="edit")
-        # logging.info("Created a Progress Bar WebSocket Message: " + str(self.progress_bar_message.to_json()))
         # An object to manage a progress bar for Discord.
-        print(f"Websocket? {websocket}")
         self.progress_bar = DiscordProgressBar(websocket=websocket, websocket_message=self.progress_bar_message, progress_bar_steps=100, progress_bar_length=20, discord_first_message=discord_msg)
         self.tqdm_capture = TqdmCapture(self.progress_bar, main_loop)
         self.websocket = websocket
 
+    async def _prepare_pipe_async(self, model_id, img2img: bool = False, promptless_variation: bool = False):
+        loop = asyncio.get_event_loop()
+        loop_return = await loop.run_in_executor(
+            None, # Use the default ThreadPoolExecutor
+            self._prepare_pipe,
+            model_id,
+            img2img,
+            promptless_variation
+        )
+        return loop_return
 
-    def _prepare_pipe(self, model_id, use_attention_scaling):
+
+    def _prepare_pipe(self, model_id, img2img: bool = False, promptless_variation: bool = False):
         logging.info("Retrieving pipe for model " + str(model_id))
-        pipe = self.pipeline_manager.get_pipe(model_id, use_attention_scaling)
+        if not promptless_variation:
+            pipe = self.pipeline_manager.get_pipe(model_id, img2img)
+        else:
+            pipe = self.pipeline_manager.get_variation_pipe(model_id)
         logging.info("Copied pipe to the local context")
         return pipe
-    async def _generate_image_with_pipe_async(self, pipe, prompt, side_x, side_y, steps, negative_prompt):
+
+    async def _generate_image_with_pipe_async(self, pipe, prompt, side_x, side_y, steps, negative_prompt, user_config, image: Image = None, promptless_variation: bool = False):
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
+        loop_return = await loop.run_in_executor(
             None, # Use the default ThreadPoolExecutor
             self._generate_image_with_pipe,
             pipe,
@@ -43,26 +57,47 @@ class PipelineRunner:
             side_x,
             side_y,
             steps,
-            negative_prompt
+            negative_prompt,
+            user_config,
+            image,
+            promptless_variation
         )
-    def _generate_image_with_pipe(self, pipe, prompt, side_x, side_y, steps, negative_prompt):
+        delete_progress_bar = DiscordMessage(websocket=self.websocket, context=self.progress_bar_message.context, module_command="delete")
+        await self.websocket.send(delete_progress_bar.to_json())
+        return loop_return
+
+    def _generate_image_with_pipe(self, pipe, prompt, side_x, side_y, steps, negative_prompt, user_config, image: Image = None, promptless_variation: bool = False):
         with torch.no_grad():
             with tqdm(total=steps, ncols=100, file=self.tqdm_capture) as pbar:
-                image = pipe(
-                    prompt=prompt,
-                    height=side_y,
-                    width=side_x,
-                    num_inference_steps=int(float(steps)),
-                    negative_prompt=negative_prompt,
-                ).images[0]
+                if not promptless_variation and image is None:
+                    # We're not doing a promptless variation, and we don't have an image to start with.
+                    image = pipe(
+                        prompt=prompt,
+                        height=side_y,
+                        width=side_x,
+                        num_inference_steps=int(float(steps)),
+                        negative_prompt=negative_prompt,
+                    ).images[0]
+                elif image is not None:
+                    # We have an image to start with. Currently, promptless_variation falls through here. But it has its own pipeline to use.
+                    logging.info(f"Image is not None, using it as a starting point for the image generation process: {image}")
+                    image = pipe(
+                        prompt=prompt,
+                        image=image,
+                        strength=user_config["strength"], # How random the img2img should be. Higher = less.
+                        num_inference_steps=int(float(steps)),
+                        negative_prompt=negative_prompt,
+                    ).images[0]                    
         return image
 
-    async def generate_image( self, prompt, model_id, resolution, negative_prompt, steps, positive_prompt, user_config, discord_msg, websocket):
+    async def generate_image( self, prompt, model_id, resolution, negative_prompt, steps, positive_prompt, user_config, image: Image = None, promptless_variation: bool = False):
         logging.info("Initializing image generation pipeline...") 
         use_attention_scaling, steps = self.check_attention_scaling(resolution, steps)
         aspect_ratio, side_x, side_y = ResolutionManager.get_aspect_ratio_and_sides(self.config, resolution)
-
-        pipe = self._prepare_pipe(model_id, use_attention_scaling)
+        img2img = False
+        if image is not None:
+            img2img = True
+        pipe = await self._prepare_pipe_async(model_id, img2img, use_attention_scaling)
         logging.info("REDIRECTING THE PRECIOUS, STDOUT... SORRY IF THAT UPSETS YOU")
 
         original_stderr = sys.stderr
@@ -73,7 +108,7 @@ class PipelineRunner:
         for attempt in range(1, 6):
             try:
                 logging.info(f"Attempt {attempt}: Generating image...")
-                image = await self._generate_image_with_pipe_async(pipe, entire_prompt, side_x, side_y, steps, negative_prompt)
+                image = await self._generate_image_with_pipe_async(pipe, entire_prompt, side_x, side_y, steps, negative_prompt, user_config, image, promptless_variation)
                 logging.info("Image generation successful!")
 
                 scaling_target = ResolutionManager.nearest_scaled_resolution(resolution, user_config, self.config.get_max_resolution_by_aspect_ratio(aspect_ratio))
@@ -89,6 +124,7 @@ class PipelineRunner:
                     raise RuntimeError("Maximum retries reached, image generation failed")
             finally:
                 sys.stderr = original_stderr
+
     def check_attention_scaling(self, resolution, steps):
         is_attn_enabled = self.config.get_attention_scaling_status()
         use_attention_scaling = False

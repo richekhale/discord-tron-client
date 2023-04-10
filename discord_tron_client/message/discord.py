@@ -12,6 +12,7 @@ class DiscordMessage(WebsocketMessage):
             # Extract the context from the existing DiscordMessage
             context = context.data
             logging.info(f"Extracted data from the DiscordMessage context: {context}")
+        self.context = context
         arguments = { "message": message }
         if image is not None:
             arguments["image"] = self.b64_image(image)
@@ -24,3 +25,22 @@ class DiscordMessage(WebsocketMessage):
         image.save(buffered, format="PNG")
         b64_image = base64.b64encode(buffered.getvalue()).decode('utf-8')
         return b64_image
+    
+    @staticmethod
+    def print_prompt(payload):
+        user_config = payload["config"]
+        prompt = payload["image_prompt"]
+        model_id = user_config["model"]
+        resolution = user_config["resolution"]
+        negative_prompt = user_config["negative_prompt"]
+        steps = user_config["steps"]
+        temperature = user_config["temperature"]
+        strength = user_config["strength"]
+        positive_prompt = user_config["positive_prompt"]
+        return f"**Prompt**: {prompt}\n" \
+                f"**Steps**: {steps}, **Strength (img2img)**: {strength}, **Temperature (txt2txt)**: {temperature}\n" \
+                f"**Model**: {model_id}\n" \
+                f"**Resolution (txt2img)**: " + str(resolution["width"]) + "x" + str(resolution["height"]) + "\n" \
+                f"**Negative prompt**: {negative_prompt}\n" \
+                f"**Positive prompt**: {positive_prompt}\n"
+                
