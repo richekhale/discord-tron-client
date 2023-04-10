@@ -1,4 +1,6 @@
 from discord_tron_client.classes.message import WebsocketMessage
+from discord_tron_client.classes.hardware import HardwareInfo
+from discord_tron_client.message.job_queue import JobQueueMessage
 from discord_tron_client.modules.image_generation import generator as image_generator
 from discord_tron_client.modules.image_generation import variation as image_variator
 from typing import Dict, Any
@@ -29,7 +31,13 @@ class WorkerProcessor:
                 return
             logging.info(f"Running handler for command: {payload['module_command']} in module: {payload['module_name']}")
             logging.debug("Executing incoming " + str(handler) + " for module " + str(payload["module_name"]) + ", command " + payload["module_command"] + ", payload: " + str(payload))
-            return await handler(payload, websocket)
+            handler_result = await handler(payload, websocket)
+            if "job_id" in payload and payload["job_id"] != "":
+                # We have the output, but now we need to mark the Job as finished
+                hardware = HardwareInfo()
+                discord_msg = JobQueueMessage(websocket=websocket, job_id=payload["job_id"], worker_id=hardware.get_system_hostname(), module_command="finish")
+                await websocket.send(discord_msg.to_json())
+
         except Exception as e:
             # enable tracemalloc:
             import tracemalloc

@@ -72,7 +72,7 @@ class PipelineRunner:
                 with tqdm(total=steps, ncols=100, file=self.tqdm_capture) as pbar:
                     if not promptless_variation and image is None:
                         # We're not doing a promptless variation, and we don't have an image to start with.
-                        image = pipe(
+                        new_image = pipe(
                             prompt=prompt,
                             height=side_y,
                             width=side_x,
@@ -82,14 +82,14 @@ class PipelineRunner:
                     elif image is not None:
                         # We have an image to start with. Currently, promptless_variation falls through here. But it has its own pipeline to use.
                         logging.info(f"Image is not None, using it as a starting point for the image generation process: {image}")
-                        image = pipe(
+                        new_image = pipe(
                             prompt=prompt,
                             image=image,
                             strength=user_config["strength"], # How random the img2img should be. Higher = less.
                             num_inference_steps=int(float(steps)),
                             negative_prompt=negative_prompt,
                         ).images[0]                    
-            return image
+            return new_image
         except Exception as e:
             logging.error("Error while generating image: " + str(e) + " " + str(traceback.format_exc()))
 
@@ -113,6 +113,7 @@ class PipelineRunner:
                 logging.info(f"Attempt {attempt}: Generating image...")
                 image = await self._generate_image_with_pipe_async(pipe, entire_prompt, side_x, side_y, steps, negative_prompt, user_config, image, promptless_variation)
                 logging.info("Image generation successful!")
+                break
             except Exception as e:
                 logging.error(f"Error generating image: {e}\n\nStack trace:\n{traceback.format_exc()}")
                 if attempt < 5:

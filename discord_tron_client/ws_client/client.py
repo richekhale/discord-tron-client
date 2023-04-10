@@ -31,6 +31,9 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
                 "Authorization": f"Bearer {access_token}",
             }
             logging.info(f"Connecting to {hub_url}...")
+            # Set the logging level for the websockets library only
+            websocket_logger = logging.getLogger('websockets')
+            websocket_logger.setLevel(logging.WARNING) 
             async with websockets.connect(hub_url, ssl=ssl_context, extra_headers=headers, max_size=33554432) as websocket:
                 # Send the startup sequence
                 if startup_sequence:
