@@ -33,7 +33,11 @@ class DiscordProgressBar:
                 self.websocket_msg.update(arguments={"message": progress_text})
                 to_send = self.websocket_msg.to_json()
                 logging.debug(f"Sending data: {to_send}")
-                await self.websocket.send(str(to_send))
+                try:
+                    await self.websocket.send(str(to_send))
+                except websocket.exceptions.ConnectionClosedError as e:
+                    logging.error("Connection closed while sending progress bar update!")
+                    logging.error("Traceback: ", exc_info=True)
             except Exception as e:
                 logging.error("Traceback: ", exc_info=True)
     

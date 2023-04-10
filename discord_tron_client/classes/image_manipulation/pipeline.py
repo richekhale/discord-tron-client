@@ -113,12 +113,6 @@ class PipelineRunner:
                 logging.info(f"Attempt {attempt}: Generating image...")
                 image = await self._generate_image_with_pipe_async(pipe, entire_prompt, side_x, side_y, steps, negative_prompt, user_config, image, promptless_variation)
                 logging.info("Image generation successful!")
-
-                scaling_target = ResolutionManager.nearest_scaled_resolution(resolution, user_config, self.config.get_max_resolution_by_aspect_ratio(aspect_ratio))
-                if scaling_target != resolution:
-                    logging.info("Rescaling image to nearest resolution...")
-                    image = image.resize((scaling_target["width"], scaling_target["height"]))
-                return image
             except Exception as e:
                 logging.error(f"Error generating image: {e}\n\nStack trace:\n{traceback.format_exc()}")
                 if attempt < 5:
@@ -127,6 +121,16 @@ class PipelineRunner:
                     raise RuntimeError("Maximum retries reached, image generation failed")
             finally:
                 sys.stderr = original_stderr
+        try:
+            scaling_target = ResolutionManager.nearest_scaled_resolution(resolution, user_config, self.config.get_max_resolution_by_aspect_ratio(aspect_ratio))
+            if scaling_target != resolution:
+                logging.info("Rescaling image to nearest resolution...")
+                image = image.resize((scaling_target["width"], scaling_target["height"]))
+            return image
+        except Exception as e:
+            logging.error(f"Error generating image: {e}\n\nStack trace:\n{traceback.format_exc()}")
+            raise RuntimeError("Error resizing image: {e}")
+
 
     def check_attention_scaling(self, resolution, steps):
         is_attn_enabled = self.config.get_attention_scaling_status()
