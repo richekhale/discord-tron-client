@@ -18,7 +18,7 @@ class Auth:
         url = self.base_url + "/refresh_token"
         payload = {"refresh_token": refresh_token}
         import requests
-        response = requests.post(url, json=payload)
+        response = requests.post(url, json=payload, verify=self.config.verify_master_ssl())
         
         if response.status_code == 200:
             self.write_auth_ticket(response.json())
@@ -38,7 +38,7 @@ class Auth:
         payload = { "api_key": api_key, "client_id": auth_ticket["client_id"] }
 
         import requests
-        response = requests.post(url, json=payload)
+        response = requests.post(url, json=payload, verify=self.config.verify_master_ssl())
         print(f"Response: {response.text}")
         if response.status_code == 200:
             new_ticket = response.json()['access_token']

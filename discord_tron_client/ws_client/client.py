@@ -15,8 +15,15 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
             tls = websocket_config['tls']
             ssl_context = None
             if tls:
-                ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+                ssl_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+                ssl_context.load_cert_chain(websocket_config['server_cert_path'], websocket_config['server_key_path'])
                 ssl_context.load_verify_locations(websocket_config['server_cert_path'])
+                # Set the correct SSL/TLS version (You can change PROTOCOL_TLS to the appropriate version if needed)
+                ssl_context.options |= ssl.OP_NO_SSLv2 | ssl.OP_NO_SSLv3 | ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1
+                verify_ssl = config.config.get("websocket_hub", {}).get("verify_ssl", False)
+                if not verify_ssl:
+                    ssl_context.check_hostname = verify_ssl  # Disable hostname verification
+                    ssl_context.verify_mode = ssl.CERT_NONE  # Disable certificate verification
 
             # Add the access token to the header
             access_token = config.get_auth_ticket().get("access_token", None)

@@ -67,28 +67,31 @@ class PipelineRunner:
         return loop_return
 
     def _generate_image_with_pipe(self, pipe, prompt, side_x, side_y, steps, negative_prompt, user_config, image: Image = None, promptless_variation: bool = False):
-        with torch.no_grad():
-            with tqdm(total=steps, ncols=100, file=self.tqdm_capture) as pbar:
-                if not promptless_variation and image is None:
-                    # We're not doing a promptless variation, and we don't have an image to start with.
-                    image = pipe(
-                        prompt=prompt,
-                        height=side_y,
-                        width=side_x,
-                        num_inference_steps=int(float(steps)),
-                        negative_prompt=negative_prompt,
-                    ).images[0]
-                elif image is not None:
-                    # We have an image to start with. Currently, promptless_variation falls through here. But it has its own pipeline to use.
-                    logging.info(f"Image is not None, using it as a starting point for the image generation process: {image}")
-                    image = pipe(
-                        prompt=prompt,
-                        image=image,
-                        strength=user_config["strength"], # How random the img2img should be. Higher = less.
-                        num_inference_steps=int(float(steps)),
-                        negative_prompt=negative_prompt,
-                    ).images[0]                    
-        return image
+        try:
+            with torch.no_grad():
+                with tqdm(total=steps, ncols=100, file=self.tqdm_capture) as pbar:
+                    if not promptless_variation and image is None:
+                        # We're not doing a promptless variation, and we don't have an image to start with.
+                        image = pipe(
+                            prompt=prompt,
+                            height=side_y,
+                            width=side_x,
+                            num_inference_steps=int(float(steps)),
+                            negative_prompt=negative_prompt,
+                        ).images[0]
+                    elif image is not None:
+                        # We have an image to start with. Currently, promptless_variation falls through here. But it has its own pipeline to use.
+                        logging.info(f"Image is not None, using it as a starting point for the image generation process: {image}")
+                        image = pipe(
+                            prompt=prompt,
+                            image=image,
+                            strength=user_config["strength"], # How random the img2img should be. Higher = less.
+                            num_inference_steps=int(float(steps)),
+                            negative_prompt=negative_prompt,
+                        ).images[0]                    
+            return image
+        except Exception as e:
+            logging.error("Error while generating image: " + str(e) + " " + str(traceback.format_exc()))
 
     async def generate_image( self, prompt, model_id, resolution, negative_prompt, steps, positive_prompt, user_config, image: Image = None, promptless_variation: bool = False):
         logging.info("Initializing image generation pipeline...") 

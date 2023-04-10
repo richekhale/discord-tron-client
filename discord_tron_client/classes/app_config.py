@@ -10,6 +10,7 @@ class AppConfig:
     def __init__(self):
         from pathlib import Path
         parent = os.path.dirname(Path(__file__).resolve().parent)
+        self.parent = parent
         config_path = os.path.join(parent, "config")
         self.config_path = os.path.join(config_path, "config.json")
         self.example_config_path = os.path.join(config_path, "example.json")
@@ -44,7 +45,10 @@ class AppConfig:
         with open(self.auth_ticket_path, "r") as auth_ticket:
             auth_data = json.load(auth_ticket)
             return auth_data
-
+    def get_tls_key_path(self):
+        return self.parent + '/' + self.config.get("websocket_hub", {}).get("server_key_path", 'config/server_key.pem')
+    def get_tls_pem_path(self):
+        return self.parent + '/' + self.config.get("websocket_hub", {}).get("server_pem_path", 'config/server_cert.pem')
     def get_master_api_key(self):
         return self.config.get("master_api_key", None)
 
@@ -68,7 +72,11 @@ class AppConfig:
     def get_master_url(self):
         hostname = str(self.get_websocket_hub_host())
         logging.debug("Websucket hub host: "+hostname)
-        return self.config.get("master_url", "http://"+hostname+":5000")
+        return self.config.get("master_url", "https://"+hostname+":5000")
+
+    def verify_master_ssl(self):
+        return self.config.get("websocket_hub", {}).get("verify_ssl", False)
+
     def get_websocket_hub_host(self):
         return self.config.get("websocket_hub", {}).get("host", "localhost")
     def get_websocket_hub_port(self):
@@ -79,7 +87,7 @@ class AppConfig:
         protocol="ws"
         if self.get_websocket_hub_tls():
             protocol="wss"
-        return {'host': self.get_websocket_hub_host(), 'port': self.get_websocket_hub_port(), 'tls': self.get_websocket_hub_tls(), 'protocol': protocol}
+        return {'host': self.get_websocket_hub_host(), 'port': self.get_websocket_hub_port(), 'tls': self.get_websocket_hub_tls(), 'protocol': protocol, 'server_cert_path': self.get_tls_pem_path(), 'server_key_path': self.get_tls_key_path()}
 
     def get_huggingface_api_key(self):
         return self.config.get("huggingface_api", {}).get("api_key", None)
