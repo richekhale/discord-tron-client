@@ -67,7 +67,7 @@ class PipelineRunner:
         for attempt in range(1, 6):
             if not self.websocket or not hasattr(self.websocket, "open") or self.websocket.open != True:
                 logging.warn("WebSocket connection is not open. Retrieving fresh instance.")
-                self.websocket = await AppConfig.get_websocket()
+                self.websocket = AppConfig.get_websocket()
                 await asyncio.sleep(2)
             else:
                 logging.debug("WebSocket connection is open. Continuing.")
