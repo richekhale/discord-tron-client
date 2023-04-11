@@ -35,6 +35,7 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
             websocket_logger = logging.getLogger('websockets')
             websocket_logger.setLevel(logging.WARNING) 
             async with websockets.connect(hub_url, ssl=ssl_context, extra_headers=headers, max_size=33554432) as websocket:
+                AppConfig.set_websocket(websocket)
                 # Send the startup sequence
                 if startup_sequence:
                     for message in startup_sequence:
@@ -49,6 +50,15 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
                     logging.debug(f"{message}")
                     payload = json.loads(message)
                     await processor.process_command(payload=payload, websocket=websocket)
+        except asyncio.exceptions.IncompleteReadError as e:
+            logging.warning(f"IncompleteReadError: {e}")
+            # ... handle the situation as needed
+        except websockets.exceptions.ConnectionClosedError as e:
+            logging.warning(f"ConnectionClosedError: {e}")
+            # ... handle the situation as needed
+        except Exception as e:
+            logging.error(f"Unhandled exception in handler: {e}")
+
         except Exception as e:
             import traceback
             logging.error(f"Fatal Error: {e}, traceback: {traceback.format_exc()}")

@@ -63,6 +63,14 @@ class PipelineRunner:
             promptless_variation
         )
         delete_progress_bar = DiscordMessage(websocket=self.websocket, context=self.progress_bar_message.context, module_command="delete")
+        for attempt in range(1, 6):
+            if self.websocket.readyState != 1:
+                logging.warn("WebSocket connection is not open. Retrieving fresh instance.")
+                await asyncio.sleep(5)
+                self.websocket = await AppConfig.get_websocket()
+            else:
+                logging.debug("WebSocket connection is open. Continuing.")
+                break
         await self.websocket.send(delete_progress_bar.to_json())
         return loop_return
 

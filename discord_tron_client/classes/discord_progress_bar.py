@@ -1,6 +1,7 @@
 from typing import Dict
 from discord_tron_client.message.discord import DiscordMessage
-import logging, websocket
+from discord_tron_client.classes.app_config import AppConfig
+import logging, websockets
 from websockets.client import WebSocketClientProtocol
 class DiscordProgressBar:
     def __init__(self, websocket: WebSocketClientProtocol, websocket_message: DiscordMessage, discord_first_message: Dict, progress_bar_steps = 100, progress_bar_length = 20):
@@ -35,8 +36,9 @@ class DiscordProgressBar:
                 logging.debug(f"Sending data: {to_send}")
                 try:
                     await self.websocket.send(str(to_send))
-                except websocket.exceptions.ConnectionClosedError as e:
-                    logging.error("Connection closed while sending progress bar update!")
+                except websockets.exceptions.ConnectionClosedError as e:
+                    logging.error("Connection closed while sending progress bar update! Retrieving fresh websockie?")
+                    self.websocket = AppConfig.get_websocket()
                     logging.error("Traceback: ", exc_info=True)
             except Exception as e:
                 logging.error("Traceback: ", exc_info=True)

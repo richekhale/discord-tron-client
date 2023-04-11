@@ -5,6 +5,7 @@ import json, os, logging
 class AppConfig:
     # Class variables
     main_loop = None
+    main_websocket = None
 
     # Initialize the config object.
     def __init__(self):
@@ -29,6 +30,13 @@ class AppConfig:
     @classmethod
     def set_loop(cls, loop):
         cls.main_loop = loop
+
+    @classmethod
+    def set_websocket(cls, websocket):
+        cls.main_websocket = websocket
+    @classmethod
+    def get_websocket(cls):
+        return cls.main_websocket
 
     @classmethod
     def get_loop(cls):
