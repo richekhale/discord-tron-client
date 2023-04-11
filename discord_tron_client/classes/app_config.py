@@ -77,6 +77,9 @@ class AppConfig:
     def get_attention_scaling_status(self):
         return self.config.get("use_attn_scaling", False)
 
+    def get_web_root(self):
+        return self.config.get("web_root", "/var/www/localhost/htdocs")
+
     def get_master_url(self):
         hostname = str(self.get_websocket_hub_host())
         logging.debug("Websucket hub host: "+hostname)

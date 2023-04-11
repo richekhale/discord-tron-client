@@ -24,7 +24,7 @@ async def generate_image(payload, websocket):
         pipeline_runner = pipeline.PipelineRunner(model_manager=model_manager, pipeline_manager=pipeline_manager, app_config=config, user_config=user_config, discord_msg=discord_msg, websocket=websocket)
         result = await pipeline_runner.generate_image(prompt, model_id, resolution, negative_prompt, steps, positive_prompt, user_config)
         logging.info("Image generated successfully!")
-        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=DiscordMessage.print_prompt(payload), image=result)
+        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send_image", message=DiscordMessage.print_prompt(payload), image=result)
         await websocket.send(discord_msg.to_json())
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")
         await websocket.send(discord_msg.to_json())
