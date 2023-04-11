@@ -23,7 +23,7 @@ class DiscordProgressBar:
         we_have_another_fifth_of_progress = percent % 20
         # Let's not accidentally trigger too many updates. Store the time here, and wait at least 5 seconds before another update.
         current_Time = time.time()
-        if current_Time - self.last_update < 5:
+        if current_Time - self.last_update < 1:
             return
         # We have passed five seconds. Update can continue. Mark new time.
         self.last_update = current_Time
