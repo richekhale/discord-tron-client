@@ -1,7 +1,7 @@
 from typing import Dict
 from discord_tron_client.message.discord import DiscordMessage
 from discord_tron_client.classes.app_config import AppConfig
-import logging, websockets
+import logging, websockets, time
 from websockets.client import WebSocketClientProtocol
 class DiscordProgressBar:
     def __init__(self, websocket: WebSocketClientProtocol, websocket_message: DiscordMessage, discord_first_message: Dict, progress_bar_steps = 100, progress_bar_length = 20):
@@ -11,7 +11,8 @@ class DiscordProgressBar:
         self.websocket_msg = websocket_message
         self.websocket = websocket
         self.discord_first_message = discord_first_message
-
+        # Last updated time.
+        self.last_update = 0
     async def update_progress_bar(self, step: int):
         if step < self.current_step:
             # We do not want time going backwards for a progress bar.
@@ -24,6 +25,12 @@ class DiscordProgressBar:
         percent = round(progress * 100, 1)
         progress_text = "`" + f"[{bar}] {percent}% complete`"
         we_have_another_fifth_of_progress = percent % 20
+        # Let's not accidentally trigger too many updates. Store the time here, and wait at least 5 seconds before another update.
+        current_Time = time.time()
+        if current_Time - self.last_update < 5:
+            return
+        # We have passed five seconds. Update can continue. Mark new time.
+        self.last_update = current_Time
         if we_have_another_fifth_of_progress == 0:
             logging.debug(f"Current document for websocket_msg: {self.websocket_msg.to_json()}")
             logging.debug(f"Update variables: {progress}, {filled_length}, {bar}, {percent}, {progress_text}, {we_have_another_fifth_of_progress}")
