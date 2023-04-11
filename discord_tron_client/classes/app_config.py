@@ -41,10 +41,16 @@ class AppConfig:
 
     @classmethod
     def get_image_worker_thread(cls):
+        if cls.get_image_worker_thread is None:
+            return cls.set_worker_thread()
         return cls.image_processing_executor
+
     @classmethod
     def set_image_worker_thread(cls):
-        cls.image_processing_executor = ThreadPoolExecutor(max_workers=4)  # Adjust max_workers based on your requirements
+        if cls.image_processing_executor is not None:
+            return cls.image_processing_executor
+        config = AppConfig()
+        cls.image_processing_executor = ThreadPoolExecutor(max_workers=config.get_concurrent_slots())
         
     @classmethod
     def get_loop(cls):

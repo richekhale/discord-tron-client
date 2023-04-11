@@ -51,7 +51,7 @@ class PipelineRunner:
     async def _generate_image_with_pipe_async(self, pipe, prompt, side_x, side_y, steps, negative_prompt, user_config, image: Image = None, promptless_variation: bool = False):
         loop = asyncio.get_event_loop()
         loop_return = await loop.run_in_executor(
-            None, # Use the default ThreadPoolExecutor
+            AppConfig.get_image_worker_thread(), # Use a dedicated image processing thread worker.
             self._generate_image_with_pipe,
             pipe,
             prompt,
