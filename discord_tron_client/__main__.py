@@ -29,11 +29,10 @@ def main():
         hardware_info_message = WebsocketMessage(message_type="hardware_info", module_name="system", module_command="update", arguments=machine_info)
         startup_sequence.append(hardware_info_message)
         main_loop = asyncio.get_event_loop()
-        websocket_task = asyncio.ensure_future(websocket_client(config, startup_sequence))
-
         # Add the main loop to the central Config object.
         AppConfig.set_loop(main_loop)
-        
+        main_loop.run_until_complete(websocket_client(config, startup_sequence))
+
         # Start the Flask server
         from discord_tron_client.app_factory import create_app
         app = create_app()
