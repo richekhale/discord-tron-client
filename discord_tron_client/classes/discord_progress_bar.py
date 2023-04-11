@@ -22,14 +22,14 @@ class DiscordProgressBar:
         progress_text = "`" + f"[{bar}] {percent}% complete`"
         we_have_another_fifth_of_progress = percent % 20
         # Let's not accidentally trigger too many updates. Store the time here, and wait at least 5 seconds before another update.
-        current_Time = time.time()
-        if current_Time - self.last_update < 1:
+        current_time = time.time()
+        if current_time - self.last_update < 1:
             return
         # We have passed five seconds. Update can continue. Mark new time.
-        self.last_update = current_Time
+        self.last_update = current_time
+        logging.debug(f"Update variables, last update: {self.last_update} vs current_time {current_time}, progress: {progress}, {filled_length}, {bar}, {percent}, {progress_text}, {we_have_another_fifth_of_progress}")
         if we_have_another_fifth_of_progress == 0:
             logging.debug(f"Current document for websocket_msg: {self.websocket_msg.to_json()}")
-            logging.debug(f"Update variables: {progress}, {filled_length}, {bar}, {percent}, {progress_text}, {we_have_another_fifth_of_progress}")
             # await self.discord_first_message.edit(content=progress_text)
             logging.info("Sending progress bar to websocket!")
             try:
