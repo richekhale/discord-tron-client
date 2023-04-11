@@ -12,7 +12,7 @@ class DiscordProgressBar:
         self.websocket = websocket
         self.discord_first_message = discord_first_message
         # Last updated time.
-        self.last_update = 0
+        self.last_update = time.time()
     async def update_progress_bar(self, step: int):
         if step < self.current_step:
             # We do not want time going backwards for a progress bar.
