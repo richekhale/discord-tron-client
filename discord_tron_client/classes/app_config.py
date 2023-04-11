@@ -1,12 +1,13 @@
 # classes/app_config.py
 
 import json, os, logging
+from concurrent.futures import ThreadPoolExecutor
 
 class AppConfig:
     # Class variables
     main_loop = None
     main_websocket = None
-
+    image_processing_executor = None
     # Initialize the config object.
     def __init__(self):
         from pathlib import Path
@@ -38,6 +39,13 @@ class AppConfig:
     def get_websocket(cls):
         return cls.main_websocket
 
+    @classmethod
+    def get_image_worker_thread(cls):
+        return cls.image_processing_executor
+    @classmethod
+    def set_image_worker_thread(cls):
+        cls.image_processing_executor = ThreadPoolExecutor(max_workers=4)  # Adjust max_workers based on your requirements
+        
     @classmethod
     def get_loop(cls):
         return cls.main_loop

@@ -33,11 +33,11 @@ def main():
 
         # Add the main loop to the central Config object.
         AppConfig.set_loop(main_loop)
-
+        
         # Start the Flask server
-        # from discord_tron_client.app_factory import create_app
-        # app = create_app()
-        # app.run()
+        from discord_tron_client.app_factory import create_app
+        app = create_app()
+        app.run()
     except KeyboardInterrupt:
         logging.info("Shutting down...")
         exit(0)

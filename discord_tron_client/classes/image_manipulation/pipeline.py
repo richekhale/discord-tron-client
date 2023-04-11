@@ -6,6 +6,7 @@ from discord_tron_client.classes.tqdm_capture import TqdmCapture
 from discord_tron_client.classes.discord_progress_bar import DiscordProgressBar
 from discord_tron_client.message.discord import DiscordMessage
 from PIL import Image
+from concurrent.futures import ThreadPoolExecutor
 
 class PipelineRunner:
     def __init__(self, model_manager, pipeline_manager, app_config, user_config, discord_msg, websocket):
