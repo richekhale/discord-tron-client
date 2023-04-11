@@ -14,6 +14,10 @@ class DiscordProgressBar:
         # Last updated time.
         self.last_update = time.time()
     async def update_progress_bar(self, step: int):
+        logging.debug(f"Progress bar update variables, last update: {step} vs current_time {self.current_step}, progress: {progress}, {filled_length}, {bar}, {percent}, {progress_text}, {we_have_another_fifth_of_progress}")
+        if step <= self.current_step:
+            logging.warn(f"Step {step} is less than or equal to current step {self.current_step}. This means the progress bar tried updating to the same state more than once.")
+            return
         self.current_step = step
         progress = self.current_step / self.total_steps
         filled_length = int(progress * self.progress_bar_length)
@@ -21,13 +25,6 @@ class DiscordProgressBar:
         percent = round(progress * 100, 1)
         progress_text = "`" + f"[{bar}] {percent}% complete`"
         we_have_another_fifth_of_progress = percent % 20
-        # Let's not accidentally trigger too many updates. Store the time here, and wait at least 5 seconds before another update.
-        current_time = time.time()
-        if current_time - self.last_update < 1:
-            return
-        # We have passed five seconds. Update can continue. Mark new time.
-        self.last_update = current_time
-        logging.debug(f"Update variables, last update: {self.last_update} vs current_time {current_time}, progress: {progress}, {filled_length}, {bar}, {percent}, {progress_text}, {we_have_another_fifth_of_progress}")
         if we_have_another_fifth_of_progress == 0:
             logging.debug(f"Current document for websocket_msg: {self.websocket_msg.to_json()}")
             # await self.discord_first_message.edit(content=progress_text)
