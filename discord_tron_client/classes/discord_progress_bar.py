@@ -15,8 +15,8 @@ class DiscordProgressBar:
         self.last_update = time.time()
     async def update_progress_bar(self, step: int):
         logging.debug(f"Progress bar update variables, last update: {step} vs current_time {self.current_step}, progress: {progress}, {filled_length}, {bar}, {percent}, {progress_text}, {we_have_another_fifth_of_progress}")
-        if step <= self.current_step:
-            logging.warn(f"Step {step} is less than or equal to current step {self.current_step}. This means the progress bar tried updating to the same state more than once.")
+        if step < self.current_step:
+            logging.warn(f"Step {step} is less than current step {self.current_step}. This means the progress bar tried updating to the same state more than once.")
             return
         self.current_step = step
         progress = self.current_step / self.total_steps
