@@ -57,7 +57,7 @@ class ResolutionManager:
     @staticmethod
     def nearest_scaled_resolution(resolution: dict, user_config: dict, max_resolution_config: dict):
         # We will scale by default, to 4x the requested resolution. Big energy!
-        factor = user_config.get("resize_factor", 1)
+        factor = user_config.get("resize", 1)
         logging.info("Resize configuration is set by user factoring at " + str(factor) + " based on our max resolution config, " + str(max_resolution_config) + ".")
         if factor == 1 or factor == 0:
             # Do not bother rescaling if it's set to 1 or 0
