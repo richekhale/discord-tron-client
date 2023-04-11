@@ -49,7 +49,7 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
                     logging.info(f"Received message from master")
                     logging.debug(f"{message}")
                     payload = json.loads(message)
-                    await processor.process_command(payload=payload, websocket=websocket)
+                    asyncio.create_task(processor.process_command(payload=payload, websocket=websocket))
         except asyncio.exceptions.IncompleteReadError as e:
             logging.warning(f"IncompleteReadError: {e}")
             # ... handle the situation as needed
