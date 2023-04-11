@@ -1,7 +1,7 @@
 from flask import Flask
-from discord_tron_client.config import Config
+from discord_tron_client.config import AppConfig
 
-def create_app(config_class=Config):
+def create_app(config_class=AppConfig):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
