@@ -52,7 +52,7 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
                     logging.debug(f"{message}")
                     payload = json.loads(message)
                     async with semaphore:
-                        asyncio.create_task(processor.process_command_with_semaphore(processor, semaphore, payload=payload, websocket=websocket))
+                        asyncio.create_task(process_command_with_semaphore(processor, semaphore, payload=payload, websocket=websocket))
         except asyncio.exceptions.IncompleteReadError as e:
             logging.warning(f"IncompleteReadError: {e}")
             # ... handle the situation as needed
