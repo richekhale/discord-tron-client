@@ -1,6 +1,6 @@
 # classes/app_config.py
 
-import json, os, logging
+import json, os, logging, traceback
 from concurrent.futures import ThreadPoolExecutor
 
 class AppConfig:
@@ -42,8 +42,7 @@ class AppConfig:
     @classmethod
     def get_image_worker_thread(cls):
         if cls.get_image_worker_thread is None:
-            return cls.set_worker_thread()
-        return cls.image_processing_executor
+            raise Exception(f"AppConfig.image_processing_executor is not set! Traceback: {traceback.format_stack()}")
 
     @classmethod
     def set_image_worker_thread(cls):
