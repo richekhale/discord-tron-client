@@ -7,6 +7,8 @@ from discord_tron_client.classes.worker_processor import WorkerProcessor
 
 async def websocket_client(config: AppConfig, startup_sequence:str = None):
     processor = WorkerProcessor()
+    concurrent_slots = config.get_concurrent_slots()
+    semaphore = asyncio.Semaphore(concurrent_slots)
     while True:
         try:
             websocket_config = config.get_websocket_config()
@@ -49,7 +51,8 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
                     logging.info(f"Received message from master")
                     logging.debug(f"{message}")
                     payload = json.loads(message)
-                    asyncio.create_task(processor.process_command(payload=payload, websocket=websocket))
+                    async with semaphore:
+                        asyncio.create_task(processor.process_command(payload=payload, websocket=websocket))
         except asyncio.exceptions.IncompleteReadError as e:
             logging.warning(f"IncompleteReadError: {e}")
             # ... handle the situation as needed
