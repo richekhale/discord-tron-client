@@ -1,7 +1,7 @@
 from typing import Dict
 from discord_tron_client.message.discord import DiscordMessage
 from discord_tron_client.classes.app_config import AppConfig
-import logging, websockets, time
+import logging, websockets, time, asyncio
 from websockets.client import WebSocketClientProtocol
 class DiscordProgressBar:
     def __init__(self, websocket: WebSocketClientProtocol, websocket_message: DiscordMessage, discord_first_message: Dict, progress_bar_steps = 100, progress_bar_length = 20):
@@ -37,15 +37,25 @@ class DiscordProgressBar:
                 self.websocket_msg.update(arguments={"message": progress_text})
                 to_send = self.websocket_msg.to_json()
                 logging.debug(f"Sending data: {to_send}")
-                try:
-                    await self.websocket.send(str(to_send))
-                except websockets.exceptions.ConnectionClosedError as e:
-                    logging.error("Connection closed while sending progress bar update! Retrieving fresh websockie?")
-                    self.websocket = AppConfig.get_websocket()
-                    logging.error("Traceback: ", exc_info=True)
+                await self.send_update(self.websocket, str(to_send))  # Use the send_update function here
             except Exception as e:
                 logging.error("Traceback: ", exc_info=True)
-    
+    async def send_update(self, websocket, message, max_retries=5):
+        for attempt in range(1, max_retries + 1):
+            try:
+                await websocket.send(message)
+                break  # Message sent successfully
+            except websockets.exceptions.ConnectionClosedError:
+                if attempt < max_retries:
+                    logging.warning(f"WebSocket connection closed, attempt {attempt}/{max_retries}. Retrying...")
+                    await asyncio.sleep(1)  # Wait before retrying
+                    websocket = AppConfig.get_websocket()  # Get the latest WebSocket instance
+                else:
+                    logging.error(f"WebSocket connection closed, reached max retries ({max_retries}).")
+                    raise
+            except Exception as e:
+                logging.error(f"Error sending message: {e}")
+                raise
     # Return a JSON representation of the object
     def to_json(self):
         return {
