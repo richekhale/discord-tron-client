@@ -78,17 +78,17 @@ class AppConfig:
 
     def get_command_prefix(self):
         return self.config.get("cmd_prefix", "+")
+
     def get_max_resolution_by_aspect_ratio(self, aspect_ratio: str):
         return self.config.get("maxres", {}).get(aspect_ratio, {"width": self.get_max_resolution_width(aspect_ratio=aspect_ratio), "height": self.get_max_resolution_height(aspect_ratio=aspect_ratio)})
-
     def get_max_resolution_width(self, aspect_ratio: str):
         return self.config.get("maxres", {}).get(aspect_ratio, {}).get("width", 3840)
-
     def get_max_resolution_height(self, aspect_ratio: str):
         return self.config.get("maxres", {}).get(aspect_ratio, {}).get("height", 2160)
-
     def get_attention_scaling_status(self):
         return self.config.get("use_attn_scaling", False)
+    def get_precision_bits(self):
+        return self.config.get("precision_bits", 16)
 
     def get_web_root(self):
         return self.config.get("web_root", "/var/www/localhost/htdocs")
