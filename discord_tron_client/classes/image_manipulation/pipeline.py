@@ -117,7 +117,7 @@ class PipelineRunner:
 
         entire_prompt = self.combine_prompts(prompt, positive_prompt)
 
-        for attempt in range(1, 6):
+        for attempt in range(1, 1):
             try:
                 logging.info(f"Attempt {attempt}: Generating image...")
                 image = await self._generate_image_with_pipe_async(pipe, entire_prompt, side_x, side_y, steps, negative_prompt, user_config, image, promptless_variation)
