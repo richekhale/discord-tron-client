@@ -30,7 +30,7 @@ class PipelineRunner:
     async def _prepare_pipe_async(self, model_id, img2img: bool = False, promptless_variation: bool = False):
         loop = asyncio.get_event_loop()
         loop_return = await loop.run_in_executor(
-            None, # Use the default ThreadPoolExecutor
+            AppConfig.get_image_worker_thread(), # Use a dedicated image processing thread worker.
             self._prepare_pipe,
             model_id,
             img2img,
@@ -101,6 +101,10 @@ class PipelineRunner:
             return new_image
         except Exception as e:
             logging.error("Error while generating image: " + str(e) + " " + str(traceback.format_exc()))
+    
+    async def _resize_image_async(self, image, width, height):
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, image.resize, (width, height))
 
     async def generate_image( self, prompt, model_id, resolution, negative_prompt, steps, positive_prompt, user_config, image: Image = None, promptless_variation: bool = False):
         logging.info("Initializing image generation pipeline...") 
@@ -135,7 +139,7 @@ class PipelineRunner:
             scaling_target = ResolutionManager.nearest_scaled_resolution(resolution, user_config, self.config.get_max_resolution_by_aspect_ratio(aspect_ratio))
             if scaling_target != resolution:
                 logging.info("Rescaling image to nearest resolution...")
-                image = image.resize((scaling_target["width"], scaling_target["height"]))
+                image = await self._resize_image_async(image, scaling_target["width"], scaling_target["height"])
             return image
         except Exception as e:
             logging.error(f"Error generating image: {e}\n\nStack trace:\n{traceback.format_exc()}")
