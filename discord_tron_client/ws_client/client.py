@@ -68,6 +68,7 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
             await asyncio.sleep(5)
 
 async def log_slow_callbacks(coro, threshold):
+    import time
     start = time.monotonic()
     result = await coro
     elapsed = time.monotonic() - start
