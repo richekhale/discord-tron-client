@@ -16,8 +16,8 @@ async def generate_image(payload, websocket):
     negative_prompt = user_config["negative_prompt"]
     steps = user_config["steps"]
     positive_prompt = user_config["positive_prompt"]
-    discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="Prepare for greatness!")
     try:
+        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="Prepare for greatness!")
         await websocket.send(discord_msg.to_json())
         model_manager = TransformerModelManager()
         pipeline_manager = diffusion.DiffusionPipelineManager()
