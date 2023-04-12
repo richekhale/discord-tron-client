@@ -38,6 +38,7 @@ class DiscordProgressBar:
     async def send_update(self, websocket, message, max_retries=5):
         try:
             await websocket.send(message)
+            await websocket.ping()
         except Exception as e:
             logging.error(f"Error sending message to websocket: {e}")
 
