@@ -14,10 +14,8 @@ class DiscordProgressBar:
         # Last updated time.
         self.last_update = time.time()
     async def update_progress_bar(self, step: int):
-        logging.debug(f"Progress bar update variables, last update: {step} vs current_time {self.current_step}, progress: {progress}, {filled_length}, {bar}, {percent}, {progress_text}, {we_have_another_fifth_of_progress}")
         if step < self.current_step:
             logging.warn(f"Step {step} is less than current step {self.current_step}. This means the progress bar tried updating to the same state more than once.")
-            return
         self.current_step = step
         progress = self.current_step / self.total_steps
         filled_length = int(progress * self.progress_bar_length)
@@ -38,21 +36,11 @@ class DiscordProgressBar:
             except Exception as e:
                 logging.error("Traceback: ", exc_info=True)
     async def send_update(self, websocket, message, max_retries=5):
-        for attempt in range(1, max_retries + 1):
-            try:
-                await websocket.send(message)
-                break  # Message sent successfully
-            except websockets.exceptions.ConnectionClosedError:
-                if attempt < max_retries:
-                    logging.warning(f"WebSocket connection closed, attempt {attempt}/{max_retries}. Retrying...")
-                    await asyncio.sleep(1)  # Wait before retrying
-                    websocket = AppConfig.get_websocket()  # Get the latest WebSocket instance
-                else:
-                    logging.error(f"WebSocket connection closed, reached max retries ({max_retries}).")
-                    raise
-            except Exception as e:
-                logging.error(f"Error sending message: {e}")
-                raise
+        try:
+            await websocket.send(message)
+        except Exception as e:
+            logging.error(f"Error sending message to websocket: {e}")
+
     # Return a JSON representation of the object
     def to_json(self):
         return {
