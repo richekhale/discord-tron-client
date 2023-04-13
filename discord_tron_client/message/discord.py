@@ -35,15 +35,17 @@ class DiscordMessage(WebsocketMessage):
         prompt = payload["image_prompt"]
         model_id = user_config["model"]
         resolution = user_config["resolution"]
-        negative_prompt = user_config["negative_prompt"]
         steps = user_config["steps"]
         temperature = user_config["temperature"]
         strength = user_config["strength"]
+        seed = payload["seed"]
+        negative_prompt = user_config["negative_prompt"]
         positive_prompt = user_config["positive_prompt"]
         vmem = int(system_hw['video_memory_amount'])
         return f"**Prompt**: {prompt}\n" \
-                f"**Steps**: {steps}, **Strength (img2img)**: {strength}, **Temperature (txt2txt)**: {temperature}\n" \
-                f"**Model**: {model_id}\n" \
+                f"**Seed**: `!seed {seed}`, **Guidance**: {user_config['guidance_scaling']}, **SAG**: {user_config['enable_sag']}, **SAG-Scale**: {user_config['sag_scale']}\n" \
+                f"**Steps**: `!steps {steps}`, **Strength (img2img)**: {strength}, **Temperature (txt2txt)**: {temperature}\n" \
+                f"**Model**: `!model {model_id}`\n" \
                 f"**Resolution (txt2img)**: " + str(resolution["width"]) + "x" + str(resolution["height"]) + "\n" \
-                f"**{hardware.get_system_hostname()}**: {system_hw['gpu_type']} ({vmem}G), on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
+                f"**{hardware.get_system_hostname()}**: {hardware.get_gpu_power_consumption()}W power used via {system_hw['gpu_type']} ({vmem}G), on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
                 
