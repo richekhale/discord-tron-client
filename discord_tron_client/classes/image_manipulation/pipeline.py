@@ -104,6 +104,7 @@ class PipelineRunner:
                             width=side_x,
                             num_inference_steps=int(float(steps)),
                             negative_prompt=negative_prompt,
+                            guidance_scale=guidance_scale,
                             generator=generator,
                         ).images[0]
                     elif SAG:
@@ -127,6 +128,7 @@ class PipelineRunner:
                             image=image,
                             strength=user_config["strength"], # How random the img2img should be. Higher = less.
                             num_inference_steps=int(float(steps)),
+                            guidance_scale=guidance_scale,
                             generator=generator,
                             negative_prompt=negative_prompt,
                         ).images[0]                    
