@@ -95,8 +95,9 @@ class PipelineRunner:
 
             with torch.no_grad():
                 with tqdm(total=steps, ncols=100, file=self.tqdm_capture) as pbar:
-                    if not promptless_variation and image is None and SAG is False:
+                    if not promptless_variation and image is None and not SAG:
                         # We're not doing a promptless variation, and we don't have an image to start with.
+                        logging.info("Begin pipeline for standard txt2img.")
                         new_image = pipe(
                             prompt=prompt,
                             height=side_y,
@@ -105,8 +106,9 @@ class PipelineRunner:
                             negative_prompt=negative_prompt,
                             generator=generator,
                         ).images[0]
-                    elif SAG is True:
+                    elif SAG:
                         # We're doing a SAG image.
+                        logging.info("Begin pipeline for SAG.")
                         new_image = pipe(
                             prompt=prompt,
                             height=side_y,
