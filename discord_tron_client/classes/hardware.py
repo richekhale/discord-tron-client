@@ -120,6 +120,20 @@ class HardwareInfo:
         pipe_count = int(gb / 8)
         return pipe_count
 
+    def get_gpu_power_consumption(self):
+        try:
+            output = subprocess.check_output(
+                [
+                    "nvidia-smi",
+                    "--query-gpu=power.draw",
+                    "--format=csv,noheader,nounits",
+                ]
+            )
+            power_consumption = int(output.decode().strip())
+            return power_consumption
+        except:
+            return -1
+
     def get_disk_space(self):
         import psutil
         from discord_tron_client.classes.app_config import AppConfig
