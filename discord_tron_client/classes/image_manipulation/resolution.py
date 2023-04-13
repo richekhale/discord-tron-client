@@ -1,4 +1,6 @@
 import logging
+from discord_tron_client.classes.app_config import AppConfig
+config = AppConfig()
 
 class ResolutionManager:
     resolutions = [
@@ -38,12 +40,14 @@ class ResolutionManager:
             if res["width"] == width and res["height"] == height:
                 return True
         return False
+
     @staticmethod
     def validate_sag_resolution(model_config, user_config, width, height):
         correct_resolution = {"width": width, "height": height}
         if model_config["sag_capable"] is None or model_config["sag_capable"] is False:
-            correct_resolution = ResolutionManager.get_highest_resolution('1:1')
+            correct_resolution = ResolutionManager.get_highest_resolution('1:1', config.get_max_resolution_by_aspect_ratio('1:1'))
         return (correct_resolution["width"], correct_resolution["height"])
+
     @staticmethod
     def aspect_ratio(resolution_item: dict):
         from math import gcd
