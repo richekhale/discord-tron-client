@@ -145,7 +145,7 @@ class PipelineRunner:
             img2img = True
 
         SAG = user_config.get("enable_sag", True)
-        pipe = await self._prepare_pipe_async(model_id, img2img, use_attention_scaling, promptless_variation=promptless_variation, SAG=SAG)
+        pipe = await self._prepare_pipe_async(model_id, img2img, promptless_variation=promptless_variation, SAG=SAG)
         original_stderr = sys.stderr
         sys.stderr = self.tqdm_capture
 
