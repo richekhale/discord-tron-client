@@ -129,9 +129,11 @@ class HardwareInfo:
                     "--format=csv,noheader,nounits",
                 ]
             )
-            power_consumption = int(output.decode().strip())
+            power_consumption = output.decode().strip()
             return power_consumption
         except:
+            import traceback
+            logging.error(f"Caught exception during get_gpu_power_consumption: {e}, traceback: {traceback.format_exc()}")
             return -1
 
     def get_disk_space(self):

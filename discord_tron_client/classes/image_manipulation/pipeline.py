@@ -139,9 +139,8 @@ class PipelineRunner:
             guidance_scale = min(guidance_scale, 20)
 
             SAG = user_config.get("enable_sag", True)
-            if SAG:
-                sag_scale = user_config.get("sag_scale", 0.75)
-                sag_scale = min(sag_scale, 20)
+            sag_scale = user_config.get("sag_scale", 0.75)
+            sag_scale = min(sag_scale, 20)
 
             self.seed = user_config.get("seed", int(time.time()))
             generator = torch.manual_seed(self.seed)
@@ -244,7 +243,7 @@ class PipelineRunner:
             model_id,
             img2img,
             promptless_variation,
-            self.user_config.get("enable_sag", True)
+            self.user_config.get("enable_sag", False)
         )
 
         new_image = await self._generate_image_with_pipe_async(
