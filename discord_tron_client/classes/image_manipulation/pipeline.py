@@ -27,28 +27,29 @@ class PipelineRunner:
         self.tqdm_capture = TqdmCapture(self.progress_bar, main_loop)
         self.websocket = websocket
 
-    async def _prepare_pipe_async(self, model_id, img2img: bool = False, promptless_variation: bool = False):
+    async def _prepare_pipe_async(self, model_id, img2img: bool = False, promptless_variation: bool = False, SAG: bool = False):
         loop = asyncio.get_event_loop()
         loop_return = await loop.run_in_executor(
             AppConfig.get_image_worker_thread(), # Use a dedicated image processing thread worker.
             self._prepare_pipe,
             model_id,
             img2img,
-            promptless_variation
+            promptless_variation,
+            SAG
         )
         return loop_return
 
 
-    def _prepare_pipe(self, model_id, img2img: bool = False, promptless_variation: bool = False):
+    def _prepare_pipe(self, model_id, img2img: bool = False, promptless_variation: bool = False, SAG: bool = False):
         logging.info("Retrieving pipe for model " + str(model_id))
         if not promptless_variation:
-            pipe = self.pipeline_manager.get_pipe(model_id, img2img)
+            pipe = self.pipeline_manager.get_pipe(model_id, img2img, SAG)
         else:
             pipe = self.pipeline_manager.get_variation_pipe(model_id)
         logging.info("Copied pipe to the local context")
         return pipe
 
-    async def _generate_image_with_pipe_async(self, pipe, prompt, side_x, side_y, steps, negative_prompt, user_config, image: Image = None, promptless_variation: bool = False):
+    async def _generate_image_with_pipe_async(self, pipe, prompt, side_x, side_y, steps, negative_prompt, user_config, image: Image = None, promptless_variation: bool = False, SAG: bool = False):
         loop = asyncio.get_event_loop()
         loop_return = await loop.run_in_executor(
             AppConfig.get_image_worker_thread(), # Use a dedicated image processing thread worker.
@@ -77,9 +78,24 @@ class PipelineRunner:
 
     def _generate_image_with_pipe(self, pipe, prompt, side_x, side_y, steps, negative_prompt, user_config, image: Image = None, promptless_variation: bool = False):
         try:
+            guidance_scale = user_config.get("guidance_scale", 7.5)
+            if guidance_scale > 20:
+                guidance_scale = 20
+
+            SAG = user_config.get("enable_sag", True)
+            if SAG:
+                sag_scale = user_config.get("sag_scale", 0.75)
+                if sag_scale > 20:
+                    sag_scale = 20
+
+            seed = user_config.get("seed", None)
+            if seed is None:
+                seed = int(time.time())
+            generator = torch.manual_seed(seed)
+
             with torch.no_grad():
                 with tqdm(total=steps, ncols=100, file=self.tqdm_capture) as pbar:
-                    if not promptless_variation and image is None:
+                    if not promptless_variation and image is None and SAG is False:
                         # We're not doing a promptless variation, and we don't have an image to start with.
                         new_image = pipe(
                             prompt=prompt,
@@ -87,6 +103,19 @@ class PipelineRunner:
                             width=side_x,
                             num_inference_steps=int(float(steps)),
                             negative_prompt=negative_prompt,
+                            generator=generator,
+                        ).images[0]
+                    elif SAG is True:
+                        # We're doing a SAG image.
+                        new_image = pipe(
+                            prompt=prompt,
+                            height=side_y,
+                            width=side_x,
+                            num_inference_steps=int(float(steps)),
+                            negative_prompt=negative_prompt,
+                            guidance_scale=guidance_scale,
+                            generator=generator,
+                            sag_scale=sag_scale,
                         ).images[0]
                     elif image is not None:
                         # We have an image to start with. Currently, promptless_variation falls through here. But it has its own pipeline to use.
@@ -96,6 +125,7 @@ class PipelineRunner:
                             image=image,
                             strength=user_config["strength"], # How random the img2img should be. Higher = less.
                             num_inference_steps=int(float(steps)),
+                            generator=generator,
                             negative_prompt=negative_prompt,
                         ).images[0]                    
             return new_image
@@ -113,9 +143,9 @@ class PipelineRunner:
         img2img = False
         if image is not None:
             img2img = True
-        pipe = await self._prepare_pipe_async(model_id, img2img, use_attention_scaling)
-        logging.info("REDIRECTING THE PRECIOUS, STDOUT... SORRY IF THAT UPSETS YOU")
 
+        SAG = user_config.get("enable_sag", True)
+        pipe = await self._prepare_pipe_async(model_id, img2img, use_attention_scaling, promptless_variation=promptless_variation, SAG=SAG)
         original_stderr = sys.stderr
         sys.stderr = self.tqdm_capture
 

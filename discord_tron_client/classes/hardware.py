@@ -108,6 +108,18 @@ class HardwareInfo:
         except:
             self.video_memory_amount = "Unknown"
 
+    def get_concurrent_pipe_count(self):
+        memory_amount = self.get_memory_total()
+        if memory_amount == "Unknown":
+            # If we do not know how much vmem we have, that is a bad sign.
+            return 1
+        gb = int(memory_amount)
+        if gb == 8:
+            # We have 8GiB per model, essentially.
+            return 1
+        pipe_count = int(gb / 8)
+        return pipe_count
+
     def get_disk_space(self):
         import psutil
         from discord_tron_client.classes.app_config import AppConfig

@@ -89,6 +89,8 @@ class AppConfig:
         return self.config.get("use_attn_scaling", False)
     def get_precision_bits(self):
         return self.config.get("precision_bits", 16)
+    def get_cuda_cache_clear_toggle(self):
+        return self.config.get("cuda_cache_clear", False)
 
     def get_web_root(self):
         return self.config.get("web_root", "/var/www/localhost/htdocs")
