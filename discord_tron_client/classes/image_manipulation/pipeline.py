@@ -20,7 +20,8 @@ class PipelineRunner:
         app_config: AppConfig,
         user_config: dict,
         discord_msg,
-        websocket
+        websocket,
+        model_config
     ):
         # General AppConfig() object access.
         self.config = app_config
@@ -49,6 +50,7 @@ class PipelineRunner:
         )
         self.tqdm_capture = TqdmCapture(self.progress_bar, main_loop)
         self.websocket = websocket
+        self.model_config = model_config
 
     async def _prepare_pipe_async(
         self,
@@ -244,12 +246,16 @@ class PipelineRunner:
         image: Image = None,
         promptless_variation: bool = False
     ):
+        SAG = self.user_config.get("enable_sag", False)
         pipe = await self._prepare_pipe_async(
             model_id,
             img2img,
             promptless_variation,
-            self.user_config.get("enable_sag", False)
+            SAG
         )
+
+        if SAG and self.model_config["sag_capable"] is None or self.model_config["sag_capable"] is False:
+            side_x, side_y = ResolutionManager.validate_sag_resolution(self.model_config, self.user_config, side_x, side_y)
 
         new_image = await self._generate_image_with_pipe_async(
             pipe,

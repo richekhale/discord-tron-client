@@ -9,19 +9,20 @@ from discord_tron_client.classes.debug import clean_traceback
 # Image generator plugin for the worker.
 async def generate_image(payload, websocket):
     # We extract the features from the payload and pass them onto the actual generator
-    user_config = payload["config"]
-    prompt = payload["image_prompt"]
-    model_id = user_config["model"]
-    resolution = user_config["resolution"]
-    negative_prompt = user_config["negative_prompt"]
-    steps = user_config["steps"]
-    positive_prompt = user_config["positive_prompt"]
     try:
+        user_config = payload["config"]
+        prompt = payload["image_prompt"]
+        model_id = user_config["model"]
+        resolution = user_config["resolution"]
+        negative_prompt = user_config["negative_prompt"]
+        steps = user_config["steps"]
+        model_config = payload["model_config"]
+        positive_prompt = user_config["positive_prompt"]
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="Prepare for greatness!")
         await websocket.send(discord_msg.to_json())
         model_manager = TransformerModelManager()
         pipeline_manager = diffusion.DiffusionPipelineManager()
-        pipeline_runner = pipeline.PipelineRunner(model_manager=model_manager, pipeline_manager=pipeline_manager, app_config=config, user_config=user_config, discord_msg=discord_msg, websocket=websocket)
+        pipeline_runner = pipeline.PipelineRunner(model_manager=model_manager, pipeline_manager=pipeline_manager, app_config=config, user_config=user_config, discord_msg=discord_msg, websocket=websocket, model_config=model_config)
         # Attach a positive prompt weight to the end so that it's more likely to show up this way.
         prompt=prompt + ' ' + positive_prompt
         result = await pipeline_runner.generate_image(prompt=prompt + ' ' + positive_prompt, model_id=model_id, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps)
