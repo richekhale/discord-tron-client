@@ -131,7 +131,7 @@ class HardwareInfo:
             )
             power_consumption = output.decode().strip()
             return power_consumption
-        except:
+        except Exception as e:
             import traceback
             logging.error(f"Caught exception during get_gpu_power_consumption: {e}, traceback: {traceback.format_exc()}")
             return -1

@@ -142,9 +142,7 @@ class PipelineRunner:
             sag_scale = user_config.get("sag_scale", 0.75)
             sag_scale = min(sag_scale, 20)
 
-            self.seed = user_config.get("seed", int(time.time()))
-            generator = torch.manual_seed(self.seed)
-
+            generator = self.get_generator(user_config=user_config)
             with torch.no_grad():
                 with tqdm(total=steps, ncols=100, file=self.tqdm_capture) as pbar:
                     new_image = self._run_pipeline(
@@ -162,7 +160,7 @@ class PipelineRunner:
                         image,
                         promptless_variation
                     )
-
+            self.gpu_power_consumption = self.tqdm_capture.gpu_power_consumption
             return new_image
         except Exception as e:
             logging.error(f"Error while generating image: {e}\n{traceback.format_exc()}")
@@ -183,48 +181,55 @@ class PipelineRunner:
         image: Image = None,
         promptless_variation: bool = False
     ):
-        if not promptless_variation and image is None and not SAG:
-            new_image = pipe(
-                prompt=prompt,
-                height=side_y,
-                width=side_x,
-                num_inference_steps=int(float(steps)),
-                negative_prompt=negative_prompt,
-                guidance_scale=guidance_scale,
-                generator=generator,
-            ).images[0]
-        elif SAG:
-            new_image = pipe(
-                prompt=prompt,
-                height=side_y,
-                width=side_x,
-                num_inference_steps=int(float(steps)),
-                negative_prompt=negative_prompt,
-                guidance_scale=guidance_scale,
-                generator=generator,
-                sag_scale=sag_scale,
-            ).images[0]
-        elif image is not None:
-            new_image = pipe(
-                prompt=prompt,
-                image=image,
-                strength=user_config["strength"],
-                num_inference_steps=int(float(steps)),
-                negative_prompt=negative_prompt,
-                guidance_scale=guidance_scale,
-                generator=generator,
-            ).images[0]
-        elif promptless_variation:
-            new_image = pipe(
-                height=side_y,
-                width=side_x,
-                num_inference_steps=int(float(steps)),
-                guidance_scale=guidance_scale,
-                generator=generator,
-            ).images[0]
-        else:
-            raise Exception("Invalid combination of parameters for image generation")
-
+        original_stderr = sys.stderr
+        sys.stderr = self.tqdm_capture
+        try:
+            if not promptless_variation and image is None and not SAG:
+                new_image = pipe(
+                    prompt=prompt,
+                    height=side_y,
+                    width=side_x,
+                    num_inference_steps=int(float(steps)),
+                    negative_prompt=negative_prompt,
+                    guidance_scale=guidance_scale,
+                    generator=generator,
+                ).images[0]
+            elif SAG:
+                new_image = pipe(
+                    prompt=prompt,
+                    height=side_y,
+                    width=side_x,
+                    num_inference_steps=int(float(steps)),
+                    negative_prompt=negative_prompt,
+                    guidance_scale=guidance_scale,
+                    generator=generator,
+                    sag_scale=sag_scale,
+                ).images[0]
+            elif image is not None:
+                new_image = pipe(
+                    prompt=prompt,
+                    image=image,
+                    strength=user_config["strength"],
+                    num_inference_steps=int(float(steps)),
+                    negative_prompt=negative_prompt,
+                    guidance_scale=guidance_scale,
+                    generator=generator,
+                ).images[0]
+            elif promptless_variation:
+                new_image = pipe(
+                    height=side_y,
+                    width=side_x,
+                    num_inference_steps=int(float(steps)),
+                    guidance_scale=guidance_scale,
+                    generator=generator,
+                ).images[0]
+            else:
+                raise Exception("Invalid combination of parameters for image generation")
+        except Exception as e:
+            logging.error(f"Error while generating image: {e}\n{traceback.format_exc()}")
+            raise e
+        finally:
+            sys.stderr = original_stderr
         return new_image
 
     async def generate_image(
@@ -259,3 +264,11 @@ class PipelineRunner:
         )
 
         return new_image
+    
+    def get_generator(self, user_config: dict):
+        self.seed = user_config.get("seed", None)
+        if self.seed is None:
+            self.seed = int(time.time())
+        generator = torch.manual_seed(self.seed)
+        logging.info(f"Seed: {self.seed}")
+        return generator

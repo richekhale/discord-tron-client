@@ -26,6 +26,7 @@ async def generate_image(payload, websocket):
         prompt=prompt + ' ' + positive_prompt
         result = await pipeline_runner.generate_image(prompt=prompt + ' ' + positive_prompt, model_id=model_id, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps)
         payload["seed"] = pipeline_runner.seed
+        payload["gpu_power_consumption"] = pipeline_runner.gpu_power_consumption
         logging.info("Image generated successfully!")
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send_image", message=DiscordMessage.print_prompt(payload), image=result)
         await websocket.send(discord_msg.to_json())
