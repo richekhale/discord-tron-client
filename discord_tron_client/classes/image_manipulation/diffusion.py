@@ -34,7 +34,7 @@ class DiffusionPipelineManager:
         self.delete_pipes(keep_model=model_id)
         if img2img:
             # Basic StableDiffusionImg2Img pipeline flow. Not great results.
-            if self.last_pipe_type[model_id] != "img2img" and model_id in self.pipelines:
+            if model_id in self.last_pipe_type and self.last_pipe_type[model_id] != "img2img" and model_id in self.pipelines:
                 self.pipelines[model_id].clear()
             if model_id not in self.pipelines:
                 self.pipelines[model_id] = StableDiffusionImg2ImgPipeline.from_pretrained(
@@ -42,7 +42,7 @@ class DiffusionPipelineManager:
                 )
         elif SAG:
             # Self-assisted guidance pipeline flow.
-            if self.last_pipe_type[model_id] != "SAG" and model_id in self.pipelines:
+            if model_id in self.last_pipe_type and self.last_pipe_type[model_id] != "SAG" and model_id in self.pipelines:
                 logging.warn(f"Clearing out an incorrect pipeline type for the same model. Going from {self.last_pipe_type[model_id]} to SAG. Model: {model_id}")
                 self.pipelines[model_id].clear()
             if model_id not in self.pipelines:
@@ -51,7 +51,7 @@ class DiffusionPipelineManager:
                 )
         else:
             # Use a vanilla StableDiffusion Pipeline flow.
-            if self.last_pipe_type[model_id] != "txt2img" and model_id in self.pipelines:
+            if model_id in self.last_pipe_type and self.last_pipe_type[model_id] != "txt2img" and model_id in self.pipelines:
                 logging.warn(f"Clearing out an incorrect pipeline type for the same model. Going from {self.last_pipe_type[model_id]} to SAG. Model: {model_id}")
                 self.pipelines[model_id].clear()
             if model_id not in self.pipelines:
