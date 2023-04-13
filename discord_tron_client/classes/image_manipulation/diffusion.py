@@ -58,7 +58,8 @@ class DiffusionPipelineManager:
                 self.pipelines[model_id] = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=self.torch_dtype)
         self.pipelines[model_id].to(self.device)
         # Disable the useless NSFW filter.
-        self.pipelines[model_id].safety_checker = lambda images, clip_input: (images, False)
+        if self.pipelines[model_id].safety_checker is not None:
+            self.pipelines[model_id].safety_checker = lambda images, clip_input: (images, False)
         # Set self.last_pipe_type by the values of img2img and SAG. A negative value of both, means last_pipe_type is "text2img"
         if img2img:
             self.last_pipe_type[model_id] = "img2img"
