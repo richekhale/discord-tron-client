@@ -26,11 +26,11 @@ class HardwareInfo:
         self.get_video_memory_info()
         self.get_disk_space()
         capabilities = {}
-        if self.video_memory_amount >= 8:
+        if int(self.video_memory_amount) >= 8:
             capabilities["gpu"] = True
-        if self.memory_amount >= 16:
+        if int(self.memory_amount) >= 16:
             capabilities["memory"] = True
-        if self.get_cpu_count() >= 16:
+        if int(self.get_cpu_count)() >= 16:
             capabilities["compute"] = True
         return capabilities
 
