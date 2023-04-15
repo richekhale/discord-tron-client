@@ -19,8 +19,8 @@ class TqdmCapture:
             match = re.search(r'\b(\d+)%\|', s)
             if match:
                 progress = int(match.group(1))
-                if progress >= 95:
-                    # Record GPU power use around 95% progress.
+                if progress >= 50 and progress <= 60:
+                    # Record GPU power use around 60% progress.
                     self.gpu_power_consumption = self.hardware_info.get_gpu_power_consumption()
                 asyncio.run_coroutine_threadsafe(self.progress_bar.update_progress_bar(progress), self.loop)
 
