@@ -256,7 +256,7 @@ class PipelineRunner:
             upscaler
         )
 
-        if SAG and self.model_config["sag_capable"] is None or self.model_config["sag_capable"] is False:
+        if SAG and "sag_capable" in self.model_config and self.model_config["sag_capable"] is None or self.model_config["sag_capable"] is False:
             side_x, side_y = ResolutionManager.validate_sag_resolution(self.model_config, self.user_config, side_x, side_y)
 
         new_image = await self._generate_image_with_pipe_async(
