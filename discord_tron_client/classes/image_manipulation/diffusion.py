@@ -21,7 +21,7 @@ class DiffusionPipelineManager:
     def __init__(self):
         self.pipelines = {}
         hw_limits = hardware.get_hardware_limits()
-        self.torch_dtype = torch.float16
+        self.torch_dtype = torch.bfloat16
         self.variation_attn_scaling = False
         self.use_attn_scaling = False
         self.model_id = None

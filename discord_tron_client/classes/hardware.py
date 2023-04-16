@@ -26,7 +26,7 @@ class HardwareInfo:
         self.get_video_memory_info()
         self.get_disk_space()
         capabilities = {}
-        if int(self.video_memory_amount) >= 8:
+        if self.video_memory_amount != "Unknown" and int(self.video_memory_amount) >= 8:
             capabilities["gpu"] = True
         if int(self.memory_amount) >= 16:
             capabilities["memory"] = True
