@@ -101,6 +101,7 @@ class PipelineRunner:
         user_config: dict,
         image: Image = None,
         promptless_variation: bool = False,
+        upscaler: bool = False,
         SAG: bool = False
     ):
         loop = asyncio.get_event_loop()
@@ -115,7 +116,8 @@ class PipelineRunner:
             negative_prompt,
             user_config,
             image,
-            promptless_variation
+            promptless_variation,
+            upscaler
         )
         return loop_return
 
