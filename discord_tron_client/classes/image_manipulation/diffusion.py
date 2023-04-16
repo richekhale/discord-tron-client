@@ -45,7 +45,7 @@ class DiffusionPipelineManager:
         pipeline_class = self.PIPELINE_CLASSES[pipe_type]
         pipeline = pipeline_class.from_pretrained(model_id, torch_dtype=self.torch_dtype)
         pipeline.to(self.device)
-        if pipeline.safety_checker is not None:
+        if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
         return pipeline
 
