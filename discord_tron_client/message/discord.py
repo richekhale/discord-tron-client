@@ -8,7 +8,7 @@ from discord_tron_client.classes.hardware import HardwareInfo
 hardware = HardwareInfo()
 
 class DiscordMessage(WebsocketMessage):
-    def __init__(self, websocket: websocket,  context, module_command: str = "send", mention: str|list = None, message: str = None, name: str = None, image: Image = None):
+    def __init__(self, websocket: websocket,  context, module_command: str = "send", mention: str = None, message: str = None, name: str = None, image: Image = None):
         self.websocket = websocket
         if isinstance(context, DiscordMessage):
             # Extract the context from the existing DiscordMessage
