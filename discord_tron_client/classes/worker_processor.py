@@ -12,6 +12,9 @@ class WorkerProcessor:
             "image_generation": {
                 "generate_image": image_generator.generate_image,
             },
+            "image_upscaling": {
+                "upscale": image_generator.generate_image,
+            },
             "image_variation": {
                 "variation_image": image_variator.variate_image,
             }

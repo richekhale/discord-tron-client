@@ -57,7 +57,8 @@ class PipelineRunner:
         model_id: int,
         img2img: bool = False,
         promptless_variation: bool = False,
-        SAG: bool = False
+        SAG: bool = False,
+        upscaler: bool = False
     ):
         loop = asyncio.get_event_loop()
         loop_return = await loop.run_in_executor(
@@ -66,7 +67,8 @@ class PipelineRunner:
             model_id,
             img2img,
             promptless_variation,
-            SAG
+            SAG,
+            upscaler
         )
         return loop_return
 
@@ -75,11 +77,14 @@ class PipelineRunner:
         model_id: int,
         img2img: bool = False,
         promptless_variation: bool = False,
-        SAG: bool = False
+        SAG: bool = False,
+        upscaler: bool = False
     ):
         logging.info(f"Retrieving pipe for model {model_id}")
         if not promptless_variation:
-            pipe = self.pipeline_manager.get_pipe(model_id, img2img, SAG)
+            # def get_pipe(self, model_id: str, img2img: bool = False, SAG: bool = False, prompt_variation: bool = False, variation: bool = False, upscaler: bool = False) -> Pipeline:
+
+            pipe = self.pipeline_manager.get_pipe(model_id, img2img, SAG, promptless_variation, variation=False, upscaler=upscaler)
         else:
             pipe = self.pipeline_manager.get_variation_pipe(model_id)
         logging.info("Copied pipe to the local context")
@@ -124,7 +129,8 @@ class PipelineRunner:
         negative_prompt: str,
         user_config: dict,
         image: Image = None,
-        promptless_variation: bool = False
+        promptless_variation: bool = False,
+        upscaler: bool = False
     ):
         try:
             guidance_scale = user_config.get("guidance_scale", 7.5)
@@ -150,7 +156,8 @@ class PipelineRunner:
                         sag_scale,
                         user_config,
                         image,
-                        promptless_variation
+                        promptless_variation,
+                        upscaler
                     )
             self.gpu_power_consumption = self.tqdm_capture.gpu_power_consumption
             return new_image
@@ -171,7 +178,8 @@ class PipelineRunner:
         sag_scale: float,
         user_config: dict,
         image: Image = None,
-        promptless_variation: bool = False
+        promptless_variation: bool = False,
+        upscaler: bool = False
     ):
         original_stderr = sys.stderr
         sys.stderr = self.tqdm_capture
@@ -197,7 +205,7 @@ class PipelineRunner:
                     generator=generator,
                     sag_scale=sag_scale,
                 ).images[0]
-            elif image is not None:
+            elif not upscaler and image is not None:
                 new_image = pipe(
                     prompt=prompt,
                     image=image,
@@ -215,6 +223,8 @@ class PipelineRunner:
                     guidance_scale=guidance_scale,
                     generator=generator,
                 ).images[0]
+            elif upscaler:
+                new_image = pipe(prompt=prompt, image=image).images[0]
             else:
                 raise Exception("Invalid combination of parameters for image generation")
         except Exception as e:
@@ -234,14 +244,16 @@ class PipelineRunner:
         negative_prompt: str = "",
         img2img: bool = False,
         image: Image = None,
-        promptless_variation: bool = False
+        promptless_variation: bool = False,
+        upscaler: bool = False
     ):
         SAG = self.user_config.get("enable_sag", False)
         pipe = await self._prepare_pipe_async(
             model_id,
             img2img,
             promptless_variation,
-            SAG
+            SAG,
+            upscaler
         )
 
         if SAG and self.model_config["sag_capable"] is None or self.model_config["sag_capable"] is False:
@@ -256,7 +268,8 @@ class PipelineRunner:
             negative_prompt,
             self.user_config,
             image,
-            promptless_variation
+            promptless_variation,
+            upscaler
         )
 
         return new_image

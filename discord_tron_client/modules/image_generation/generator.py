@@ -18,6 +18,7 @@ async def generate_image(payload, websocket):
         steps = user_config["steps"]
         model_config = payload["model_config"]
         positive_prompt = user_config["positive_prompt"]
+        upscaler = payload.get("upscaler", False)
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")
         await websocket.send(discord_msg.to_json())
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="Your prompt is now being processed. This might take a while to get to the next step if we have to download your model!")
@@ -27,7 +28,13 @@ async def generate_image(payload, websocket):
         pipeline_runner = pipeline.PipelineRunner(model_manager=model_manager, pipeline_manager=pipeline_manager, app_config=config, user_config=user_config, discord_msg=discord_msg, websocket=websocket, model_config=model_config)
         # Attach a positive prompt weight to the end so that it's more likely to show up this way.
         prompt=prompt + ' ' + positive_prompt
-        result = await pipeline_runner.generate_image(prompt=prompt + ' ' + positive_prompt, model_id=model_id, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps)
+        image = None
+        if "image_data" in payload:
+            import io, requests
+            image = Image.open(io.BytesIO(requests.get(payload["image_data"]).content))
+
+        result = await pipeline_runner.generate_image(prompt=prompt + ' ' + positive_prompt, model_id=model_id, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, upscaler=upscaler)
+
         delete_progress_bar = DiscordMessage(websocket=websocket, context=discord_msg.context, module_command="delete")
         for attempt in range(1, 6):
             if not websocket or not hasattr(websocket, "open") or websocket.open != True:
