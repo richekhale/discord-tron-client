@@ -141,7 +141,7 @@ class PipelineRunner:
             SAG = user_config.get("enable_sag", True)
             sag_scale = user_config.get("sag_scale", 0.75)
             sag_scale = min(sag_scale, 20)
-
+            self.gpu_power_consumption = 0.0
             generator = self.get_generator(user_config=user_config)
             with torch.no_grad():
                 with tqdm(total=steps, ncols=100, file=self.tqdm_capture) as pbar:

@@ -29,7 +29,7 @@ class DiffusionPipelineManager:
         self.SAG = False
         if hw_limits["gpu"] >= 16 and config.get_precision_bits() == 32:
             self.torch_dtype = torch.float32
-        if hw_limits["gpu"] <= 10:
+        if hw_limits["gpu"] <= 16:
             self.variation_attn_scaling = True
             self.use_attn_scaling = True
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -71,6 +71,7 @@ class DiffusionPipelineManager:
             if pipe_type in [ "upscaler", "txt2img" ]:
                 # Set the use of xformers library so that we can efficiently generate and upscale images.
                 # @see https://huggingface.co/stabilityai/stable-diffusion-x4-upscaler/discussions/2
+                logging.warn(f"Using hugging face xformers library for upscaling due to hardware constraints. Consider using faster hardware.")
                 self.pipelines[model_id].set_use_memory_efficient_attention_xformers(True)
                 if self.variation_attn_scaling:
                     logging.warn(f"Using attention scaling on Stable Diffusion upscaler due to hardware constraints. Consider using faster hardware.")
