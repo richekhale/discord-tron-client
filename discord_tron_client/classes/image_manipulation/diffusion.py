@@ -1,4 +1,4 @@
-from diffusers import StableDiffusionPipeline, StableDiffusionImageVariationPipeline, StableDiffusionImg2ImgPipeline, StableDiffusionSAGPipeline
+from diffusers import StableDiffusionPipeline, StableDiffusionImageVariationPipeline, StableDiffusionImg2ImgPipeline, StableDiffusionSAGPipeline, StableDiffusionUpscalePipeline
 from diffusers import DiffusionPipeline as Pipeline
 from accelerate.utils import set_seed
 from typing import Dict
@@ -16,6 +16,7 @@ class DiffusionPipelineManager:
         "text2img": StableDiffusionPipeline,
         "prompt_variation": StableDiffusionImg2ImgPipeline,
         "variation": StableDiffusionImageVariationPipeline,
+        "upscaler": StableDiffusionUpscalePipeline
     }
     def __init__(self):
         self.pipelines = {}
@@ -48,14 +49,13 @@ class DiffusionPipelineManager:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
         return pipeline
 
-    def get_pipe(self, model_id: str, img2img: bool = False, SAG: bool = False, prompt_variation: bool = False, variation: bool = False) -> Pipeline:
+    def get_pipe(self, model_id: str, img2img: bool = False, SAG: bool = False, prompt_variation: bool = False, variation: bool = False, upscaler: bool = False) -> Pipeline:
         gc.collect()
-        logging.info("Generating a new text2img pipe...")
-
+        logging.info("Generating a new pipe...")
         if self.use_attn_scaling:
             self.torch_dtype = torch.float16
 
-        pipe_type = "img2img" if img2img else "SAG" if SAG else "prompt_variation" if prompt_variation else "variation" if variation else "text2img"
+        pipe_type = "img2img" if img2img else "SAG" if SAG else "prompt_variation" if prompt_variation else "variation" if variation else "upscaler" if upscaler else "text2img" 
         
         if model_id in self.last_pipe_type and self.last_pipe_type[model_id] != pipe_type:
             logging.warn(f"Clearing out an incorrect pipeline type for the same model. Going from {self.last_pipe_type[model_id]} to {pipe_type}. Model: {model_id}")
@@ -68,26 +68,16 @@ class DiffusionPipelineManager:
                     logging.info("Using attention scaling, due to hardware limits! This will make generation run more slowly, but it will be less likely to run out of memory.")
                     self.pipelines[model_id].enable_sequential_cpu_offload()
                     self.pipelines[model_id].enable_attention_slicing(1)
-
+            if pipe_type in [ "upscaler", "txt2img" ]:
+                # Set the use of xformers library so that we can efficiently generate and upscale images.
+                # @see https://huggingface.co/stabilityai/stable-diffusion-x4-upscaler/discussions/2
+                self.pipelines[model_id].set_use_memory_efficient_attention_xformers(True)
+                if self.variation_attn_scaling:
+                    logging.warn(f"Using attention scaling on Stable Diffusion upscaler due to hardware constraints. Consider using faster hardware.")
+                    self.pipelines[model_id].enable_sequential_cpu_offload()
+                    self.pipelines[model_id].enable_attention_slicing(1)
         self.last_pipe_type[model_id] = pipe_type
 
-        return self.pipelines[model_id]
-
-    def get_prompt_variation_pipe(self, model_id):
-        # Make way for the variation queen.
-        logging.info("Clearing other poops.")
-        self.delete_pipes(keep_model=model_id)
-        logging.info("Generating a new text2img pipe...")
-        
-        self.pipelines[model_id] = StableDiffusionImg2ImgPipeline.from_pretrained(
-            pretrained_model_name_or_path=model_id, torch_dtype=self.torch_dtype
-        )
-        if (self.variation_attn_scaling):
-            logging.info("Using attention scaling, due to hardware limits! This will make generation run more slowly, but it will be less likely to run out of memory.")
-            self.pipelines[model_id].enable_sequential_cpu_offload()
-            self.pipelines[model_id].enable_attention_slicing(1)
-        self.pipelines[model_id].safety_checker = lambda images, clip_input: (images, False)
-        logging.info("Return the pipe...")
         return self.pipelines[model_id]
 
     def get_variation_pipe(self, model_id):
