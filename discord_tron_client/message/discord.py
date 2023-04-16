@@ -49,7 +49,7 @@ class DiscordMessage(WebsocketMessage):
         positive_prompt = user_config["positive_prompt"]
         author_id = payload["discord_context"]["author"]["id"]
         vmem = int(system_hw['video_memory_amount'])
-        return f"**Prompt**: <@{author_id}>: {prompt}\n" \
+        return f"**<@{author_id}>'s Prompt**: {prompt}\n" \
                 f"**Seed**: `!seed {seed}`, **Guidance**: {user_config['guidance_scaling']}, **SAG**: {user_config['enable_sag']}, **SAG-Scale**: {user_config['sag_scale']}\n" \
                 f"**Steps**: `!steps {steps}`, **Strength (img2img)**: {strength}, **Temperature (txt2txt)**: {temperature}\n" \
                 f"**Model**: `!model {model_id}`\n" \
