@@ -43,7 +43,7 @@ async def generate_image(payload, websocket):
         logging.info("Image generated successfully!")\
         # Truncate prompt to 32 chars and add a ...
         truncated_prompt = prompt[:29] + '...'
-        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="create_thread", mention=payload["discord_context"]["author"]["id"], name=truncated_prompt, message=DiscordMessage.print_prompt(payload), image=result)
+        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="create_thread", name=truncated_prompt, message=DiscordMessage.print_prompt(payload), image=result)
         await websocket.send(discord_msg.to_json())
 
     except Exception as e:
