@@ -8,14 +8,18 @@ from discord_tron_client.classes.hardware import HardwareInfo
 hardware = HardwareInfo()
 
 class DiscordMessage(WebsocketMessage):
-    def __init__(self, websocket: websocket,  context, module_command: str = "send", message: str = "Loading the model and preparing to generate your image!", image: Image = None):
+    def __init__(self, websocket: websocket,  context, module_command: str = "send", message: str = None, name: str = None, image: Image = None):
         self.websocket = websocket
         if isinstance(context, DiscordMessage):
             # Extract the context from the existing DiscordMessage
             context = context.data
             logging.info(f"Extracted data from the DiscordMessage context: {context}")
         self.context = context
-        arguments = { "message": message }
+        arguments = {}
+        if message is not None:
+            arguments["message"] = message
+        if name is not None:
+            arguments["name"] = name
         if image is not None:
             arguments["image"] = self.b64_image(image)
         super().__init__(message_type="discord", module_name="message", module_command=module_command, data=context, arguments=arguments)

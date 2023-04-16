@@ -18,7 +18,9 @@ async def generate_image(payload, websocket):
         steps = user_config["steps"]
         model_config = payload["model_config"]
         positive_prompt = user_config["positive_prompt"]
-        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="Prepare for greatness!")
+        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")
+        await websocket.send(discord_msg.to_json())
+        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="Your prompt is now being processed. This might take a while to get to the next step if we have to download your model!")
         await websocket.send(discord_msg.to_json())
         model_manager = TransformerModelManager()
         pipeline_manager = diffusion.DiffusionPipelineManager()
@@ -28,10 +30,10 @@ async def generate_image(payload, websocket):
         result = await pipeline_runner.generate_image(prompt=prompt + ' ' + positive_prompt, model_id=model_id, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps)
         payload["seed"] = pipeline_runner.seed
         payload["gpu_power_consumption"] = pipeline_runner.gpu_power_consumption
-        logging.info("Image generated successfully!")
-        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send_image", message=DiscordMessage.print_prompt(payload), image=result)
-        await websocket.send(discord_msg.to_json())
-        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")
+        logging.info("Image generated successfully!")\
+        # Truncate prompt to 32 chars and add a ...
+        truncated_prompt = prompt[:29] + '...'
+        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="create_thread", name=truncated_prompt, message=DiscordMessage.print_prompt(payload), image=result)
         await websocket.send(discord_msg.to_json())
 
     except Exception as e:
