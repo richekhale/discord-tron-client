@@ -30,7 +30,7 @@ class HardwareInfo:
             capabilities["gpu"] = True
         if int(self.memory_amount) >= 16:
             capabilities["memory"] = True
-        if int(self.get_cpu_count)() >= 16:
+        if int(self.get_cpu_count()) >= 16:
             capabilities["compute"] = True
         return capabilities
 
