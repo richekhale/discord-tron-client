@@ -28,6 +28,16 @@ async def generate_image(payload, websocket):
         # Attach a positive prompt weight to the end so that it's more likely to show up this way.
         prompt=prompt + ' ' + positive_prompt
         result = await pipeline_runner.generate_image(prompt=prompt + ' ' + positive_prompt, model_id=model_id, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps)
+        delete_progress_bar = DiscordMessage(websocket=websocket, context=discord_msg.context, module_command="delete")
+        for attempt in range(1, 6):
+            if not websocket or not hasattr(websocket, "open") or websocket.open != True:
+                logging.warn("WebSocket connection is not open. Retrieving fresh instance.")
+                websocket = AppConfig.get_websocket()
+                await asyncio.sleep(2)
+            else:
+                logging.debug("WebSocket connection is open. Continuing.")
+                break
+        await websocket.send(delete_progress_bar.to_json())
         payload["seed"] = pipeline_runner.seed
         payload["gpu_power_consumption"] = pipeline_runner.gpu_power_consumption
         logging.info("Image generated successfully!")\

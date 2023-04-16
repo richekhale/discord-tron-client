@@ -9,6 +9,8 @@ class TqdmCapture:
         self.output_file = "/tmp/tqdm_output.txt"
         self.hardware_info = HardwareInfo()
         self.gpu_power_consumption = 0.0 # Store GPU power use here, since it's inside the loop.
+        # Start below zero so that a progress of zero will begin the bar.
+        self.progress = -1
 
     def write(self, s: str):
         test_string = s.strip()
@@ -19,6 +21,11 @@ class TqdmCapture:
             match = re.search(r'\b(\d+)%\|', s)
             if match:
                 progress = int(match.group(1))
+                if progress <= self.progress:
+                    # If we have anything less than what we started with, don't send.
+                    return
+                self.progress = progress
+                    
                 if progress >= 50 and progress <= 60:
                     # Record GPU power use around 60% progress.
                     self.gpu_power_consumption = self.hardware_info.get_gpu_power_consumption()
