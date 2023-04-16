@@ -1,5 +1,7 @@
 import subprocess
 import logging, socket
+from discord_tron_client.classes.app_config import AppConfig
+config = AppConfig()
 
 
 class HardwareInfo:
@@ -158,13 +160,14 @@ class HardwareInfo:
 
     def get_simple_hardware_info(self):
         self.get_machine_info()
+        identifier = config.get_friendly_name() or self.get_system_hostname()
         return {
             "gpu": self.gpu_type,
             "cpu": self.cpu_type,
             "cpu_count": self.get_cpu_count(),
             "memory_amount": self.memory_amount,
             "video_memory_amount": self.video_memory_amount,
-            "hostname": self.get_system_hostname()
+            "hostname": identifier
         }
 
     def get_machine_info(self):
@@ -174,6 +177,7 @@ class HardwareInfo:
         self.get_memory_total()
         self.get_video_memory_info()
         self.get_disk_space()
+        identifier = config.get_friendly_name() or self.get_system_hostname()
         return {
             "gpu_type": self.gpu_type,
             "cpu_type": self.cpu_type,
@@ -182,5 +186,5 @@ class HardwareInfo:
             "video_memory_amount": self.video_memory_amount,
             "disk_space_total": self.disk_space_total,
             "disk_space_used": self.disk_space_used,
-            "hostname": self.get_system_hostname()
+            "hostname": identifier
         }

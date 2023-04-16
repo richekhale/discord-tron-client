@@ -5,6 +5,8 @@ from discord_tron_client.modules.image_generation import generator as image_gene
 from discord_tron_client.modules.image_generation import variation as image_variator
 from typing import Dict, Any
 import logging, json, websocket
+from discord_tron_client.classes.app_config import AppConfig
+config = AppConfig()
 
 class WorkerProcessor:
     def __init__(self):
@@ -38,7 +40,10 @@ class WorkerProcessor:
             if "job_id" in payload and payload["job_id"] != "":
                 # We have the output, but now we need to mark the Job as finished
                 hardware = HardwareInfo()
-                discord_msg = JobQueueMessage(websocket=websocket, job_id=payload["job_id"], worker_id=hardware.get_system_hostname(), module_command="finish")
+                
+                identifier = config.get_friendly_name() or hardware.get_system_hostname()
+                
+                discord_msg = JobQueueMessage(websocket=websocket, job_id=payload["job_id"], worker_id=identifier, module_command="finish")
                 await websocket.send(discord_msg.to_json())
 
         except Exception as e:
