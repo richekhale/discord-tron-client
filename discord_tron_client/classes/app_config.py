@@ -79,6 +79,9 @@ class AppConfig:
     def get_command_prefix(self):
         return self.config.get("cmd_prefix", "+")
 
+    def get_friendly_name(self):
+        return self.config.get("friendly_name", False)
+
     def get_max_resolution_by_aspect_ratio(self, aspect_ratio: str):
         return self.config.get("maxres", {}).get(aspect_ratio, {"width": self.get_max_resolution_width(aspect_ratio=aspect_ratio), "height": self.get_max_resolution_height(aspect_ratio=aspect_ratio)})
     def get_max_resolution_width(self, aspect_ratio: str):
