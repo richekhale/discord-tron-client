@@ -5,8 +5,9 @@ import logging, websocket
 import base64
 from io import BytesIO
 from discord_tron_client.classes.hardware import HardwareInfo
+from discord_tron_client.classes.app_config import AppConfig
 hardware = HardwareInfo()
-
+config = AppConfig()
 class DiscordMessage(WebsocketMessage):
     def __init__(self, websocket: websocket,  context, module_command: str = "send", mention: str = None, message: str = None, name: str = None, image: Image = None):
         self.websocket = websocket
@@ -54,5 +55,5 @@ class DiscordMessage(WebsocketMessage):
                 f"**Steps**: `!steps {steps}`, **Strength (img2img)**: {strength}, **Temperature (txt2txt)**: {temperature}\n" \
                 f"**Model**: `!model {model_id}`\n" \
                 f"**Resolution (txt2img)**: " + str(resolution["width"]) + "x" + str(resolution["height"]) + "\n" \
-                f"**{hardware.get_system_hostname()}**: {payload['gpu_power_consumption']}W power used via {system_hw['gpu_type']} ({vmem}G), on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
+                f"**{config.get_friendly_name() or hardware.get_system_hostname()}**: {payload['gpu_power_consumption']}W power used via {system_hw['gpu_type']} ({vmem}G), on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
                 
