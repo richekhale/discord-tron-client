@@ -13,7 +13,7 @@ class DiffusionPipelineManager:
     PIPELINE_CLASSES = {
         "img2img": StableDiffusionImg2ImgPipeline,
         "SAG": StableDiffusionSAGPipeline,
-        "text2img": StableDiffusionPipeline,
+        "text2img": Pipeline,
         "prompt_variation": StableDiffusionImg2ImgPipeline,
         "variation": StableDiffusionImageVariationPipeline,
         "upscaler": StableDiffusionUpscalePipeline
@@ -43,7 +43,13 @@ class DiffusionPipelineManager:
 
     def create_pipeline(self, model_id: str, pipe_type: str) -> Pipeline:
         pipeline_class = self.PIPELINE_CLASSES[pipe_type]
-        pipeline = pipeline_class.from_pretrained(model_id, torch_dtype=self.torch_dtype)
+        if pipe_type in ["txt2img", "img2img"]:
+            # Use the long prompt weighting pipeline.
+            logging.debug(f"Creating a LPW pipeline for {model_id}")
+            pipeline = pipeline_class.from_pretrained(model_id, torch_dtype=self.torch_dtype, custom_pipeline="lpw_stable_diffusion")
+        else:
+            logging.debug(f"Using standard pipeline for {model_id}")
+            pipeline = pipeline_class.from_pretrained(model_id, torch_dtype=self.torch_dtype)
         pipeline.to(self.device)
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
@@ -62,6 +68,7 @@ class DiffusionPipelineManager:
             self.clear_pipeline(model_id)
 
         if model_id not in self.pipelines:
+            logging.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type)
             if pipe_type in ["prompt_variation", "variation"]:
                 self.pipelines[model_id].set_use_memory_efficient_attention_xformers(True)

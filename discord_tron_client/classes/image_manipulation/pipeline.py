@@ -22,7 +22,7 @@ class PipelineRunner:
         user_config: dict,
         discord_msg,
         websocket,
-        model_config
+        model_config: dict = {"sag_capable": False}
     ):
         # General AppConfig() object access.
         self.config = app_config
@@ -92,11 +92,11 @@ class PipelineRunner:
     async def _generate_image_with_pipe_async(
         self,
         pipe,
-        prompt_embed,
+        prompt,
         side_x: int,
         side_y: int,
         steps: int,
-        negative_embed,
+        negative_prompt,
         user_config: dict,
         image: Image = None,
         promptless_variation: bool = False,
@@ -108,11 +108,11 @@ class PipelineRunner:
             AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
             self._generate_image_with_pipe,
             pipe,
-            prompt_embed,
+            prompt,
             side_x,
             side_y,
             steps,
-            negative_embed,
+            negative_prompt,
             user_config,
             image,
             promptless_variation,
@@ -123,11 +123,11 @@ class PipelineRunner:
     def _generate_image_with_pipe(
         self,
         pipe,
-        prompt_embed,
+        prompt,
         side_x: int,
         side_y: int,
         steps: int,
-        negative_embed: str,
+        negative_prompt: str,
         user_config: dict,
         image: Image = None,
         promptless_variation: bool = False,
@@ -142,6 +142,9 @@ class PipelineRunner:
             sag_scale = min(sag_scale, 20)
             self.gpu_power_consumption = 0.0
             generator = self._get_generator(user_config=user_config)
+
+            prompt_embed, negative_embed = self.prompt_manager.process_long_prompt(positive_prompt=prompt, negative_prompt=negative_prompt)
+
             with torch.no_grad():
                 with tqdm(total=steps, ncols=100, file=self.tqdm_capture) as pbar:
                     new_image = self._run_pipeline(
@@ -158,7 +161,9 @@ class PipelineRunner:
                         user_config,
                         image,
                         promptless_variation,
-                        upscaler
+                        upscaler,
+                        positive_prompt=prompt,
+                        negative_prompt=negative_prompt
                     )
             self.gpu_power_consumption = self.tqdm_capture.gpu_power_consumption
             return new_image
@@ -180,21 +185,37 @@ class PipelineRunner:
         user_config: dict,
         image: Image = None,
         promptless_variation: bool = False,
-        upscaler: bool = False
+        upscaler: bool = False,
+        positive_prompt = "",
+        negative_prompt = ""
     ):
         original_stderr = sys.stderr
         sys.stderr = self.tqdm_capture
         try:
+            alt_weight_algorithm = user_config.get("alt_weight_algorithm", False)
             if not promptless_variation and image is None and not SAG:
-                new_image = pipe(
-                    prompt_embeds=prompt_embed,
-                    height=side_y,
-                    width=side_x,
-                    num_inference_steps=int(float(steps)),
-                    negative_prompt_embeds=negative_embed,
-                    guidance_scale=guidance_scale,
-                    generator=generator,
-                ).images[0]
+                if not alt_weight_algorithm:
+                    # Default "long prompt weighting" pipeline
+                    new_image = pipe(
+                        prompt=positive_prompt,
+                        height=side_y,
+                        width=side_x,
+                        num_inference_steps=int(float(steps)),
+                        negative_prompt=negative_prompt,
+                        guidance_scale=guidance_scale,
+                        generator=generator,
+                    ).images[0]
+                else:
+                    # Use the Compel library's prompt weights as input instead.
+                    new_image = pipe(
+                        positive_embeds=prompt_embed,
+                        height=side_y,
+                        width=side_x,
+                        num_inference_steps=int(float(steps)),
+                        negative_embeds=negative_embed,
+                        guidance_scale=guidance_scale,
+                        generator=generator,
+                    ).images[0]
             elif SAG:
                 new_image = pipe(
                     prompt_embeds=prompt_embed,
@@ -207,15 +228,26 @@ class PipelineRunner:
                     sag_scale=sag_scale,
                 ).images[0]
             elif not upscaler and image is not None:
-                new_image = pipe(
-                    prompt_embeds=prompt_embed,
-                    image=image,
-                    strength=user_config["strength"],
-                    num_inference_steps=int(float(steps)),
-                    negative_prompt_embeds=negative_embed,
-                    guidance_scale=guidance_scale,
-                    generator=generator,
-                ).images[0]
+                if not alt_weight_algorithm:
+                    new_image = pipe.img2img(
+                        prompt=positive_prompt,
+                        image=image,
+                        strength=user_config["strength"],
+                        num_inference_steps=int(float(steps)),
+                        negative_prompt=negative_prompt,
+                        guidance_scale=guidance_scale,
+                        generator=generator,
+                    )
+                else:
+                    new_image = pipe(
+                        prompt_embeds=prompt_embed,
+                        image=image,
+                        strength=user_config["strength"],
+                        num_inference_steps=int(float(steps)),
+                        negative_prompt_embeds=negative_embed,
+                        guidance_scale=guidance_scale,
+                        generator=generator,
+                    ).images[0]
             elif promptless_variation:
                 new_image = pipe(
                     height=side_y,
@@ -257,18 +289,17 @@ class PipelineRunner:
             upscaler
         )
         self.prompt_manager = self._get_prompt_manager(pipe)
-        prompt_embed, negative_embed = self.prompt_manager.process_long_prompt(positive_prompt=prompt, negative_prompt=negative_prompt)
 
         if SAG and "sag_capable" in self.model_config and self.model_config["sag_capable"] is None or self.model_config["sag_capable"] is False:
             side_x, side_y = ResolutionManager.validate_sag_resolution(self.model_config, self.user_config, side_x, side_y)
 
         new_image = await self._generate_image_with_pipe_async(
             pipe,
-            prompt_embed,
+            prompt,
             side_x,
             side_y,
             steps,
-            negative_embed,
+            negative_prompt,
             self.user_config,
             image,
             promptless_variation,
