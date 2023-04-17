@@ -60,15 +60,13 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
             # ... handle the situation as needed
         except Exception as e:
             logging.error(f"Unhandled exception in handler: {e}")
-        finally:
-            logging.debug(f"Waiting 5 seconds.")
-            await asyncio.sleep(5)
-
         except Exception as e:
             import traceback
             logging.error(f"Fatal Error: {e}, traceback: {traceback.format_exc()}")
             await asyncio.sleep(5)
-
+        finally:
+            logging.debug(f"Waiting 5 seconds.")
+            await asyncio.sleep(5)
 async def log_slow_callbacks(coro, threshold):
     import time
     start = time.monotonic()
