@@ -65,4 +65,4 @@ async def generate_image(payload, websocket):
             await websocket.send(discord_msg.to_json())
             raise e
         except:
-            logging.error("Error squashed.")
+            logging.error(f"Error squashed: {e}, traceback: {traceback.format_exc()}")
