@@ -7,6 +7,7 @@ import asyncio
 from tqdm import tqdm
 from discord_tron_client.classes.app_config import AppConfig
 from discord_tron_client.classes.image_manipulation.resolution import ResolutionManager
+from discord_tron_client.classes.image_manipulation.prompt_manipulation import PromptManipulation
 from discord_tron_client.classes.tqdm_capture import TqdmCapture
 from discord_tron_client.classes.discord_progress_bar import DiscordProgressBar
 from discord_tron_client.message.discord import DiscordMessage
@@ -82,8 +83,6 @@ class PipelineRunner:
     ):
         logging.info(f"Retrieving pipe for model {model_id}")
         if not promptless_variation:
-            # def get_pipe(self, model_id: str, img2img: bool = False, SAG: bool = False, prompt_variation: bool = False, variation: bool = False, upscaler: bool = False) -> Pipeline:
-
             pipe = self.pipeline_manager.get_pipe(model_id, img2img, SAG, promptless_variation, variation=False, upscaler=upscaler)
         else:
             pipe = self.pipeline_manager.get_variation_pipe(model_id)
@@ -93,11 +92,11 @@ class PipelineRunner:
     async def _generate_image_with_pipe_async(
         self,
         pipe,
-        prompt: str,
+        prompt_embed,
         side_x: int,
         side_y: int,
         steps: int,
-        negative_prompt: str,
+        negative_embed,
         user_config: dict,
         image: Image = None,
         promptless_variation: bool = False,
@@ -109,11 +108,11 @@ class PipelineRunner:
             AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
             self._generate_image_with_pipe,
             pipe,
-            prompt,
+            prompt_embed,
             side_x,
             side_y,
             steps,
-            negative_prompt,
+            negative_embed,
             user_config,
             image,
             promptless_variation,
@@ -124,11 +123,11 @@ class PipelineRunner:
     def _generate_image_with_pipe(
         self,
         pipe,
-        prompt: str,
+        prompt_embed,
         side_x: int,
         side_y: int,
         steps: int,
-        negative_prompt: str,
+        negative_embed: str,
         user_config: dict,
         image: Image = None,
         promptless_variation: bool = False,
@@ -142,16 +141,16 @@ class PipelineRunner:
             sag_scale = user_config.get("sag_scale", 0.75)
             sag_scale = min(sag_scale, 20)
             self.gpu_power_consumption = 0.0
-            generator = self.get_generator(user_config=user_config)
+            generator = self._get_generator(user_config=user_config)
             with torch.no_grad():
                 with tqdm(total=steps, ncols=100, file=self.tqdm_capture) as pbar:
                     new_image = self._run_pipeline(
                         pipe,
-                        prompt,
+                        prompt_embed,
                         side_x,
                         side_y,
                         steps,
-                        negative_prompt,
+                        negative_embed,
                         guidance_scale,
                         generator,
                         SAG,
@@ -169,11 +168,11 @@ class PipelineRunner:
     def _run_pipeline(
         self,
         pipe,
-        prompt: str,
+        prompt_embed,
         side_x: int,
         side_y: int,
         steps: int,
-        negative_prompt: str,
+        negative_embed: str,
         guidance_scale: float,
         generator,
         SAG: bool,
@@ -188,32 +187,32 @@ class PipelineRunner:
         try:
             if not promptless_variation and image is None and not SAG:
                 new_image = pipe(
-                    prompt=prompt,
+                    prompt_embeds=prompt_embed,
                     height=side_y,
                     width=side_x,
                     num_inference_steps=int(float(steps)),
-                    negative_prompt=negative_prompt,
+                    negative_prompt_embeds=negative_embed,
                     guidance_scale=guidance_scale,
                     generator=generator,
                 ).images[0]
             elif SAG:
                 new_image = pipe(
-                    prompt=prompt,
+                    prompt_embeds=prompt_embed,
                     height=side_y,
                     width=side_x,
                     num_inference_steps=int(float(steps)),
-                    negative_prompt=negative_prompt,
+                    negative_prompt_embeds=negative_embed,
                     guidance_scale=guidance_scale,
                     generator=generator,
                     sag_scale=sag_scale,
                 ).images[0]
             elif not upscaler and image is not None:
                 new_image = pipe(
-                    prompt=prompt,
+                    prompt_embeds=prompt_embed,
                     image=image,
                     strength=user_config["strength"],
                     num_inference_steps=int(float(steps)),
-                    negative_prompt=negative_prompt,
+                    negative_prompt_embeds=negative_embed,
                     guidance_scale=guidance_scale,
                     generator=generator,
                 ).images[0]
@@ -226,7 +225,7 @@ class PipelineRunner:
                     generator=generator,
                 ).images[0]
             elif upscaler:
-                new_image = pipe(prompt=prompt, image=image).images[0]
+                new_image = pipe(prompt_embeds=prompt_embed, negative_prompt_embeds=negative_embed, image=image).images[0]
             else:
                 raise Exception("Invalid combination of parameters for image generation")
         except Exception as e:
@@ -257,17 +256,19 @@ class PipelineRunner:
             SAG,
             upscaler
         )
+        self.prompt_manager = self._get_prompt_manager(pipe)
+        prompt_embed, negative_embed = self.prompt_manager.process_long_prompt(positive_prompt=prompt, negative_prompt=negative_prompt)
 
         if SAG and "sag_capable" in self.model_config and self.model_config["sag_capable"] is None or self.model_config["sag_capable"] is False:
             side_x, side_y = ResolutionManager.validate_sag_resolution(self.model_config, self.user_config, side_x, side_y)
 
         new_image = await self._generate_image_with_pipe_async(
             pipe,
-            prompt,
+            prompt_embed,
             side_x,
             side_y,
             steps,
-            negative_prompt,
+            negative_embed,
             self.user_config,
             image,
             promptless_variation,
@@ -276,10 +277,19 @@ class PipelineRunner:
 
         return new_image
     
-    def get_generator(self, user_config: dict):
+    def _get_generator(self, user_config: dict):
         self.seed = user_config.get("seed", None)
         if self.seed is None:
             self.seed = int(time.time())
-        generator = torch.manual_seed(self.seed)
-        logging.info(f"Seed: {self.seed}")
-        return generator
+        if self.prompt_manager is None:
+            logging.debug(f"Using built-in PyTorch generator, as Compel Prompt Manager is not available for some reason.")
+            generator = torch.manual_seed(self.seed)
+            logging.info(f"Seed: {self.seed}")
+            return generator
+        else:
+            logging.debug(f"Using the Compel-provided seed generation routine.")
+            return self.prompt_manager.get_generator(seed=self.seed)
+
+    def _get_prompt_manager(self, pipe):
+        logging.debug(f"Initialized the Compel")
+        return PromptManipulation(pipeline=pipe, device=self.pipeline_manager.device)
