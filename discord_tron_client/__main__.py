@@ -22,7 +22,7 @@ def main():
         from discord_tron_client.classes.hardware import HardwareInfo
         hardware_info = HardwareInfo()
         machine_info = hardware_info.get_machine_info()
-        identifier = config.get_friendly_name()
+        identifier = config.get_friendly_name() or hardware_info.get_system_hostname()
         register_data = hardware_info.get_register_data(worker_id=identifier)
         register_data["hardware"] = hardware_info.get_simple_hardware_info()
         hello_world_message = WebsocketMessage(message_type="hello_world", module_name="worker", module_command="register", arguments=register_data)
