@@ -281,14 +281,9 @@ class PipelineRunner:
         self.seed = user_config.get("seed", None)
         if self.seed is None:
             self.seed = int(time.time())
-        if self.prompt_manager is None:
-            logging.debug(f"Using built-in PyTorch generator, as Compel Prompt Manager is not available for some reason.")
-            generator = torch.manual_seed(self.seed)
-            logging.info(f"Seed: {self.seed}")
-            return generator
-        else:
-            logging.debug(f"Using the Compel-provided seed generation routine.")
-            return self.prompt_manager.get_generator(seed=self.seed)
+        generator = torch.manual_seed(self.seed)
+        logging.info(f"Seed: {self.seed}")
+        return generator
 
     def _get_prompt_manager(self, pipe):
         logging.debug(f"Initialized the Compel")

@@ -13,9 +13,6 @@ class PromptManipulation:
         conditioning = self.compel.build_conditioning_tensor(prompt)
         return conditioning
     
-    def get_generator(self, seed: int):
-        Generator(device="cpu" if self.compel.device.type == "mps" else self.compel.device).manual_seed(int(seed))
-
     def process_long_prompt(self, positive_prompt: str, negative_prompt: str):
         conditioning = self.compel.build_conditioning_tensor(positive_prompt)
         negative_conditioning = self.compel.build_conditioning_tensor(negative_prompt)
