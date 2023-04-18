@@ -1,13 +1,15 @@
 import logging
 from discord_tron_client.classes.app_config import AppConfig
+from discord_tron_client.classes.hardware import HardwareInfo
 config = AppConfig()
+hardware = HardwareInfo()
 
 class ResolutionManager:
     resolutions = [
         # 1:1 aspect ratio
         {"width": 128, "height": 128, "scaling_factor": 100},
         {"width": 256, "height": 256, "scaling_factor": 88},
-        {"width": 512, "height": 512, "scaling_factor": 30},
+        {"width": 512, "height": 512, "scaling_factor": 30, "default_max": True},
         {"width": 1024, "height": 1024, "scaling_factor": 30},
         {"width": 2048, "height": 2048, "scaling_factor": 30},
         {"width": 4096, "height": 4096, "scaling_factor": 30},
@@ -15,7 +17,7 @@ class ResolutionManager:
         # 2:3 aspect ratio
         {"width": 128, "height": 192, "scaling_factor": 80},
         {"width": 256, "height": 384, "scaling_factor": 60},
-        {"width": 512, "height": 768, "scaling_factor": 49},
+        {"width": 512, "height": 768, "scaling_factor": 49, "default_max": True},
         {"width": 1024, "height": 1536, "scaling_factor": 30},
         {"width": 2048, "height": 3072, "scaling_factor": 30},
         {"width": 4096, "height": 6144, "scaling_factor": 30},
@@ -23,7 +25,7 @@ class ResolutionManager:
         # 3:2 aspect ratio
         {"width": 192, "height": 128, "scaling_factor": 94},
         {"width": 384, "height": 256, "scaling_factor": 76},
-        {"width": 768, "height": 512, "scaling_factor": 52},
+        {"width": 768, "height": 512, "scaling_factor": 52, "default_max": True},
         {"width": 1536, "height": 1024, "scaling_factor": 30},
         {"width": 3072, "height": 2048, "scaling_factor": 30},
         {"width": 6144, "height": 4096, "scaling_factor": 30},
@@ -31,13 +33,36 @@ class ResolutionManager:
         # 16:9 aspect ratio
         {"width": 256, "height": 144, "scaling_factor": 40},
         {"width": 512, "height": 288, "scaling_factor": 40},
-        {"width": 1024, "height": 576, "scaling_factor": 40},
+        {"width": 1024, "height": 576, "scaling_factor": 40, "default_max": True},
         {"width": 1280, "height": 720, "scaling_factor": 30},
         {"width": 1920, "height": 1080, "scaling_factor": 30},
         {"width": 2160, "height": 1440, "scaling_factor": 30},
         {"width": 3840, "height": 2160, "scaling_factor": 30},
         {"width": 7680, "height": 4320, "scaling_factor": 30},
     ]
+    
+    @staticmethod
+    def get_resolutions_with_extra_data(aspectratio = None):
+        # Return ResolutionManager.resolutions after adding more information to each row, such as whether we will attention scale that resolution, and its aspect ratio
+        for res in ResolutionManager.resolutions:
+            if aspectratio is not None and ResolutionManager.aspect_ratio(res) != aspectratio:
+                continue
+            res["aspect_ratio"] = ResolutionManager.aspect_ratio(res)
+            res["attention_scale"] = hardware.should_enable_attention_slicing(res)
+            if not hasattr(res, "default_max"):
+                res["default_max"] = False
+        return ResolutionManager.resolutions
+
+    @staticmethod
+    def get_resolutions_grouped_by_aspectratio(aspectratio = None):
+        resolutions = {}
+        for res in ResolutionManager.resolutions:
+            if aspectratio is None or ResolutionManager.aspect_ratio(res) == aspectratio:
+                if ResolutionManager.aspect_ratio(res) not in resolutions:
+                    resolutions[ResolutionManager.aspect_ratio(res)] = []
+                resolutions[ResolutionManager.aspect_ratio(res)].append(res)
+        return resolutions
+
     @staticmethod
     def get_scaling_factor(width, height, scaled_resolutions):
         for res in scaled_resolutions:
@@ -143,6 +168,12 @@ class ResolutionManager:
 
         # Return the last (highest) resolution from the sorted list, or None if the list is empty
         return filtered_resolutions[-1] if filtered_resolutions else None
+
+    @staticmethod
+    def get_default_maximum(aspect_ratio: str):
+        for res in ResolutionManager.resolutions:
+            if ResolutionManager.aspect_ratio(res) == aspect_ratio and "default_max" in res and res["default_max"]:
+                return res
 
     @staticmethod
     def get_aspect_ratio_and_sides(config, resolution):

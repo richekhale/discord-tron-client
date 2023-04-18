@@ -24,7 +24,7 @@ async def generate_image(payload, websocket):
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="Your prompt is now being processed. This might take a while to get to the next step if we have to download your model!")
         await websocket.send(discord_msg.to_json())
         model_manager = TransformerModelManager()
-        pipeline_manager = diffusion.DiffusionPipelineManager()
+        pipeline_manager = AppConfig.get_pipeline_manager()
         pipeline_runner = pipeline.PipelineRunner(model_manager=model_manager, pipeline_manager=pipeline_manager, app_config=config, user_config=user_config, discord_msg=discord_msg, websocket=websocket, model_config=model_config)
         # Attach a positive prompt weight to the end so that it's more likely to show up this way.
         prompt=prompt + ' ' + positive_prompt

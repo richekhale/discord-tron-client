@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 class AppConfig:
     # Class variables
     main_loop = None
+    main_pipelinemanager = None
     main_websocket = None
     image_processing_executor = None
     # Initialize the config object.
@@ -31,7 +32,9 @@ class AppConfig:
     @classmethod
     def set_loop(cls, loop):
         cls.main_loop = loop
-
+    @classmethod
+    def set_pipeline_manager(cls, pipelinemanager):
+        cls.main_pipelinemanager = pipelinemanager
     @classmethod
     def set_websocket(cls, websocket):
         cls.main_websocket = websocket
@@ -54,7 +57,9 @@ class AppConfig:
     @classmethod
     def get_loop(cls):
         return cls.main_loop
-
+    @classmethod
+    def get_pipeline_manager(cls):
+        return cls.main_pipelinemanager
     def get_log_level(self):
         self.reload_config()
         level = self.config.get("log_level", "INFO")

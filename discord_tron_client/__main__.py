@@ -2,9 +2,10 @@ import asyncio
 from .ws_client import websocket_client
 import logging
 from discord_tron_client.classes import log_format
-
+from discord_tron_client.classes.image_manipulation.diffusion import DiffusionPipelineManager
 from discord_tron_client.classes.app_config import AppConfig
 config = AppConfig()
+config.set_pipeline_manager(DiffusionPipelineManager())
 
 def main():
     try:
@@ -20,11 +21,13 @@ def main():
         from discord_tron_client.classes.message import WebsocketMessage
         # Add any startup sequence here
         from discord_tron_client.classes.hardware import HardwareInfo
+        from discord_tron_client.classes.image_manipulation.resolution import ResolutionManager
         hardware_info = HardwareInfo()
         machine_info = hardware_info.get_machine_info()
         identifier = config.get_friendly_name() or hardware_info.get_system_hostname()
         register_data = hardware_info.get_register_data(worker_id=identifier)
         register_data["hardware"] = hardware_info.get_simple_hardware_info()
+        register_data["available_resolutions"] = ResolutionManager.get_resolutions_with_extra_data()
         hello_world_message = WebsocketMessage(message_type="hello_world", module_name="worker", module_command="register", arguments=register_data)
         startup_sequence.append(hello_world_message)
         hardware_info_message = WebsocketMessage(message_type="hardware_info", module_name="system", module_command="update", arguments=machine_info)

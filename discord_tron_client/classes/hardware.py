@@ -3,7 +3,6 @@ import logging, socket
 from discord_tron_client.classes.app_config import AppConfig
 config = AppConfig()
 
-
 class HardwareInfo:
     def __init__(self):
         self.gpu_type = "Unknown type"
@@ -13,6 +12,7 @@ class HardwareInfo:
         self.disk_space_total = None
         self.disk_space_used = None
         self.get_system_capabilities()
+        self.get_machine_info()
 
     def get_register_data(self, worker_id: str):
         return {
@@ -170,6 +170,21 @@ class HardwareInfo:
             "hostname": identifier
         }
 
+    def should_enable_attention_slicing(self, resolution: dict):
+        gpu_memory = self.video_memory_amount
+        pixel_count = resolution["width"] * resolution["height"]
+        memory_to_pixel_ratio = gpu_memory * (1024 ** 3) / pixel_count
+        # In practice, an 8GB GPU can handle about 1280x720 which is a ratio of 9320 pixels per GiB.
+        attention_slicing_threshold = 9000
+        result = bool(memory_to_pixel_ratio < attention_slicing_threshold)
+        logging.debug(f"Resolution {resolution} requires {memory_to_pixel_ratio} pixels per GiB of video memory. Attention slicing is {'enabled' if result else 'disabled'}.")
+        return result
+
+    def get_compute_capability():
+        device = drv.Device(0)
+        compute_capability = device.compute_capability()
+        return float(f"{compute_capability[0]}.{compute_capability[1]}")
+
     def get_machine_info(self):
         self.get_gpu_info()
         self.get_cpu_info()
@@ -186,5 +201,5 @@ class HardwareInfo:
             "video_memory_amount": self.video_memory_amount,
             "disk_space_total": self.disk_space_total,
             "disk_space_used": self.disk_space_used,
-            "hostname": identifier
+            "hostname": identifier,
         }

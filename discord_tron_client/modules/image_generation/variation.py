@@ -21,7 +21,7 @@ async def variate_image(payload, websocket):
     try:
         await websocket.send(discord_msg.to_json())
         model_manager = TransformerModelManager()
-        pipeline_manager = diffusion.DiffusionPipelineManager()
+        pipeline_manager = AppConfig.get_pipeline_manager()
         pipeline_runner = pipeline.PipelineRunner(model_manager=model_manager, pipeline_manager=pipeline_manager, app_config=config, user_config=user_config, discord_msg=discord_msg, websocket=websocket)
 
         logging.info("Generating image!")

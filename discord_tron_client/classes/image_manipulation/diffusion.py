@@ -56,7 +56,7 @@ class DiffusionPipelineManager:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
         return pipeline
 
-    def get_pipe(self, model_id: str, img2img: bool = False, SAG: bool = False, prompt_variation: bool = False, variation: bool = False, upscaler: bool = False) -> Pipeline:
+    def get_pipe(self, resolution: dict, model_id: str, img2img: bool = False, SAG: bool = False, prompt_variation: bool = False, variation: bool = False, upscaler: bool = False) -> Pipeline:
         gc.collect()
         logging.info("Generating a new pipe...")
         if self.use_attn_scaling:
@@ -73,7 +73,7 @@ class DiffusionPipelineManager:
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type)
             if pipe_type in ["prompt_variation", "variation"]:
                 self.pipelines[model_id].set_use_memory_efficient_attention_xformers(True)
-                if self.variation_attn_scaling:
+                if hardware.should_enable_attention_slicing(res):
                     logging.info("Using attention scaling, due to hardware limits! This will make generation run more slowly, but it will be less likely to run out of memory.")
                     self.pipelines[model_id].enable_sequential_cpu_offload()
                     self.pipelines[model_id].enable_attention_slicing(1)

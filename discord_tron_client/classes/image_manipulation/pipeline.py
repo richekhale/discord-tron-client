@@ -55,6 +55,7 @@ class PipelineRunner:
 
     async def _prepare_pipe_async(
         self,
+        resolution,
         model_id: int,
         img2img: bool = False,
         promptless_variation: bool = False,
@@ -65,6 +66,7 @@ class PipelineRunner:
         loop_return = await loop.run_in_executor(
             AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
             self._prepare_pipe,
+            resolution,
             model_id,
             img2img,
             promptless_variation,
@@ -75,6 +77,7 @@ class PipelineRunner:
 
     def _prepare_pipe(
         self,
+        resolution: dict,
         model_id: int,
         img2img: bool = False,
         promptless_variation: bool = False,
@@ -83,7 +86,7 @@ class PipelineRunner:
     ):
         logging.info(f"Retrieving pipe for model {model_id}")
         if not promptless_variation:
-            pipe = self.pipeline_manager.get_pipe(model_id, img2img, SAG, promptless_variation, variation=False, upscaler=upscaler)
+            pipe = self.pipeline_manager.get_pipe(resolution, model_id, img2img, SAG, promptless_variation, variation=False, upscaler=upscaler)
         else:
             pipe = self.pipeline_manager.get_variation_pipe(model_id)
         logging.info("Copied pipe to the local context")
@@ -281,7 +284,9 @@ class PipelineRunner:
         upscaler: bool = False
     ):
         SAG = self.user_config.get("enable_sag", False)
+        resolution = {"width": side_x, "height": side_y}
         pipe = await self._prepare_pipe_async(
+            resolution,
             model_id,
             img2img,
             promptless_variation,
