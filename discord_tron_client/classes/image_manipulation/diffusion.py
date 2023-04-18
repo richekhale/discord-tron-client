@@ -30,6 +30,7 @@ class DiffusionPipelineManager:
         if hw_limits["gpu"] >= 16 and config.get_precision_bits() == 32:
             self.torch_dtype = torch.float32
         if hw_limits["gpu"] <= 16:
+            logging.warn(f"Our GPU has less than 16GB of memory, so we will use attention scaling for image generation, resulting in much higher CPU use to lower VMEM use.")
             self.variation_attn_scaling = True
             self.use_attn_scaling = True
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

@@ -83,11 +83,13 @@ class ResolutionManager:
     @staticmethod
     def nearest_generation_resolution(side_x: int, side_y: int):
         aspect_ratio = ResolutionManager.aspect_ratio({"width": side_x, "height": side_y})
-        max_resolution_config = config.get_max_resolution_by_aspect_ratio(aspect_ratio)
-        logging.info(f"Our max resolution config, {max_resolution_config}")
-        max_resolution = ResolutionManager.get_highest_resolution(aspect_ratio, max_resolution_config)
-        if int(side_x) * int(side_y) <= int(max_resolution["width"]) * int(max_resolution["height"]):
+        max_resolution = config.get_max_resolution_by_aspect_ratio(aspect_ratio)
+        logging.info(f"Our max resolution config, {max_resolution}")
+        requested_pixel_area = int(side_x) * int(side_y)
+        max_pixel_area = int(max_resolution["width"]) * int(max_resolution["height"])
+        if requested_pixel_area <= max_pixel_area:
             # Total pixel area is under our maximum.
+            logging.debug(f"Using the provided resolution {side_x}x{side_y} as its requested pixel size {requested_pixel_area} is under our maximum resolution of {max_resolution['width']}x{max_resolution['height']} pixel size of {max_pixel_area}.")
             return side_x, side_y
         else:
             logging.info(f"Nearest resolution for {side_x}x{side_y} is larger than max resolution {max_resolution} and no better alternative could be found.")
