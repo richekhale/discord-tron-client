@@ -73,7 +73,7 @@ class DiffusionPipelineManager:
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type)
             if pipe_type in ["prompt_variation", "variation"]:
                 self.pipelines[model_id].set_use_memory_efficient_attention_xformers(True)
-                if hardware.should_enable_attention_slicing(res):
+                if hardware.should_enable_attention_slicing(resolution):
                     logging.info("Using attention scaling, due to hardware limits! This will make generation run more slowly, but it will be less likely to run out of memory.")
                     self.pipelines[model_id].enable_sequential_cpu_offload()
                     self.pipelines[model_id].enable_attention_slicing(1)
@@ -83,7 +83,7 @@ class DiffusionPipelineManager:
                 # @see https://huggingface.co/stabilityai/stable-diffusion-x4-upscaler/discussions/2
                 self.pipelines[model_id].set_use_memory_efficient_attention_xformers(True)
                 self.set_scheduler(self.pipelines[model_id])
-                if self.variation_attn_scaling:
+                if hardware.should_enable_attention_slicing(resolution):
                     logging.warn(f"Using attention scaling on Stable Diffusion upscaler due to hardware constraints. Consider using faster hardware.")
                     self.pipelines[model_id].enable_sequential_cpu_offload()
                     self.pipelines[model_id].enable_attention_slicing(1)
