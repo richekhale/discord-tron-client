@@ -105,9 +105,11 @@ class ResolutionManager:
         return f"{ratio_width}:{ratio_height}"
 
     @staticmethod
-    def nearest_scaled_resolution(resolution: dict, user_config: dict, max_resolution_config: dict):
+    def nearest_scaled_resolution(resolution: dict, user_config: dict):
         # We will scale by default, to 4x the requested resolution. Big energy!
         factor = user_config.get("resize", 1)
+        aspect_ratio = ResolutionManager.aspect_ratio(resolution)
+        max_resolution_config = config.get_max_resolution_by_aspect_ratio(aspect_ratio)
         logging.info("Resize configuration is set by user factoring at " + str(factor) + " based on our max resolution config, " + str(max_resolution_config) + ".")
         if factor == 1 or factor == 0:
             # Do not bother rescaling if it's set to 1 or 0
@@ -136,18 +138,15 @@ class ResolutionManager:
         # Filter the resolutions list to only include resolutions with the same aspect ratio as the input image
         filtered_resolutions = [r for r in ResolutionManager.resolutions if ResolutionManager.aspect_ratio(r) == aspect_ratio]
 
-        # Sort the filtered resolutions list by scaling factor in descending order
-        sorted_resolutions = sorted(filtered_resolutions, key=lambda r: r["scaling_factor"], reverse=False)
-
         # Check for a maximum resolution cap in the configuration
         max_res_cap = max_resolution_config.get(aspect_ratio)
 
         # If there's a cap, filter the sorted resolutions list to only include resolutions below the cap
         if max_res_cap:
-            sorted_resolutions = [r for r in sorted_resolutions if r["width"] <= max_res_cap["width"] and r["height"] <= max_res_cap["height"]]
+            filtered_resolutions = [r for r in filtered_resolutions if r["width"] <= max_res_cap["width"] and r["height"] <= max_res_cap["height"]]
 
         # Return the first (highest) resolution from the sorted list, or None if the list is empty
-        return sorted_resolutions[0] if sorted_resolutions else None
+        return filtered_resolutions[0] if filtered_resolutions else None
 
     @staticmethod
     def get_aspect_ratio_and_sides(config, resolution):

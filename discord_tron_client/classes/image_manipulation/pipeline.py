@@ -305,6 +305,12 @@ class PipelineRunner:
             promptless_variation,
             upscaler
         )
+        # Get the rescaled resolution
+        resolution = self._get_rescaled_resolution(self.user_config, side_x, side_y)
+        side_x = resolution["width"]
+        side_y = resolution["height"]
+        logging.info(f"Rescaled resolution: {side_x}x{side_y}")
+        new_image = new_image.resize((int(side_x), int(side_y)), Image.ANTIALIAS)
 
         return new_image
     
@@ -319,3 +325,7 @@ class PipelineRunner:
     def _get_prompt_manager(self, pipe):
         logging.debug(f"Initialized the Compel")
         return PromptManipulation(pipeline=pipe, device=self.pipeline_manager.device)
+    
+    def _get_rescaled_resolution(self, user_config, side_x, side_y):
+        resolution = { "width": side_x, "height": side_y }
+        return ResolutionManager.nearest_scaled_resolution(resolution, user_config)
