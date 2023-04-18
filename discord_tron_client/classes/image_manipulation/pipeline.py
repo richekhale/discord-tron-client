@@ -333,5 +333,4 @@ class PipelineRunner:
         return ResolutionManager.nearest_scaled_resolution(resolution, user_config)
     
     def _get_maximum_generation_res(self, side_x, side_y):
-        resolution = ResolutionManager.nearest_generation_resolution(side_x, side_y)
-        return resolution["width"], resolution["height"]
+        return ResolutionManager.nearest_generation_resolution(side_x, side_y)
