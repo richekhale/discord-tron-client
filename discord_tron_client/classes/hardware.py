@@ -171,13 +171,14 @@ class HardwareInfo:
         }
 
     def should_enable_attention_slicing(self, resolution: dict):
+        logging.info(f"Running attention slicing check for resolution {resolution}...")
         gpu_memory = self.video_memory_amount
         pixel_count = resolution["width"] * resolution["height"]
         memory_to_pixel_ratio = gpu_memory * (1024 ** 3) / pixel_count
         # In practice, an 8GB GPU can handle about 1280x720 which is a ratio of 9320 pixels per GiB.
         attention_slicing_threshold = 9000
-        result = bool(memory_to_pixel_ratio < attention_slicing_threshold)
-        logging.debug(f"Resolution {resolution} requires {memory_to_pixel_ratio} pixels per GiB of video memory. Attention slicing is {'enabled' if result else 'disabled'}.")
+        result = memory_to_pixel_ratio < attention_slicing_threshold
+        logging.info(f"Resolution {resolution} requires {memory_to_pixel_ratio} pixels per GiB of video memory. Attention slicing is {'enabled' if result else 'disabled'}.")
         return result
 
     def get_compute_capability():

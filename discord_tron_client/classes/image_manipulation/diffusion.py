@@ -34,7 +34,7 @@ class DiffusionPipelineManager:
             self.variation_attn_scaling = True
             self.use_attn_scaling = True
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.last_pipe_type = {}        # { "model_id": "txt2img", ... }
+        self.last_pipe_type = {}        # { "model_id": "text2img", ... }
         self.pipelines: Dict[str, Pipeline] = {}
         self.last_pipe_type: Dict[str, str] = {}
 
@@ -44,7 +44,7 @@ class DiffusionPipelineManager:
 
     def create_pipeline(self, model_id: str, pipe_type: str) -> Pipeline:
         pipeline_class = self.PIPELINE_CLASSES[pipe_type]
-        if pipe_type in ["txt2img", "img2img"]:
+        if pipe_type in ["text2img", "img2img"]:
             # Use the long prompt weighting pipeline.
             logging.debug(f"Creating a LPW pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(model_id, torch_dtype=self.torch_dtype, custom_pipeline="lpw_stable_diffusion")
@@ -78,7 +78,7 @@ class DiffusionPipelineManager:
                     self.pipelines[model_id].enable_sequential_cpu_offload()
                     self.pipelines[model_id].enable_attention_slicing(1)
                     self.set_scheduler(self.pipelines[model_id])
-            if pipe_type in [ "upscaler", "txt2img" ]:
+            if pipe_type in [ "upscaler", "text2img" ]:
                 # Set the use of xformers library so that we can efficiently generate and upscale images.
                 # @see https://huggingface.co/stabilityai/stable-diffusion-x4-upscaler/discussions/2
                 self.pipelines[model_id].set_use_memory_efficient_attention_xformers(True)
