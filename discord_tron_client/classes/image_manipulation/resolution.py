@@ -78,43 +78,55 @@ class ResolutionManager:
         # Return the aspect ratio as a string in the format "width:height"
         return f"{ratio_width}:{ratio_height}"
 
+    # Generation resolutions have to be more carefully selected than resize resolutions.
+    @staticmethod
+    def nearest_generation_resolution(resolution: dict):
+        aspect_ratio = ResolutionManager.aspect_ratio(resolution)
+        max_resolution_config = config.get_max_resolution_by_aspect_ratio(aspect_ratio)
+        logging.info(f"Our max resolution config, {max_resolution_config}")
+        width = resolution["width"]
+        height = resolution["height"]
+        max_resolution = ResolutionManager.get_highest_resolution(aspect_ratio, max_resolution_config)
+        if int(width) * int(height) <= int(max_resolution["width"]) * int(max_resolution["height"]):
+            # Total pixel area is under our maximum.
+            return resolution
+        else:
+            logging.info(f"Nearest resolution for {resolution} is larger than max resolution {max_resolution} and no better alternative could be found.")
+            return max_resolution
+
     @staticmethod
     def nearest_scaled_resolution(resolution: dict, user_config: dict):
         # We will scale by default, to 4x the requested resolution. Big energy!
         factor = user_config.get("resize", 1)
-        aspect_ratio = ResolutionManager.aspect_ratio(resolution)
-        max_resolution_config = config.get_max_resolution_by_aspect_ratio(aspect_ratio)
-        logging.info("Resize configuration is set by user factoring at " + str(factor) + " based on our max resolution config, " + str(max_resolution_config) + ".")
         if factor == 1 or factor == 0:
             # Do not bother rescaling if it's set to 1 or 0
             return resolution
+        aspect_ratio = ResolutionManager.aspect_ratio(resolution)
+        max_resolution_config = config.get_max_resolution_by_aspect_ratio(aspect_ratio)
+
+        logging.info(f"Resize configuration is set by user factoring at {factor} based on our max resolution config, {max_resolution_config}.")
+
         width = resolution["width"]
         height = resolution["height"]
-        aspect_ratio = ResolutionManager.aspect_ratio(resolution)
 
         new_width = int(width * factor)
         new_height = int(height * factor)
         new_aspect_ratio = ResolutionManager.aspect_ratio({"width": new_width, "height": new_height})
+
         max_resolution = ResolutionManager.get_highest_resolution(aspect_ratio, max_resolution_config)
-        if aspect_ratio != new_aspect_ratio:
-            logging.info("Aspect ratio changed after scaling, using max resolution " + str(max_resolution) + " instead.")
-            return max_resolution
-        else:
-            if ResolutionManager.is_valid_resolution(new_width, new_height):
-                if int(new_width) * int(new_height) <= int(max_resolution["width"]) * int(max_resolution["height"]):
-                    logging.info("Nearest resolution for AR " + str(aspect_ratio) + " is " + str(new_width) + "x" + str(new_height) + ".")
-                    return {"width": new_width, "height": new_height}
-                else:
-                    # Loop through each of ResolutionManager.resolutions by aspect ratio to determine the first resolution that's >= the new resolution
-                    for res in ResolutionManager.resolutions:
-                        if ResolutionManager.aspect_ratio(res) == aspect_ratio and res["width"] >= new_width and res["height"] >= new_height:
-                            logging.info("Nearest resolution for AR " + str(aspect_ratio) + " is " + str(res["width"]) + "x" + str(res["height"]) + ".")
-                            return res
-                    logging.info("Nearest resolution for AR " + str(aspect_ratio) + " is larger than max resolution and no better alternative could be found, using max resolution: " + str(max_resolution) + " instead.")
-                    return max_resolution
-            else:
-                logging.info("Nearest resolution for AR " + str(aspect_ratio) + " not found, using max resolution: " + str(max_resolution) + " instead.")
-                return max_resolution       
+
+        if ResolutionManager.is_valid_resolution(new_width, new_height):
+            if int(new_width) * int(new_height) <= int(max_resolution["width"]) * int(max_resolution["height"]):
+                logging.info(f"Nearest resolution for AR {aspect_ratio} is {new_width}x{new_height}.")
+                return {"width": new_width, "height": new_height}
+        # Loop through each of ResolutionManager.resolutions by aspect ratio to determine the first resolution that's >= the new resolution
+        for res in ResolutionManager.resolutions:
+            if ResolutionManager.aspect_ratio(res) == aspect_ratio and res["width"] >= new_width:
+                logging.info(f"Nearest resolution for AR {aspect_ratio} is {res}.")
+                return res
+                
+        logging.info(f"Nearest resolution for AR {aspect_ratio} is larger than max resolution {max_resolution} and no better alternative could be found.")
+        return max_resolution
     @staticmethod
     def get_highest_resolution(aspect_ratio: str, max_resolution_config: dict):
         # Calculate the aspect ratio of the input image
