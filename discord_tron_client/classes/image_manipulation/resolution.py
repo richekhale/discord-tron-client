@@ -174,6 +174,7 @@ class ResolutionManager:
         for res in ResolutionManager.resolutions:
             if ResolutionManager.aspect_ratio(res) == aspect_ratio and "default_max" in res and res["default_max"]:
                 return res
+        raise ValueError("No default maximum resolution could be ascertained.")
 
     @staticmethod
     def get_aspect_ratio_and_sides(config, resolution):
