@@ -30,16 +30,9 @@ class DiscordMessage(WebsocketMessage):
         # Save image to buffer before encoding as base64
         buffered = BytesIO()
         image.save(buffered, format="PNG")
-        image_bytes = buffered.getvalue()
-
-        # Compress the image bytes using gzip
-        compressed_bytes = BytesIO()
-        with gzip.GzipFile(fileobj=compressed_bytes, mode="wb") as gzip_file:
-            gzip_file.write(image_bytes)
-
         # Base64 encode the compressed bytes
-        compressed_b64 = base64.b64encode(compressed_bytes.getvalue()).decode('utf-8')
-        return compressed_b64
+        b64_image = base64.b64encode(buffered.getvalue()).decode('utf-8')
+        return b64_image
     @staticmethod
     def print_prompt(payload):
         system_hw = hardware.get_machine_info()
