@@ -26,19 +26,20 @@ class DiscordMessage(WebsocketMessage):
             arguments["mention"] = mention
         super().__init__(message_type="discord", module_name="message", module_command=module_command, data=context, arguments=arguments)
         
-    def b64_image(self, image: Image):
-        # Save image to buffer before encoding as base64:
-
+    def b64_image(image: Image):
+        # Save image to buffer before encoding as base64
         buffered = BytesIO()
         image.save(buffered, format="PNG")
-        b64_image = base64.b64encode(buffered.getvalue())
-        # Compress the base64-encoded image using gzip
-        compressed_b64 = BytesIO()
-        with gzip.GzipFile(fileobj=compressed_b64, mode="wb") as gzip_file:
-            gzip_file.write(b64_image)
-        compressed_b64 = compressed_b64.getvalue().decode('utf-8')
-        return compressed_b64
+        image_bytes = buffered.getvalue()
 
+        # Compress the image bytes using gzip
+        compressed_bytes = BytesIO()
+        with gzip.GzipFile(fileobj=compressed_bytes, mode="wb") as gzip_file:
+            gzip_file.write(image_bytes)
+
+        # Base64 encode the compressed bytes
+        compressed_b64 = base64.b64encode(compressed_bytes.getvalue()).decode('utf-8')
+        return compressed_b64
     @staticmethod
     def print_prompt(payload):
         system_hw = hardware.get_machine_info()
