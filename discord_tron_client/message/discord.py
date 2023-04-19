@@ -37,12 +37,9 @@ class DiscordMessage(WebsocketMessage):
         compressed_b64 = BytesIO()
         with gzip.GzipFile(fileobj=compressed_b64, mode="wb") as gzip_file:
             gzip_file.write(b64_image)
-            
+        compressed_b64 = compressed_b64.getvalue().decode('utf-8')
         return compressed_b64
-        
-    compressed_b64 = compressed_b64.getvalue().decode('utf-8')
-    return compressed_b64
-    
+
     @staticmethod
     def print_prompt(payload):
         system_hw = hardware.get_machine_info()
