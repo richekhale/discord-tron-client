@@ -1,8 +1,7 @@
 from discord_tron_client.classes.message import WebsocketMessage
 from typing import Dict
 from PIL import Image
-import logging, websocket
-import base64
+import logging, websocket, gzip, base64
 from io import BytesIO
 from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.classes.app_config import AppConfig
