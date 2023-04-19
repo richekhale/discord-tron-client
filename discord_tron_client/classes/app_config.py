@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 class AppConfig:
     # Class variables
     main_loop = None
+    main_api_client = None
     main_pipelinemanager = None
     main_websocket = None
     image_processing_executor = None
@@ -33,6 +34,9 @@ class AppConfig:
     def set_loop(cls, loop):
         cls.main_loop = loop
     @classmethod
+    def set_api_client(cls, api_client):
+        cls.main_api_client = api_client
+    @classmethod
     def set_pipeline_manager(cls, pipelinemanager):
         cls.main_pipelinemanager = pipelinemanager
     @classmethod
@@ -57,6 +61,9 @@ class AppConfig:
     @classmethod
     def get_loop(cls):
         return cls.main_loop
+    @classmethod
+    def get_api_client(cls):
+        return cls.main_api_client
     @classmethod
     def get_pipeline_manager(cls):
         return cls.main_pipelinemanager

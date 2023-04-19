@@ -4,6 +4,7 @@ import logging
 from discord_tron_client.classes import log_format
 from discord_tron_client.classes.image_manipulation.diffusion import DiffusionPipelineManager
 from discord_tron_client.classes.app_config import AppConfig
+from discord_tron_client.classes.api_client import ApiClient
 config = AppConfig()
 config.set_pipeline_manager(DiffusionPipelineManager())
 
@@ -15,7 +16,8 @@ def main():
         current_ticket = config.get_auth_ticket()
         auth = Auth(config, current_ticket["access_token"], current_ticket["refresh_token"], current_ticket["expires_in"], current_ticket["issued_at"])
         auth.get()
-
+        api_client = ApiClient(auth=auth, config=config)
+        AppConfig.set_api_client(api_client)
         # Start the WebSocket client in the background
         startup_sequence = []
         from discord_tron_client.classes.message import WebsocketMessage

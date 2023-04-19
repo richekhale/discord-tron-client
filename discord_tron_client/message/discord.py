@@ -8,7 +8,7 @@ from discord_tron_client.classes.app_config import AppConfig
 hardware = HardwareInfo()
 config = AppConfig()
 class DiscordMessage(WebsocketMessage):
-    def __init__(self, websocket: websocket,  context, module_command: str = "send", mention: str = None, message: str = None, name: str = None, image: Image = None):
+    def __init__(self, websocket: websocket,  context, module_command: str = "send", mention: str = None, message: str = None, name: str = None, image: Image = None, image_url: str = None):
         self.websocket = websocket
         if isinstance(context, DiscordMessage):
             # Extract the context from the existing DiscordMessage
@@ -22,6 +22,8 @@ class DiscordMessage(WebsocketMessage):
             arguments["name"] = name
         if image is not None:
             arguments["image"] = self.b64_image(image)
+        if image_url is not None:
+            arguments["image_url"] = str(image_url)
         if mention is not None:
             arguments["mention"] = mention
         super().__init__(message_type="discord", module_name="message", module_command=module_command, data=context, arguments=arguments)
@@ -33,6 +35,7 @@ class DiscordMessage(WebsocketMessage):
         # Base64 encode the compressed bytes
         b64_image = base64.b64encode(buffered.getvalue()).decode('utf-8')
         return b64_image
+
     @staticmethod
     def print_prompt(payload):
         system_hw = hardware.get_machine_info()

@@ -1,6 +1,7 @@
 from discord_tron_client.classes.image_manipulation import diffusion, pipeline, resolution
 from discord_tron_client.classes.image_manipulation.model_manager import TransformerModelManager
 from discord_tron_client.message.discord import DiscordMessage
+from discord_tron_client.classes.uploader import Uploader
 import tqdm, logging, asyncio
 from PIL import Image
 from discord_tron_client.classes.app_config import AppConfig
@@ -50,7 +51,20 @@ async def generate_image(payload, websocket):
         logging.info("Image generated successfully!")\
         # Truncate prompt to 32 chars and add a ...
         truncated_prompt = prompt[:29] + '...'
-        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="create_thread", name=truncated_prompt, message=DiscordMessage.print_prompt(payload), image=result)
+
+        # Try uploading via the HTTP API
+        api_client = AppConfig.get_api_client()
+        uploader = Uploader(api_client=api_client, config=config)
+        output_image = None
+        image_url = None
+        try:
+            image_url = await uploader.image(image=result)
+        except Exception as e:
+            logging.error(f"Could not upload image to central API: {image_url}, {e} Falling back to local upload.")
+            image_url = None
+            output_image = result
+
+        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="create_thread", name=truncated_prompt, message=DiscordMessage.print_prompt(payload), image=output_image, image_url=image_url)
         await websocket.send(discord_msg.to_json())
 
     except Exception as e:

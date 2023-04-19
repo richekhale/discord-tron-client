@@ -83,3 +83,4 @@ class Auth:
             current_ticket = self.refresh_client_token(current_ticket["refresh_token"])
             import json
             print(f"New ticket: {json.dumps(current_ticket, indent=4)}")
+        return current_ticket
