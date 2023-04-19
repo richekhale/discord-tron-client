@@ -107,10 +107,14 @@ class DiffusionPipelineManager:
         for key in keys_to_delete:
             del self.pipelines[key]
             gc.collect()
+        self.clear_cuda_cache()
 
+    def clear_cuda_cache(self):
         if config.get_cuda_cache_clear_toggle():
             logging.info("Clearing the CUDA cache...")
             torch.cuda.empty_cache()
+        else:
+            logging.debug(f"NOT clearing CUDA cache. Config option `cuda_cache_clear` is not set, or is False.")
         
     def set_scheduler(self, pipe):
         from diffusers import DPMSolverMultistepScheduler
