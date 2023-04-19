@@ -318,7 +318,7 @@ class PipelineRunner:
         side_y = resolution["height"]
         logging.info(f"Rescaled resolution: {side_x}x{side_y}")
         new_image = new_image.resize((int(side_x), int(side_y)), Image.ANTIALIAS)
-
+        self.pipeline_manager.delete_pipes()
         return new_image
     
     def _get_generator(self, user_config: dict):
