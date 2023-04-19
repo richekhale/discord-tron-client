@@ -77,7 +77,7 @@ class DiffusionPipelineManager:
             if pipe_type in [ "upscaler", "text2img" ]:
                 # Set the use of xformers library so that we can efficiently generate and upscale images.
                 # @see https://huggingface.co/stabilityai/stable-diffusion-x4-upscaler/discussions/2
-                # self.set_scheduler(self.pipelines[model_id])
+                self.set_scheduler(self.pipelines[model_id])
                 self.pipelines[model_id].enable_xformers_memory_efficient_attention(True)
                 self.pipelines[model_id].set_use_memory_efficient_attention_xformers(True)
         # This must happen here, or mem savings are minimal.
