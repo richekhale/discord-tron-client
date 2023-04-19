@@ -44,14 +44,13 @@ class DiffusionPipelineManager:
 
     def create_pipeline(self, model_id: str, pipe_type: str) -> Pipeline:
         pipeline_class = self.PIPELINE_CLASSES[pipe_type]
-        if pipe_type in ["text2img", "img2img"]:
+        if pipe_type in ["img2img"]:
             # Use the long prompt weighting pipeline.
             logging.debug(f"Creating a LPW pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(model_id, torch_dtype=self.torch_dtype, custom_pipeline="lpw_stable_diffusion")
         else:
             logging.debug(f"Using standard pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(model_id, torch_dtype=self.torch_dtype)
-        pipeline.to(self.device)
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
         return pipeline
@@ -72,23 +71,18 @@ class DiffusionPipelineManager:
             logging.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type)
             if pipe_type in ["prompt_variation", "variation"]:
+                self.set_scheduler(self.pipelines[model_id])
+                self.pipelines[model_id].enable_xformers_memory_efficient_attention(True)
                 self.pipelines[model_id].set_use_memory_efficient_attention_xformers(True)
-                if hardware.should_enable_attention_slicing(resolution):
-                    logging.info("Using attention scaling, due to hardware limits! This will make generation run more slowly, but it will be less likely to run out of memory.")
-                    self.pipelines[model_id].enable_sequential_cpu_offload()
-                    self.pipelines[model_id].enable_attention_slicing(1)
-                    self.set_scheduler(self.pipelines[model_id])
             if pipe_type in [ "upscaler", "text2img" ]:
                 # Set the use of xformers library so that we can efficiently generate and upscale images.
                 # @see https://huggingface.co/stabilityai/stable-diffusion-x4-upscaler/discussions/2
-                self.pipelines[model_id].set_use_memory_efficient_attention_xformers(True)
                 self.set_scheduler(self.pipelines[model_id])
-                if hardware.should_enable_attention_slicing(resolution):
-                    logging.warn(f"Using attention scaling on Stable Diffusion upscaler due to hardware constraints. Consider using faster hardware.")
-                    self.pipelines[model_id].enable_sequential_cpu_offload()
-                    self.pipelines[model_id].enable_attention_slicing(1)
+                self.pipelines[model_id].enable_xformers_memory_efficient_attention(True)
+                self.pipelines[model_id].set_use_memory_efficient_attention_xformers(True)
+        # This must happen here, or mem savings are minimal.
+        self.pipelines[model_id].to(self.device)
         self.last_pipe_type[model_id] = pipe_type
-
         return self.pipelines[model_id]
 
     def get_variation_pipe(self, model_id):
