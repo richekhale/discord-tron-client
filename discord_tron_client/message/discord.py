@@ -26,7 +26,7 @@ class DiscordMessage(WebsocketMessage):
             arguments["mention"] = mention
         super().__init__(message_type="discord", module_name="message", module_command=module_command, data=context, arguments=arguments)
         
-    def b64_image(image: Image):
+    def b64_image(self, image: Image):
         # Save image to buffer before encoding as base64
         buffered = BytesIO()
         image.save(buffered, format="PNG")
