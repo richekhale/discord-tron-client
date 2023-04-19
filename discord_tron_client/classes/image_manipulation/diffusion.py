@@ -102,10 +102,11 @@ class DiffusionPipelineManager:
         return self.pipelines[model_id]
     
     def delete_pipes(self, keep_model: str = None):
-        for pipeline in self.pipelines:
-            if keep_model is None or pipeline != keep_model:
-                del self.pipelines[pipeline]
-                gc.collect()
+        keys_to_delete = [pipeline for pipeline in self.pipelines if keep_model is None or pipeline != keep_model]
+
+        for key in keys_to_delete:
+            del self.pipelines[key]
+            gc.collect()
 
         if config.get_cuda_cache_clear_toggle():
             logging.info("Clearing the CUDA cache...")
