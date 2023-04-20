@@ -233,7 +233,7 @@ class PipelineRunner:
                     generator=generator,
                     sag_scale=sag_scale,
                 ).images[0]
-            elif not upscaler and image is not None:
+            elif not upscaler and not promptless_variation and image is not None:
                 if not alt_weight_algorithm:
                     new_image = pipe.img2img(
                         prompt=positive_prompt,
