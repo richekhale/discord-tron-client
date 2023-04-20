@@ -60,7 +60,8 @@ async def generate_image(payload, websocket):
         try:
             image_url = await uploader.image(image=result)
         except Exception as e:
-            logging.error(f"Could not upload image to central API: {image_url}, {e} Falling back to local upload.")
+            import traceback
+            logging.error(f"Could not upload image to central API: {image_url}, {e} Falling back to local upload: {traceback.format_exc()}")
             image_url = None
             output_image = result
 

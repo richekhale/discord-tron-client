@@ -182,9 +182,7 @@ class HardwareInfo:
         return result
 
     def get_compute_capability():
-        device = drv.Device(0)
-        compute_capability = device.compute_capability()
-        return float(f"{compute_capability[0]}.{compute_capability[1]}")
+        pass
 
     def get_machine_info(self):
         self.get_gpu_info()

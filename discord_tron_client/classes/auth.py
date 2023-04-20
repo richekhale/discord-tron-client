@@ -73,7 +73,9 @@ class Auth:
     def get(self):
         try:
             is_expired = self.is_token_expired()
-            self.get_access_token()
+            live_token = self.get_access_token()["access_token"]
+            logging.debug(f"Using existing token to refresh: {live_token}")
+            return live_token
         except Exception as e:
             logging.error(f"Error checking token expiration: {e}")
             is_expired = True

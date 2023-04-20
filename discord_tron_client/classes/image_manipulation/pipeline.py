@@ -234,10 +234,11 @@ class PipelineRunner:
                 if not alt_weight_algorithm:
                     new_image = pipe.img2img(
                         prompt=positive_prompt,
+                        prompt_embed=prompt_embed,
                         image=image,
                         strength=user_config["strength"],
                         num_inference_steps=int(float(steps)),
-                        negative_prompt=negative_prompt,
+                        negative_prompt_embeds=negative_embed,
                         guidance_scale=guidance_scale,
                         generator=generator,
                     )
@@ -260,7 +261,7 @@ class PipelineRunner:
                     generator=generator,
                 ).images[0]
             elif upscaler:
-                new_image = pipe(prompt_embeds=prompt_embed, negative_prompt_embeds=negative_embed, image=image).images[0]
+                new_image = pipe(prompt=positive_prompt, negative_prompt=negative_prompt, prompt_embeds=prompt_embed, negative_prompt_embeds=negative_embed, image=image, num_inference_steps=int(float(steps))).images[0]
             else:
                 raise Exception("Invalid combination of parameters for image generation")
         except Exception as e:
