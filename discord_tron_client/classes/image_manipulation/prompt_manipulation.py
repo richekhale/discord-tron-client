@@ -6,7 +6,7 @@ import torch
 class PromptManipulation:
     def __init__(self, pipeline, device):
         self.pipeline = pipeline
-        if not hasattr(self,pipeline, "tokenizer"):
+        if not hasattr(self.pipeline, "tokenizer"):
             raise Exception(f"Cannot use PromptManipulation on a model without a tokenizer.")
         self.compel = Compel(tokenizer=self.pipeline.tokenizer, text_encoder=pipeline.text_encoder, truncate_long_prompts=False)
 
