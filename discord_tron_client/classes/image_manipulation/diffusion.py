@@ -91,9 +91,10 @@ class DiffusionPipelineManager:
         self.delete_pipes(keep_model=model_id)
         logging.info("Generating a new img2img pipe...")
         self.pipelines[model_id] = StableDiffusionImageVariationPipeline.from_pretrained(
-            pretrained_model_name_or_path=model_id, torch_dtype=self.torch_dtype
+            pretrained_model_name_or_path=model_id, torch_dtype=self.torch_dtype, revision="v2.0"
         )
         self.pipelines[model_id].safety_checker = lambda images, clip_input: (images, False)
+        self.pipelines[model_id].to(self.device)
         logging.info("Return the pipe...")
         return self.pipelines[model_id]
     
