@@ -30,6 +30,7 @@ async def variate_image(payload, websocket):
         image = Image.open(io.BytesIO(requests.get(payload["image_data"]).content))
         result = await pipeline_runner.generate_image(model_id=model_id, prompt=prompt, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, promptless_variation=True)
         payload["seed"] = pipeline_runner.seed
+        payload["gpu_power_consumption"] = pipeline_runner.gpu_power_consumption
         logging.info("Image generated successfully!")
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=DiscordMessage.print_prompt(payload), image=result)
         await websocket.send(discord_msg.to_json())
