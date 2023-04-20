@@ -294,7 +294,8 @@ class PipelineRunner:
             SAG,
             upscaler
         )
-        self.prompt_manager = self._get_prompt_manager(pipe)
+        if not promptless_variation:
+            self.prompt_manager = self._get_prompt_manager(pipe)
 
         if SAG and "sag_capable" in self.model_config and self.model_config["sag_capable"] is None or self.model_config["sag_capable"] is False:
             side_x, side_y = ResolutionManager.validate_sag_resolution(self.model_config, self.user_config, side_x, side_y)
