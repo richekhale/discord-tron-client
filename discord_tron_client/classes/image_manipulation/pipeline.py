@@ -257,9 +257,11 @@ class PipelineRunner:
                     ).images[0]
             elif promptless_variation:
                 # Get the image width/height from 'image' if it's provided
+                logging.info(f"Running promptless variation with image.size {image.size}.")
                 if image is not None:
                     side_x = image.width
                     side_y = image.height
+                    side_x, side_y = ResolutionManager.nearest_generation_resolution(side_x, side_y)
                 new_image = pipe(
                     image=image,
                     num_inference_steps=int(float(steps)),
