@@ -50,6 +50,10 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
                 async for message in websocket:
                     logging.info(f"Received message from master")
                     logging.debug(f"{message}")
+                    if "RegistrationError" in message:
+                        logging.info(f"Received RegistrationError from master, closing connection.")
+                        await asyncio.sleep(5)
+                        exit(1)
                     payload = json.loads(message)
                     asyncio.create_task(log_slow_callbacks(process_command_with_semaphore(processor, semaphore, payload=payload, websocket=websocket), threshold=0.5))
         except asyncio.exceptions.IncompleteReadError as e:
