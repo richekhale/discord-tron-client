@@ -270,6 +270,8 @@ class PipelineRunner:
                     side_x, side_y = ResolutionManager.nearest_generation_resolution(side_x, side_y)
                 new_image = pipe(
                     image=image,
+                    height=side_y,
+                    width=side_x,
                     num_inference_steps=int(float(steps)),
                     guidance_scale=guidance_scale,
                     generator=generator,

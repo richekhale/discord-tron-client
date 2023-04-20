@@ -93,6 +93,9 @@ class DiffusionPipelineManager:
         self.pipelines[model_id] = StableDiffusionImageVariationPipeline.from_pretrained(
             pretrained_model_name_or_path=model_id, torch_dtype=self.torch_dtype, revision="v2.0"
         )
+        self.set_scheduler(self.pipelines[model_id])
+        self.pipelines[model_id].enable_xformers_memory_efficient_attention(True)
+        self.pipelines[model_id].set_use_memory_efficient_attention_xformers(True)
         self.pipelines[model_id].safety_checker = lambda images, clip_input: (images, False)
         self.pipelines[model_id].to(self.device)
         logging.info("Return the pipe...")
