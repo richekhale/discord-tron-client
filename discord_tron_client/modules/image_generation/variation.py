@@ -12,7 +12,7 @@ async def variate_image(payload, websocket):
     user_config = payload["config"]
     prompt = payload["image_prompt"]
     #model_id = user_config["model"]
-    model_id="runwayml/stable-diffusion-v1-5c"
+    model_id="runwayml/stable-diffusion-v1-5"
     resolution = user_config["resolution"]
     negative_prompt = user_config["negative_prompt"]
     steps = user_config["steps"]
