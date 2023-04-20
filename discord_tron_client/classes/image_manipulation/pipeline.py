@@ -262,8 +262,6 @@ class PipelineRunner:
                     side_y = image.height
                 new_image = pipe(
                     image=image,
-                    height=side_y,
-                    width=side_x,
                     num_inference_steps=int(float(steps)),
                     guidance_scale=guidance_scale,
                     generator=generator,
