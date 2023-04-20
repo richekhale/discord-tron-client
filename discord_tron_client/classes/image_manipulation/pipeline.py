@@ -146,6 +146,8 @@ class PipelineRunner:
             self.gpu_power_consumption = 0.0
             generator = self._get_generator(user_config=user_config)
 
+            prompt_embed = None
+            negative_embed = None
             if not promptless_variation:
                 prompt_embed, negative_embed = self.prompt_manager.process_long_prompt(positive_prompt=prompt, negative_prompt=negative_prompt)
 
@@ -254,7 +256,12 @@ class PipelineRunner:
                         generator=generator,
                     ).images[0]
             elif promptless_variation:
+                # Get the image width/height from 'image' if it's provided
+                if image is not None:
+                    side_x = image.width
+                    side_y = image.height
                 new_image = pipe(
+                    image=image,
                     height=side_y,
                     width=side_x,
                     num_inference_steps=int(float(steps)),
