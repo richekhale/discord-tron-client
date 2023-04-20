@@ -93,10 +93,6 @@ class DiffusionPipelineManager:
         self.pipelines[model_id] = StableDiffusionImageVariationPipeline.from_pretrained(
             pretrained_model_name_or_path=model_id, torch_dtype=self.torch_dtype
         )
-        if (self.variation_attn_scaling):
-            logging.info("Using attention scaling, due to hardware limits! This will make generation run more slowly, but it will be less likely to run out of memory.")
-            self.pipelines[model_id].enable_sequential_cpu_offload()
-            self.pipelines[model_id].enable_attention_slicing(1)
         self.pipelines[model_id].safety_checker = lambda images, clip_input: (images, False)
         logging.info("Return the pipe...")
         return self.pipelines[model_id]
