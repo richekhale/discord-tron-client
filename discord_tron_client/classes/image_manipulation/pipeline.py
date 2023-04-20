@@ -146,7 +146,8 @@ class PipelineRunner:
             self.gpu_power_consumption = 0.0
             generator = self._get_generator(user_config=user_config)
 
-            prompt_embed, negative_embed = self.prompt_manager.process_long_prompt(positive_prompt=prompt, negative_prompt=negative_prompt)
+            if not promptless_variation:
+                prompt_embed, negative_embed = self.prompt_manager.process_long_prompt(positive_prompt=prompt, negative_prompt=negative_prompt)
 
             with torch.no_grad():
                 with tqdm(total=steps, ncols=100, file=self.tqdm_capture) as pbar:
