@@ -40,7 +40,12 @@ class DiffusionPipelineManager:
 
     def clear_pipeline(self, model_id: str) -> None:
         if model_id in self.pipelines:
-            self.pipelines[model_id].clear()
+            try:
+                del self.pipelines[model_id]
+                gc.collect()
+                torch.clear_autocast_cache()
+            except Exception as e:
+                logging.error(f"Error when deleting pipe: {e}")
 
     def create_pipeline(self, model_id: str, pipe_type: str) -> Pipeline:
         pipeline_class = self.PIPELINE_CLASSES[pipe_type]
