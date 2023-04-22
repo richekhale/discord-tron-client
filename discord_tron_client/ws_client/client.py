@@ -63,7 +63,8 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
             logging.warning(f"ConnectionClosedError: {e}")
             # ... handle the situation as needed
         except Exception as e:
-            logging.error(f"Unhandled exception in handler: {e}")
+            import traceback
+            logging.error(f"Unhandled exception in handler: {e}, traceback: {traceback.format_exc()}")
         except Exception as e:
             import traceback
             logging.error(f"Fatal Error: {e}, traceback: {traceback.format_exc()}")
