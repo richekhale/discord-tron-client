@@ -52,8 +52,7 @@ class DiscordMessage(WebsocketMessage):
         author_id = payload["discord_context"]["author"]["id"]
         vmem = int(system_hw['video_memory_amount'])
         return f"**<@{author_id}>'s Prompt**: {prompt}\n" \
-                f"**Seed**: `!seed {seed}`, **Guidance**: {user_config['guidance_scaling']}, **SAG**: {user_config['enable_sag']}, **SAG-Scale**: {user_config['sag_scale']}\n" \
-                f"**Steps**: `!steps {steps}`, **Strength (img2img)**: {strength}, **Temperature (txt2txt)**: {temperature}\n" \
+                f"**Seed**: `!seed {seed}`, **Guidance**: {user_config['guidance_scaling']}, **Steps**: `!steps {steps}`, **Strength (img2img)**: {strength}, **Temperature (txt2txt)**: {temperature}\n" \
                 f"**Model**: `!model {model_id}`\n" \
                 f"**Resolution (txt2img)**: " + str(resolution["width"]) + "x" + str(resolution["height"]) + "\n" \
                 f"**{config.get_friendly_name() or hardware.get_system_hostname()}**: {payload['gpu_power_consumption']}W power used via {system_hw['gpu_type']} ({vmem}G), on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"

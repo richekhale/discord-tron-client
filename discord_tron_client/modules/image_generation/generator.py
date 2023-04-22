@@ -17,7 +17,7 @@ async def generate_image(payload, websocket):
         resolution = user_config["resolution"]
         negative_prompt = user_config["negative_prompt"]
         steps = user_config["steps"]
-        model_config = payload.get("model_config", {"sag_capable": False})
+        model_config = payload.get("model_config", {})
         positive_prompt = user_config["positive_prompt"]
         upscaler = payload.get("upscaler", False)
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")

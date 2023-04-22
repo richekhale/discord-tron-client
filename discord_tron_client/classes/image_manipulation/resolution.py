@@ -7,37 +7,37 @@ hardware = HardwareInfo()
 class ResolutionManager:
     resolutions = [
         # 1:1 aspect ratio
-        {"width": 128, "height": 128, "scaling_factor": 100},
-        {"width": 256, "height": 256, "scaling_factor": 88},
-        {"width": 512, "height": 512, "scaling_factor": 30},
-        {"width": 1024, "height": 1024, "scaling_factor": 30, "default_max": True},
-        {"width": 2048, "height": 2048, "scaling_factor": 30},
-        {"width": 4096, "height": 4096, "scaling_factor": 30},
+        {"width": 128, "height": 128, "speed_factor": 100},
+        {"width": 256, "height": 256, "speed_factor": 88},
+        {"width": 512, "height": 512, "speed_factor": 30},
+        {"width": 1024, "height": 1024, "speed_factor": 30, "default_max": True},
+        {"width": 2048, "height": 2048, "speed_factor": 30},
+        {"width": 4096, "height": 4096, "speed_factor": 30},
 
         # 2:3 aspect ratio
-        {"width": 128, "height": 192, "scaling_factor": 80},
-        {"width": 256, "height": 384, "scaling_factor": 60},
-        {"width": 512, "height": 768, "scaling_factor": 49},
-        {"width": 1024, "height": 1536, "scaling_factor": 30, "default_max": True},
-        {"width": 2048, "height": 3072, "scaling_factor": 30},
-        {"width": 4096, "height": 6144, "scaling_factor": 30},
+        {"width": 128, "height": 192, "speed_factor": 80},
+        {"width": 256, "height": 384, "speed_factor": 60},
+        {"width": 512, "height": 768, "speed_factor": 49},
+        {"width": 1024, "height": 1536, "speed_factor": 30, "default_max": True},
+        {"width": 2048, "height": 3072, "speed_factor": 30},
+        {"width": 4096, "height": 6144, "speed_factor": 30},
 
         # 3:2 aspect ratio
-        {"width": 192, "height": 128, "scaling_factor": 94},
-        {"width": 384, "height": 256, "scaling_factor": 76},
-        {"width": 768, "height": 512, "scaling_factor": 52},
-        {"width": 1536, "height": 1024, "scaling_factor": 30, "default_max": True},
-        {"width": 3072, "height": 2048, "scaling_factor": 30},
-        {"width": 6144, "height": 4096, "scaling_factor": 30},
+        {"width": 192, "height": 128, "speed_factor": 94},
+        {"width": 384, "height": 256, "speed_factor": 76},
+        {"width": 768, "height": 512, "speed_factor": 52},
+        {"width": 1536, "height": 1024, "speed_factor": 30, "default_max": True},
+        {"width": 3072, "height": 2048, "speed_factor": 30},
+        {"width": 6144, "height": 4096, "speed_factor": 30},
 
         # 16:9 aspect ratio
-        {"width": 256, "height": 144, "scaling_factor": 40},
-        {"width": 512, "height": 288, "scaling_factor": 40},
-        {"width": 1024, "height": 576, "scaling_factor": 40},
-        {"width": 1280, "height": 720, "scaling_factor": 30},
-        {"width": 1920, "height": 1080, "scaling_factor": 30, "default_max": True},
-        {"width": 2160, "height": 1440, "scaling_factor": 30},
-        {"width": 3840, "height": 2160, "scaling_factor": 30},
+        {"width": 256, "height": 144, "speed_factor": 40},
+        {"width": 512, "height": 288, "speed_factor": 40},
+        {"width": 1024, "height": 576, "speed_factor": 40},
+        {"width": 1280, "height": 720, "speed_factor": 30},
+        {"width": 1920, "height": 1080, "speed_factor": 30, "default_max": True},
+        {"width": 2160, "height": 1440, "speed_factor": 30},
+        {"width": 3840, "height": 2160, "speed_factor": 30},
     ]
     
     @staticmethod
@@ -63,10 +63,10 @@ class ResolutionManager:
         return resolutions
 
     @staticmethod
-    def get_scaling_factor(width, height, scaled_resolutions):
+    def get_speed_factor(width, height, scaled_resolutions):
         for res in scaled_resolutions:
             if res["width"] == width and res["height"] == height:
-                return int(res["scaling_factor"])
+                return int(res["speed_factor"])
         return None
 
     @staticmethod
@@ -81,12 +81,6 @@ class ResolutionManager:
         if total_pixel_area > max_pixel_area:
             return False
         return True
-    @staticmethod
-    def validate_sag_resolution(model_config, user_config, width, height):
-        correct_resolution = {"width": width, "height": height}
-        if model_config["sag_capable"] is None or model_config["sag_capable"] is False:
-            correct_resolution = ResolutionManager.get_highest_resolution('1:1', config.get_max_resolution_by_aspect_ratio('1:1'))
-        return (correct_resolution["width"], correct_resolution["height"])
 
     @staticmethod
     def aspect_ratio(resolution_item: dict):

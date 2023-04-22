@@ -100,8 +100,7 @@ class AppConfig:
         return self.config.get("maxres", {}).get(aspect_ratio, {}).get("width", 3840)
     def get_max_resolution_height(self, aspect_ratio: str):
         return self.config.get("maxres", {}).get(aspect_ratio, {}).get("height", 2160)
-    def get_attention_scaling_status(self):
-        return self.config.get("use_attn_scaling", False)
+
     def get_precision_bits(self):
         return self.config.get("precision_bits", 16)
     def get_cuda_cache_clear_toggle(self):

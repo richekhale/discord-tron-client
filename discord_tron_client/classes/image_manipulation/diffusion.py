@@ -1,4 +1,4 @@
-from diffusers import StableDiffusionPipeline, StableDiffusionImageVariationPipeline, StableDiffusionImg2ImgPipeline, StableDiffusionSAGPipeline, StableDiffusionUpscalePipeline
+from diffusers import StableDiffusionPipeline, StableDiffusionImageVariationPipeline, StableDiffusionImg2ImgPipeline, StableDiffusionUpscalePipeline
 from diffusers import DiffusionPipeline as Pipeline
 from accelerate.utils import set_seed
 from typing import Dict
@@ -12,7 +12,6 @@ config = AppConfig()
 class DiffusionPipelineManager:
     PIPELINE_CLASSES = {
         "img2img": StableDiffusionImg2ImgPipeline,
-        "SAG": StableDiffusionSAGPipeline,
         "text2img": Pipeline,
         "prompt_variation": StableDiffusionImg2ImgPipeline,
         "variation": StableDiffusionImageVariationPipeline,
@@ -22,17 +21,14 @@ class DiffusionPipelineManager:
         self.pipelines = {}
         hw_limits = hardware.get_hardware_limits()
         self.torch_dtype = torch.float16
-        self.variation_attn_scaling = False
-        self.use_attn_scaling = False
+        self.is_memory_constrained = False
         self.model_id = None
         self.img2img = False
-        self.SAG = False
         if hw_limits["gpu"] >= 16 and config.get_precision_bits() == 32:
             self.torch_dtype = torch.float32
         if hw_limits["gpu"] <= 16:
-            logging.warn(f"Our GPU has less than 16GB of memory, so we will use attention scaling for image generation, resulting in much higher CPU use to lower VMEM use.")
-            self.variation_attn_scaling = True
-            self.use_attn_scaling = True
+            logging.warn(f"Our GPU has less than 16GB of memory, so we will use memory constrained pipeline parameters for image generation, resulting in much higher CPU use to lower VMEM use.")
+            self.is_memory_constrained = True
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.last_pipe_type = {}        # { "model_id": "text2img", ... }
         self.pipelines: Dict[str, Pipeline] = {}
@@ -60,13 +56,13 @@ class DiffusionPipelineManager:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
         return pipeline
 
-    def get_pipe(self, resolution: dict, model_id: str, img2img: bool = False, SAG: bool = False, prompt_variation: bool = False, variation: bool = False, upscaler: bool = False) -> Pipeline:
-        gc.collect()
+    def get_pipe(self, resolution: dict, model_id: str, img2img: bool = False, prompt_variation: bool = False, variation: bool = False, upscaler: bool = False) -> Pipeline:
+        self.delete_pipes(keep_model=model_id)
         logging.info("Generating a new pipe...")
-        if self.use_attn_scaling:
+        if self.is_memory_constrained:
             self.torch_dtype = torch.float16
 
-        pipe_type = "img2img" if img2img else "SAG" if SAG else "prompt_variation" if prompt_variation else "variation" if variation else "upscaler" if upscaler else "text2img" 
+        pipe_type = "img2img" if img2img else "prompt_variation" if prompt_variation else "variation" if variation else "upscaler" if upscaler else "text2img" 
         
         if model_id in self.last_pipe_type and self.last_pipe_type[model_id] != pipe_type:
             logging.warn(f"Clearing out an incorrect pipeline type for the same model. Going from {self.last_pipe_type[model_id]} to {pipe_type}. Model: {model_id}")
@@ -107,8 +103,8 @@ class DiffusionPipelineManager:
         return self.pipelines[model_id]
     
     def delete_pipes(self, keep_model: str = None):
+        
         keys_to_delete = [pipeline for pipeline in self.pipelines if keep_model is None or pipeline != keep_model]
-
         for key in keys_to_delete:
             del self.pipelines[key]
             gc.collect()

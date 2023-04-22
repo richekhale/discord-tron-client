@@ -22,7 +22,7 @@ class PipelineRunner:
         user_config: dict,
         discord_msg,
         websocket,
-        model_config: dict = {"sag_capable": False}
+        model_config: dict = {}
     ):
         # General AppConfig() object access.
         self.config = app_config
@@ -59,7 +59,6 @@ class PipelineRunner:
         model_id: int,
         img2img: bool = False,
         promptless_variation: bool = False,
-        SAG: bool = False,
         upscaler: bool = False
     ):
         loop = asyncio.get_event_loop()
@@ -70,7 +69,6 @@ class PipelineRunner:
             model_id,
             img2img,
             promptless_variation,
-            SAG,
             upscaler
         )
         return loop_return
@@ -81,12 +79,11 @@ class PipelineRunner:
         model_id: int,
         img2img: bool = False,
         promptless_variation: bool = False,
-        SAG: bool = False,
         upscaler: bool = False
     ):
         logging.info(f"Retrieving pipe for model {model_id}")
         if not promptless_variation:
-            pipe = self.pipeline_manager.get_pipe(resolution, model_id, img2img, SAG, promptless_variation, variation=False, upscaler=upscaler)
+            pipe = self.pipeline_manager.get_pipe(resolution, model_id, img2img, promptless_variation, variation=False, upscaler=upscaler)
         else:
             pipe = self.pipeline_manager.get_variation_pipe(model_id)
         logging.info("Copied pipe to the local context")
@@ -103,8 +100,7 @@ class PipelineRunner:
         user_config: dict,
         image: Image = None,
         promptless_variation: bool = False,
-        upscaler: bool = False,
-        SAG: bool = False
+        upscaler: bool = False
     ):
         loop = asyncio.get_event_loop()
         loop_return = await loop.run_in_executor(
@@ -140,9 +136,6 @@ class PipelineRunner:
             guidance_scale = user_config.get("guidance_scale", 7.5)
             guidance_scale = min(guidance_scale, 20)
 
-            SAG = user_config.get("enable_sag", True)
-            sag_scale = user_config.get("sag_scale", 0.75)
-            sag_scale = min(sag_scale, 20)
             self.gpu_power_consumption = 0.0
             generator = self._get_generator(user_config=user_config)
 
@@ -162,8 +155,6 @@ class PipelineRunner:
                         negative_embed,
                         guidance_scale,
                         generator,
-                        SAG,
-                        sag_scale,
                         user_config,
                         image,
                         promptless_variation,
@@ -186,8 +177,6 @@ class PipelineRunner:
         negative_embed: str,
         guidance_scale: float,
         generator,
-        SAG: bool,
-        sag_scale: float,
         user_config: dict,
         image: Image = None,
         promptless_variation: bool = False,
@@ -199,7 +188,7 @@ class PipelineRunner:
         sys.stderr = self.tqdm_capture
         try:
             alt_weight_algorithm = user_config.get("alt_weight_algorithm", False)
-            if not promptless_variation and image is None and not SAG:
+            if not promptless_variation and image is None:
                 if not alt_weight_algorithm:
                     # Default "long prompt weighting" pipeline
                     new_image = pipe(
@@ -222,17 +211,6 @@ class PipelineRunner:
                         guidance_scale=guidance_scale,
                         generator=generator,
                     ).images[0]
-            elif SAG:
-                new_image = pipe(
-                    prompt_embeds=prompt_embed,
-                    height=side_y,
-                    width=side_x,
-                    num_inference_steps=int(float(steps)),
-                    negative_prompt_embeds=negative_embed,
-                    guidance_scale=guidance_scale,
-                    generator=generator,
-                    sag_scale=sag_scale,
-                ).images[0]
             elif not upscaler and not promptless_variation and image is not None:
                 if not alt_weight_algorithm:
                     new_image = pipe.img2img(
@@ -300,22 +278,17 @@ class PipelineRunner:
         promptless_variation: bool = False,
         upscaler: bool = False
     ):
-        SAG = self.user_config.get("enable_sag", False)
         resolution = {"width": side_x, "height": side_y}
         pipe = await self._prepare_pipe_async(
             resolution,
             model_id,
             img2img,
             promptless_variation,
-            SAG,
             upscaler
         )
         if not promptless_variation:
             self.prompt_manager = self._get_prompt_manager(pipe)
 
-        if SAG and "sag_capable" in self.model_config and self.model_config["sag_capable"] is None or self.model_config["sag_capable"] is False:
-            side_x, side_y = ResolutionManager.validate_sag_resolution(self.model_config, self.user_config, side_x, side_y)
-            
         # The final cap-off attempt to clamp memory use.
         side_x, side_y = self._get_maximum_generation_res(side_x, side_y)
         new_image = await self._generate_image_with_pipe_async(
