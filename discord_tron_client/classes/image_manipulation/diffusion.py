@@ -121,6 +121,9 @@ class DiffusionPipelineManager:
         else:
             logging.debug(f"NOT clearing CUDA cache. Config option `cuda_cache_clear` is not set, or is False.")
         
-    def set_scheduler(self, pipe):
+    def set_scheduler(self, pipe, user_config = None):
+        if user_config is None or "scheduler" not in user_config or user_config["scheduler"] is None:
+            logging.debug(f"Not setting user image gen scheduler. None is set.")
+            return
         from diffusers import DPMSolverMultistepScheduler
         pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config, algorithm_type="dpmsolver++")

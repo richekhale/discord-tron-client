@@ -44,6 +44,7 @@ class WorkerProcessor:
                 identifier = config.get_friendly_name() or hardware.get_system_hostname()
                 
                 discord_msg = JobQueueMessage(websocket=websocket, job_id=payload["job_id"], worker_id=identifier, module_command="finish")
+                websocket = AppConfig.get_websocket()
                 await websocket.send(discord_msg.to_json())
 
         except Exception as e:

@@ -32,6 +32,7 @@ class DiscordProgressBar:
                 self.websocket_msg.update(arguments={"message": progress_text})
                 to_send = self.websocket_msg.to_json()
                 logging.debug(f"Sending data: {to_send}")
+                self.websocket = AppConfig.get_websocket()
                 await self.send_update(self.websocket, str(to_send))  # Use the send_update function here
             except Exception as e:
                 logging.error("Traceback: ", exc_info=True)

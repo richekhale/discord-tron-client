@@ -19,6 +19,7 @@ async def variate_image(payload, websocket):
     positive_prompt = user_config["positive_prompt"]
     discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="Prepare for greatness!")
     try:
+        websocket = AppConfig.get_websocket()
         await websocket.send(discord_msg.to_json())
         model_manager = TransformerModelManager()
         pipeline_manager = AppConfig.get_pipeline_manager()
@@ -31,6 +32,7 @@ async def variate_image(payload, websocket):
         result = await pipeline_runner.generate_image(model_id=model_id, prompt=prompt, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, promptless_variation=True)
         payload["seed"] = pipeline_runner.seed
         payload["gpu_power_consumption"] = pipeline_runner.gpu_power_consumption
+        websocket = AppConfig.get_websocket()
         logging.info("Image generated successfully!")
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=DiscordMessage.print_prompt(payload), image=result)
         await websocket.send(discord_msg.to_json())
@@ -41,6 +43,7 @@ async def variate_image(payload, websocket):
         import traceback
         logging.error(f"Error generating image: {e}\n\nStack trace:\n{traceback.format_exc()}")
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete_errors")
+        websocket = AppConfig.get_websocket()
         await websocket.send(discord_msg.to_json())
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message=f"It seems we had an error while generating this image!\n```{e}\n{clean_traceback(traceback.format_exc())}\n```")
         await websocket.send(discord_msg.to_json())

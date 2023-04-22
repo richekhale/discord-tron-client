@@ -35,7 +35,7 @@ async def generate_image(payload, websocket):
             image = Image.open(io.BytesIO(requests.get(payload["image_data"], timeout=10).content))
 
         result = await pipeline_runner.generate_image(prompt=prompt + ' ' + positive_prompt, model_id=model_id, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, upscaler=upscaler)
-
+        websocket = AppConfig.get_websocket()
         delete_progress_bar = DiscordMessage(websocket=websocket, context=discord_msg.context, module_command="delete")
         for attempt in range(1, 6):
             if not websocket or not hasattr(websocket, "open") or websocket.open != True:
@@ -64,7 +64,7 @@ async def generate_image(payload, websocket):
             logging.error(f"Could not upload image to central API: {image_url}, {e} Falling back to local upload: {traceback.format_exc()}")
             image_url = None
             output_image = result
-
+        websocket = AppConfig.get_websocket()
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="create_thread", name=truncated_prompt, message=DiscordMessage.print_prompt(payload), image=output_image, image_url=image_url)
         await websocket.send(discord_msg.to_json())
 
@@ -73,6 +73,7 @@ async def generate_image(payload, websocket):
         try:
             logging.error(f"Error generating image: {e}\n\nStack trace:\n{traceback.format_exc()}")
             discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete_errors")
+            websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
             discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message=f"It seems we had an error while generating this image!\n```{e}\n{clean_traceback(traceback.format_exc())}\n```")
             await websocket.send(discord_msg.to_json())
