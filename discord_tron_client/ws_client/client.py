@@ -50,10 +50,6 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
                 async for message in websocket:
                     logging.info(f"Received message from master")
                     logging.debug(f"{message}")
-                    if "RegistrationError" in message:
-                        logging.info(f"Received RegistrationError from master, closing connection.")
-                        await asyncio.sleep(5)
-                        exit(1)
                     payload = json.loads(message)
                     asyncio.create_task(log_slow_callbacks(process_command_with_semaphore(processor, semaphore, payload=payload, websocket=websocket), threshold=0.5))
         except asyncio.exceptions.IncompleteReadError as e:
@@ -61,6 +57,10 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
             # ... handle the situation as needed
         except websockets.exceptions.ConnectionClosedError as e:
             logging.warning(f"ConnectionClosedError: {e}")
+            # Does "e" contain "already registered"?
+            if "already registered" in str(e):
+                logging.warning(f"Connection closed because worker already registered. We get to die now.")
+                exit(1)
             # ... handle the situation as needed
         except Exception as e:
             import traceback
@@ -68,9 +68,6 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
         except Exception as e:
             import traceback
             logging.error(f"Fatal Error: {e}, traceback: {traceback.format_exc()}")
-            await asyncio.sleep(5)
-        finally:
-            logging.debug(f"Waiting 5 seconds.")
             await asyncio.sleep(5)
 async def log_slow_callbacks(coro, threshold):
     import time

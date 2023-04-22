@@ -32,7 +32,7 @@ async def generate_image(payload, websocket):
         image = None
         if "image_data" in payload:
             import io, requests
-            image = Image.open(io.BytesIO(requests.get(payload["image_data"]).content))
+            image = Image.open(io.BytesIO(requests.get(payload["image_data"], timeout=10).content))
 
         result = await pipeline_runner.generate_image(prompt=prompt + ' ' + positive_prompt, model_id=model_id, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, upscaler=upscaler)
 
