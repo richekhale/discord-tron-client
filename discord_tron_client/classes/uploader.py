@@ -12,7 +12,7 @@ class Uploader:
         
     async def image(self, image: Image):
         logging.debug(f"Uploading image to {self.config.get_master_url()}")
-        result = self.api_client.send_pil_image('/upload_image', image)
+        result = await self.api_client.send_pil_image('/upload_image', image)
         logging.debug(f"Image uploader received result: {result}")
         
         if "image_url" in result:

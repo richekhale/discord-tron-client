@@ -43,11 +43,19 @@ class ApiClient:
             response = requests.post(endpoint, files={"file": f})
         return response
     
-    def send_pil_image(self, endpoint: str, image: Image):
+    async def send_pil_image(self, endpoint: str, image: Image):
         buffer = io.BytesIO()
         image.save(buffer, format="PNG")
         buffer.seek(0)
-        response = self.post(endpoint, files={"image": buffer})
+        import asyncio
+        loop = asyncio.get_event_loop()
+        response = await loop.run_in_executor(
+            AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
+            self.post,
+            endpoint,
+            None,
+            {"image": buffer}
+        )
         return response
     
     def send_buffer(self, endpoint: str, buffer: io.BytesIO):
