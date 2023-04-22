@@ -21,6 +21,7 @@ async def generate_image(payload, websocket):
         positive_prompt = user_config["positive_prompt"]
         upscaler = payload.get("upscaler", False)
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")
+        websocket = AppConfig.get_websocket()
         await websocket.send(discord_msg.to_json())
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="Your prompt is now being processed. This might take a while to get to the next step if we have to download your model!")
         await websocket.send(discord_msg.to_json())
@@ -57,13 +58,17 @@ async def generate_image(payload, websocket):
         uploader = Uploader(api_client=api_client, config=config)
         output_image = None
         image_url = None
-        try:
-            image_url = await uploader.image(image=result)
-        except Exception as e:
-            import traceback
-            logging.error(f"Could not upload image to central API: {image_url}, {e} Falling back to local upload: {traceback.format_exc()}")
-            image_url = None
-            output_image = result
+        async def upload_image():
+            nonlocal image_url, output_image
+            try:
+                image_url = await uploader.image(image=result)
+            except Exception as e:
+                import traceback
+                logging.error(f"Could not upload image to central API: {image_url}, {e} Falling back to local upload: {traceback.format_exc()}")
+                image_url = None
+                output_image = result
+        upload_task = asyncio.create_task(upload_image())
+        await upload_task
         websocket = AppConfig.get_websocket()
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="create_thread", name=truncated_prompt, message=DiscordMessage.print_prompt(payload), image=output_image, image_url=image_url)
         await websocket.send(discord_msg.to_json())
