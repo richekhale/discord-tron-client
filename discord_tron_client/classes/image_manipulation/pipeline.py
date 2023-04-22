@@ -166,6 +166,7 @@ class PipelineRunner:
             return new_image
         except Exception as e:
             logging.error(f"Error while generating image: {e}\n{traceback.format_exc()}")
+            raise e
 
     def _run_pipeline(
         self,
@@ -317,10 +318,10 @@ class PipelineRunner:
     def _get_generator(self, user_config: dict):
         self.seed = user_config.get("seed", None)
         import random
-        if self.seed is None or self.seed == 0:
+        if self.seed is None or int(self.seed) == 0:
             self.seed = int(time.time())
-            self.seed = self.seed + random.randint(-5, 5)
-        elif self.seed < 0:
+            self.seed = int(self.seed) + random.randint(-5, 5)
+        elif int(self.seed) < 0:
             self.seed = random.randint(0, 2**32)
         generator = torch.manual_seed(self.seed)
         logging.info(f"Seed: {self.seed}")
