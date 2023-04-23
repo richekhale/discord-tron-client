@@ -40,6 +40,8 @@ class DiscordMessage(WebsocketMessage):
     def print_prompt(payload):
         system_hw = hardware.get_machine_info()
         user_config = payload["config"]
+        scheduler_config = payload["scheduler_config"]
+        scheduler_name = scheduler_config["name"]
         prompt = payload["image_prompt"]
         model_id = user_config["model"]
         resolution = user_config["resolution"]
@@ -53,7 +55,7 @@ class DiscordMessage(WebsocketMessage):
         vmem = int(system_hw['video_memory_amount'])
         return f"**<@{author_id}>'s Prompt**: {prompt}\n" \
                 f"**Seed**: `!seed {seed}`, **Guidance**: {user_config['guidance_scaling']}, **Steps**: `!steps {steps}`, **Strength (img2img)**: {strength}, **Temperature (txt2txt)**: {temperature}\n" \
-                f"**Model**: `!model {model_id}`\n" \
+                f"**Model**: `!model {model_id}` **Scheduler**: `!scheduler {scheduler_name}`\n" \
                 f"**Resolution (txt2img)**: " + str(resolution["width"]) + "x" + str(resolution["height"]) + "\n" \
                 f"**{config.get_friendly_name() or hardware.get_system_hostname()}**: {payload['gpu_power_consumption']}W power used via {system_hw['gpu_type']} ({vmem}G), on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
                 

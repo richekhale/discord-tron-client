@@ -10,6 +10,7 @@ from discord_tron_client.classes.debug import clean_traceback
 async def variate_image(payload, websocket):
     # We extract the features from the payload and pass them onto the actual generator
     user_config = payload["config"]
+    scheduler_config = payload["scheduler_config"]
     prompt = payload["image_prompt"]
     #model_id = user_config["model"]
     model_id="lambdalabs/sd-image-variations-diffusers"
@@ -29,7 +30,7 @@ async def variate_image(payload, websocket):
         # Grab the image via http:
         import requests
         image = Image.open(io.BytesIO(requests.get(payload["image_data"]).content))
-        result = await pipeline_runner.generate_image(model_id=model_id, prompt=prompt, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, promptless_variation=True)
+        result = await pipeline_runner.generate_image(scheduler_config=scheduler_config, model_id=model_id, prompt=prompt, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, promptless_variation=True)
         payload["seed"] = pipeline_runner.seed
         payload["gpu_power_consumption"] = pipeline_runner.gpu_power_consumption            
         websocket = AppConfig.get_websocket()

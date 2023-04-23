@@ -21,7 +21,11 @@ class LlamaCpp:
 
     def locate_model(self):
         # We need to check the path for the model.
-        directory_contents = os.listdir(self.path)
+        try:
+            directory_contents = os.listdir(self.path)
+        except Exception as e:
+            logging.warn(f"Could not locate LLaMA models. Aborting load.")
+            raise RuntimeError(f"The LLaMA.cpp model path {self.path} does not exist.")
         if "params.json" not in directory_contents:
             raise RuntimeError(f"The LLaMA.cpp model path {self.path} does not contain a valid params.json file")
         self.model_config = json.load(open(self.path + "/params.json", "r"))
@@ -57,20 +61,39 @@ class LlamaCpp:
     
     def predict(self, prompt, user_config, max_tokens = 4096, temperature = 1.0, repeat_penalty = 1.1, top_p = 0.95, top_k=40):
         logging.debug(f"Begin LlamaCpp prediction routine")
+
+        logging.debug(f"Our received parameters: max_tokens {max_tokens} top_p {top_p} top_k {top_k} repeat_penalty {repeat_penalty} temperature {temperature}")
         time_begin = time.time()
+        # User settings overrides.
         seed = user_config.get("seed", None)
         temperature = user_config.get("temperature", temperature)
-        if seed is None:
+        top_p = user_config.get("top_p", top_p)
+        top_k = user_config.get("top_k", top_k)
+        repeat_penalty = user_config.get("repeat_penalty", repeat_penalty)
+        # Maybe the user wants fewer tokens.
+        user_max_tokens = user_config.get("max_tokens", max_tokens)
+        if max_tokens >= user_max_tokens:
+            max_tokens = user_max_tokens
+        logging.debug(f"Our post-override parameters: max_tokens {max_tokens} top_p {top_p} top_k {top_k} repeat_penalty {repeat_penalty} temperature {temperature}")
+
+        # If the user has not specified a seed, we will use the current time.
+        if seed is None or seed == 0:
+            logging.debug("Timestamp being used as the seed.")
             seed = int(time_begin)
         elif seed == -1:
+            # -1 is a special condition for randomizing the seed more than just using the timestamp.
+            logging.debug("Ultra-seed randomizer engaged!")
             import random
             seed = random.randint(0, 999999999)
+        else:
+            logging.debug("A pre-selected seed was provided.")
         logging.debug(f"Seed chosen: {seed}")
+
+        logging.debug("Beginning Llama.cpp prediction..")
         cpp_result = self._predict(prompt=prompt, seed=seed, max_tokens=max_tokens, temperature=temperature, repeat_penalty=repeat_penalty, top_p=top_p, top_k=top_k)
-        logging.debug(f"Completed prediction: {cpp_result}")
         time_end = time.time()
         time_duration = time_end - time_begin
-        logging.debug(f"LLaMA.cpp took {time_duration} seconds to complete.")
+        logging.debug(f"Completed prediction in {time_duration} seconds: {cpp_result}")
         if cpp_result is None:
             raise RuntimeError("LLaMA.cpp returned no result.")
         if "choices" not in cpp_result:

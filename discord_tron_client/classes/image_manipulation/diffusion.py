@@ -4,7 +4,7 @@ from accelerate.utils import set_seed
 from typing import Dict
 from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.classes.app_config import AppConfig
-import torch, gc, logging
+import torch, gc, logging, importlib
 
 hardware = HardwareInfo()
 config = AppConfig()
@@ -56,7 +56,7 @@ class DiffusionPipelineManager:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
         return pipeline
 
-    def get_pipe(self, resolution: dict, model_id: str, img2img: bool = False, prompt_variation: bool = False, variation: bool = False, upscaler: bool = False) -> Pipeline:
+    def get_pipe(self, scheduler_config: dict, resolution: dict, model_id: str, img2img: bool = False, prompt_variation: bool = False, variation: bool = False, upscaler: bool = False) -> Pipeline:
         self.delete_pipes(keep_model=model_id)
         logging.info("Generating a new pipe...")
         if self.is_memory_constrained:
@@ -72,13 +72,13 @@ class DiffusionPipelineManager:
             logging.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type)
             if pipe_type in ["prompt_variation", "variation"]:
-                self.set_scheduler(self.pipelines[model_id])
+                self.set_scheduler(pipe=self.pipelines[model_id], user_config=None, scheduler_config=scheduler_config)
                 self.pipelines[model_id].enable_xformers_memory_efficient_attention(True)
                 self.pipelines[model_id].set_use_memory_efficient_attention_xformers(True)
             if pipe_type in [ "upscaler", "text2img" ]:
                 # Set the use of xformers library so that we can efficiently generate and upscale images.
                 # @see https://huggingface.co/stabilityai/stable-diffusion-x4-upscaler/discussions/2
-                self.set_scheduler(self.pipelines[model_id])
+                self.set_scheduler(pipe=self.pipelines[model_id], user_config=None, scheduler_config=scheduler_config)
                 self.pipelines[model_id].enable_xformers_memory_efficient_attention(True)
                 self.pipelines[model_id].set_use_memory_efficient_attention_xformers(True)
         # This must happen here, or mem savings are minimal.
@@ -120,9 +120,19 @@ class DiffusionPipelineManager:
         else:
             logging.debug(f"NOT clearing CUDA cache. Config option `cuda_cache_clear` is not set, or is False.")
         
-    def set_scheduler(self, pipe, user_config = None):
-        if user_config is None or "scheduler" not in user_config or user_config["scheduler"] is None:
-            logging.debug(f"Not setting user image gen scheduler. None is set.")
+    def set_scheduler(self, pipe, user_config = None, scheduler_config: dict = None):
+        if scheduler_config is None:
+            logging.debug(f"Not setting scheduler_config parameters.")
             return
-        from diffusers import DPMSolverMultistepScheduler
-        pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config, algorithm_type="dpmsolver++")
+        if "name" not in scheduler_config:
+            raise ValueError(f"Scheduler config must have a name: {scheduler_config}")
+        if "scheduler" not in scheduler_config:
+            raise ValueError(f"Scheduler config must have a scheduler: {scheduler_config}")
+        name = scheduler_config["name"]
+        scheduler_name = scheduler_config["scheduler"]
+        scheduler_module = importlib.import_module(f"diffusers.{scheduler_name}")
+        if scheduler_name == "DPMSolverMultistepScheduler":
+            logging.debug(f"Setting algorithm_type to dpmsolver++ for {name} scheduler, {scheduler_name}.")
+            pipe.scheduler = scheduler_module.from_config(pipe.scheduler.config, algorithm_type="dpmsolver++")
+        else:
+            pipe.scheduler = scheduler_module.from_config(pipe.scheduler.config)

@@ -8,8 +8,10 @@ from typing import Dict, Any
 import logging, json, websocket
 from discord_tron_client.classes.app_config import AppConfig
 config = AppConfig()
-
-llamarunner = LlamaFactory.get()
+try:
+    llamarunner = LlamaFactory.get()
+except:
+    logging.warn('Could not retrieve a Llama driver.')
 
 class WorkerProcessor:
     def __init__(self):
