@@ -68,8 +68,13 @@ async def generate_image(payload, websocket):
                 logging.error(f"Could not upload image to central API: {image_url}, {e} Falling back to local upload: {traceback.format_exc()}")
                 image_url = None
                 output_image = result
-        upload_task = asyncio.create_task(upload_image())
-        await upload_task
+        enable_img_upload = config.image_upload_toggle()
+        if enable_img_upload:
+            upload_task = asyncio.create_task(upload_image())
+            await upload_task
+        else:
+            logging.debug(f"Not using master http server for upload. Sending directly.")
+            output_image = result
         websocket = AppConfig.get_websocket()
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="create_thread", name=truncated_prompt, message=DiscordMessage.print_prompt(payload), image=output_image, image_url=image_url)
         await websocket.send(discord_msg.to_json())

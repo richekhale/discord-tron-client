@@ -46,7 +46,7 @@ class DiffusionPipelineManager:
 
     def create_pipeline(self, model_id: str, pipe_type: str) -> Pipeline:
         pipeline_class = self.PIPELINE_CLASSES[pipe_type]
-        if pipe_type in ["img2img"]:
+        if pipe_type in ["img2img", "txt2img"]:
             # Use the long prompt weighting pipeline.
             logging.debug(f"Creating a LPW pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(model_id, torch_dtype=self.torch_dtype, custom_pipeline="lpw_stable_diffusion")

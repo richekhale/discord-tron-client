@@ -129,6 +129,9 @@ class AppConfig:
             protocol="wss"
         return {'host': self.get_websocket_hub_host(), 'port': self.get_websocket_hub_port(), 'tls': self.get_websocket_hub_tls(), 'protocol': protocol, 'server_cert_path': self.get_tls_pem_path(), 'server_key_path': self.get_tls_key_path()}
 
+    def image_upload_toggle(self):
+        return self.config.get("enable_image_uploads", True)
+
     def get_huggingface_api_key(self):
         return self.config.get("huggingface_api", {}).get("api_key", None)
     def get_huggingface_model_path(self):
