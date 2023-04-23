@@ -37,7 +37,7 @@ class LlamaRunner:
                 user_config
             )
             logging.debug(f"LlamaRunner predict_handler received result {loop_return}")
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt + '`' + loop_return)
+            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send_large_message", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt + '`' + loop_return)
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
             usage = self.usage()
