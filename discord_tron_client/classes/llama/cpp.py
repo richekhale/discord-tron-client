@@ -75,8 +75,8 @@ class LlamaCpp:
             raise RuntimeError("LLaMA.cpp returned no result.")
         if "choices" not in cpp_result:
             raise RuntimeError("LLaMA.cpp returned an invalid result.")
-        if "text" not in cpp_result["choices"][0]:
-            raise RuntimeError("LLaMA.cpp returned an invalid result.")
+        if "text" not in cpp_result["choices"][0] or cpp_result["choices"][0]["text"] == "":
+            raise RuntimeError("LLaMA.cpp returned an empty set.")
         if "finish_reason" not in cpp_result["choices"][0]:
             logging.warn(f"LLaMA.cpp did not return a finish_reason: {cpp_result}")
         self.usage = {"time_duration": time_duration}
