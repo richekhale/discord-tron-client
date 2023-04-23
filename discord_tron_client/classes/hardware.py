@@ -88,16 +88,18 @@ class HardwareInfo:
                         break
         except:
             self.memory_amount = "Unknown"
+        return self.memory_amount
 
     def get_memory_free(self):
         try:
             with open("/proc/meminfo") as f:
                 for line in f:
-                    if line.startswith("MemTotal:"):
-                        self.memory_amount = int(int(line.split()[1]) / 1024 / 1024)
+                    if line.startswith("MemAvailable:"):
+                        self.memory_free = int(int(line.split()[1]) / 1024 / 1024)
                         break
         except:
-            self.memory_amount = "Unknown"
+            self.memory_free = "Unknown"
+        return self.memory_free
 
     def get_video_memory_info(self):
         try:
@@ -111,6 +113,7 @@ class HardwareInfo:
             self.video_memory_amount = int(output.decode().strip()) / 1024
         except:
             self.video_memory_amount = "Unknown"
+        return self.video_memory_amount
 
     def get_concurrent_pipe_count(self):
         memory_amount = self.get_memory_total()
