@@ -62,6 +62,9 @@ class LlamaCpp:
         temperature = user_config.get("temperature", temperature)
         if seed is None:
             seed = int(time_begin)
+        elif seed == -1:
+            import random
+            seed = random.randint(0, 999999999)
         logging.debug(f"Seed chosen: {seed}")
         cpp_result = self._predict(prompt=prompt, seed=seed, max_tokens=max_tokens, temperature=temperature, repeat_penalty=repeat_penalty, top_p=top_p, top_k=top_k)
         logging.debug(f"Completed prediction: {cpp_result}")
