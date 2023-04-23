@@ -33,14 +33,14 @@ class LlamaRunner:
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
 
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="delete", message="We pooped the bed!")
+            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="delete")
             websocket = AppConfig.get_websocket()
-            websocket.send(discord_msg.to_json())
+            await websocket.send(discord_msg.to_json())
 
         except Exception as e:
             import traceback
             logging.error(f"Received an error in LlamaRunner.predict_handler: {e}, traceback: {clean_traceback(traceback.format_exc())}")
             discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="We pooped the bed!")
             websocket = AppConfig.get_websocket()
-            websocket.send(discord_msg.to_json())
+            await websocket.send(discord_msg.to_json())
             raise e
