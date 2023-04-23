@@ -12,8 +12,13 @@ class LlamaCpp:
         self.model_file_name = config.llama_model_filename()
         self.model_config = None
         self.path = config.llama_model_path() + '/' + self.model
+
+    def details(self):
+        return f'Llama.cpp running the {self.model} parameter model'
+
     def get_usage(self):
         return self.usage or None
+
     def locate_model(self):
         # We need to check the path for the model.
         directory_contents = os.listdir(self.path)

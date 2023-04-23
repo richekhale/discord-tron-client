@@ -18,7 +18,8 @@ class LlamaRunner:
         time_duration = driver_usage["time_duration"] or -1
         prompt_tokens = driver_usage["prompt_tokens"] or -1
         completion_tokens = driver_usage["completion_tokens"] or -1
-        return f'`{int(time_duration)} seconds` with `{int(prompt_tokens)} prompt tokens` and `{int(completion_tokens)} completion tokens`'
+        driver_details = self.driver.details() or "Unknown Llama driver"
+        return f'`{int(time_duration)} seconds` with `{int(prompt_tokens)} prompt tokens` and `{int(completion_tokens)} completion tokens` via {driver_details}'
 
     async def predict_handler(self, payload, websocket):
         # We extract the features from the payload and pass them onto the actual generator
