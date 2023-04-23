@@ -11,7 +11,15 @@ class LlamaRunner:
         
     def predict(self, prompt, user_config):
         return self.driver.predict(prompt, user_config)
-    
+    def usage(self):
+        driver_usage = self.driver.get_usage()
+        if driver_usage is None:
+            return None
+        time_duration = driver_usage["time_duration"] or -1
+        prompt_tokens = driver_usage["prompt_tokens"] or -1
+        completion_tokens = driver_usage["completion_tokens"] or -1
+        return f'`{int(time_duration)} seconds` with `{int(prompt_tokens)} prompt tokens` and `{int(completion_tokens)} completion tokens`'
+
     async def predict_handler(self, payload, websocket):
         # We extract the features from the payload and pass them onto the actual generator
         user_config = payload["config"]
@@ -29,9 +37,14 @@ class LlamaRunner:
                 user_config
             )
             logging.debug(f"LlamaRunner predict_handler received result {loop_return}")
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt + '`, ...' + loop_return)
+            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt + '`' + loop_return)
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
+            usage = self.usage()
+            if usage is not None:
+                discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + 'Your prompt, `' + prompt + '`, used ' + f'{usage}')
+                websocket = AppConfig.get_websocket()
+                await websocket.send(discord_msg.to_json())
 
             discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="delete")
             websocket = AppConfig.get_websocket()

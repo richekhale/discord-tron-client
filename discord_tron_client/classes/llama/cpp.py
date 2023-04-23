@@ -12,7 +12,8 @@ class LlamaCpp:
         self.model_file_name = config.llama_model_filename()
         self.model_config = None
         self.path = config.llama_model_path() + '/' + self.model
-
+    def get_usage(self):
+        return self.usage or None
     def locate_model(self):
         # We need to check the path for the model.
         directory_contents = os.listdir(self.path)
@@ -52,6 +53,7 @@ class LlamaCpp:
     def predict(self, prompt, user_config, max_tokens = 512, temperature = 1.0, repeat_penalty = 1.1, top_p = 0.95, top_k=40):
         time_begin = time.time()
         seed = user_config.get("seed", None)
+        temperature = user_config.get("temperature", temperature)
         if seed is None:
             seed = int(time_begin)
         cpp_result = self._predict(prompt=prompt, seed=seed, max_tokens=max_tokens, temperature=temperature, repeat_penalty=repeat_penalty, top_p=top_p, top_k=top_k)
