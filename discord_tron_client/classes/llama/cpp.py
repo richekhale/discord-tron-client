@@ -39,7 +39,7 @@ class LlamaCpp:
     def load_model(self):
         self.locate_model()
         self.locate_ggml()
-        self.llama = Llama(model_path=self.model_path, n_ctx=4096)
+        self.llama = Llama(model_path=self.model_path, n_ctx=8192)
 
     def _predict(self, prompt, seed = 1337, max_tokens = 512, temperature = 0.8, repeat_penalty = 1.1, top_p = 0.95, top_k=40):
         try:
