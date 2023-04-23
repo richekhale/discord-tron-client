@@ -129,6 +129,10 @@ class DiffusionPipelineManager:
         if "scheduler" not in scheduler_config:
             raise ValueError(f"Scheduler config must have a scheduler: {scheduler_config}")
         name = scheduler_config["name"]
+        if name == "default":
+            logging.debug(f"User selected the default scheduler. Not setting one.")
+            return
+
         scheduler_name = scheduler_config["scheduler"]
         scheduler_module = importlib.import_module(f"diffusers.{scheduler_name}")
         if scheduler_name == "DPMSolverMultistepScheduler":
