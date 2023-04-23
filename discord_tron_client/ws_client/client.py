@@ -35,7 +35,7 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
             logging.info(f"Connecting to {hub_url}...")
             # Set the logging level for the websockets library only
             websocket_logger = logging.getLogger('websockets')
-            websocket_logger.setLevel(logging.DEBUG) 
+            websocket_logger.setLevel(logging.INFO) 
             async with websockets.connect(hub_url, ssl=ssl_context, extra_headers=headers, max_size=33554432, ping_interval=2, ping_timeout=60) as websocket:
                 AppConfig.set_websocket(websocket)
                 # Send the startup sequence
