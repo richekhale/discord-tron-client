@@ -56,12 +56,15 @@ class LlamaCpp:
         return self.llama(prompt=prompt, max_tokens=max_tokens, temperature=temperature, top_p=top_p, top_k=top_k, repeat_penalty=repeat_penalty)
     
     def predict(self, prompt, user_config, max_tokens = 4096, temperature = 1.0, repeat_penalty = 1.1, top_p = 0.95, top_k=40):
+        logging.debug(f"Begin LlamaCpp prediction routine")
         time_begin = time.time()
         seed = user_config.get("seed", None)
         temperature = user_config.get("temperature", temperature)
         if seed is None:
             seed = int(time_begin)
+        logging.debug(f"Seed chosen: {seed}")
         cpp_result = self._predict(prompt=prompt, seed=seed, max_tokens=max_tokens, temperature=temperature, repeat_penalty=repeat_penalty, top_p=top_p, top_k=top_k)
+        logging.debug(f"Completed prediction: {cpp_result}")
         time_end = time.time()
         time_duration = time_end - time_begin
         logging.debug(f"LLaMA.cpp took {time_duration} seconds to complete.")
