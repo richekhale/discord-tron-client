@@ -31,6 +31,7 @@ class DiffusionPipelineManager:
             self.is_memory_constrained = True
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.last_pipe_type = {}        # { "model_id": "text2img", ... }
+        self.last_pipe_scheduler = {}   # { "model_id": "default" }
         self.pipelines: Dict[str, Pipeline] = {}
         self.last_pipe_type: Dict[str, str] = {}
 
@@ -66,6 +67,9 @@ class DiffusionPipelineManager:
         
         if model_id in self.last_pipe_type and self.last_pipe_type[model_id] != pipe_type:
             logging.warn(f"Clearing out an incorrect pipeline type for the same model. Going from {self.last_pipe_type[model_id]} to {pipe_type}. Model: {model_id}")
+            self.clear_pipeline(model_id)
+        if model_id in self.last_pipe_scheduler and self.last_pipe_scheduler[model_id] != scheduler_config["name"]:
+            logging.warn(f"Clearing out an incorrect pipeline and scheduler, for the same model. Going from {self.last_pipe_scheduler[model_id]} to {scheduler_config['name']}. Model: {model_id}")
             self.clear_pipeline(model_id)
 
         if model_id not in self.pipelines:
