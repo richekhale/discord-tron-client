@@ -27,7 +27,9 @@ class HardwareInfo:
         self.get_memory_total()
         self.get_video_memory_info()
         self.get_disk_space()
-        capabilities = {}
+        capabilities = {
+            "llama": config.is_llama_enabled()
+        }
         if self.video_memory_amount != "Unknown" and int(self.video_memory_amount) >= 8:
             capabilities["gpu"] = True
         if int(self.memory_amount) >= 16:

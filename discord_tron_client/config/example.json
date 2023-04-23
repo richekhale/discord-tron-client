@@ -1,1 +1,7 @@
-{}
+{
+    "enable_llama": false,
+    "llama_subsystem": "llama.cpp",
+    "llama_model_path": "/models/LLaMA",
+    "llama_model_default": "7B",
+    "llama_model_filename": "ggml-model-f16.bin"
+}

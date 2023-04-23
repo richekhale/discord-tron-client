@@ -3,10 +3,13 @@ from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.message.job_queue import JobQueueMessage
 from discord_tron_client.modules.image_generation import generator as image_generator
 from discord_tron_client.modules.image_generation import variation as image_variator
+from discord_tron_client.classes.llama.factory import LlamaFactory
 from typing import Dict, Any
 import logging, json, websocket
 from discord_tron_client.classes.app_config import AppConfig
 config = AppConfig()
+
+llamarunner = LlamaFactory.get()
 
 class WorkerProcessor:
     def __init__(self):
@@ -19,6 +22,9 @@ class WorkerProcessor:
             },
             "image_variation": {
                 "variation_image": image_variator.variate_image,
+            },
+            "llama":{
+                "predict": llamarunner.predict_handler
             }
             # Add more command handlers as needed
         }

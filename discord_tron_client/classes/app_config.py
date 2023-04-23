@@ -167,3 +167,14 @@ class AppConfig:
         return self.config.get("mysql", {}).get("hostname", "localhost")
     def get_mysql_dbname(self):
         return self.config.get("mysql", {}).get("dbname", "diffusion_master")
+    
+    def is_llama_enabled(self):
+        return self.config.get("enable_llama", False)
+    def llama_subsystem_type(self):
+        return self.config.get("llama_subsystem", "llama.cpp")
+    def llama_model_path(self):
+        return self.config.get("llama_model_path", "/models/LLaMA")
+    def llama_model_default(self):
+        return self.config.get("llama_model_default", "7B")
+    def llama_model_filename(self):
+        return self.config.get("llama_model_filename", "ggml-model-f16.bin")

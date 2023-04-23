@@ -103,12 +103,15 @@ class DiffusionPipelineManager:
         return self.pipelines[model_id]
     
     def delete_pipes(self, keep_model: str = None):
-        
+        total_allowed_concurrent = hardware.get_concurrent_pipe_count()
         keys_to_delete = [pipeline for pipeline in self.pipelines if keep_model is None or pipeline != keep_model]
+        active_pipes = 1
         for key in keys_to_delete:
-            del self.pipelines[key]
-            gc.collect()
-        self.clear_cuda_cache()
+            if active_pipes >= total_allowed_concurrent:
+                logging.info(f"Clearing out an unwanted pipe, as we have a limit of {total_allowed_concurrent} concurrent pipes.")
+                del self.pipelines[key]
+                gc.collect()
+                self.clear_cuda_cache()
 
     def clear_cuda_cache(self):
         if config.get_cuda_cache_clear_toggle():

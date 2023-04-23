@@ -29,6 +29,7 @@ torchvision = { version = ">=0.13.1", source="torch"}
 colorama = "^0.4.6"
 xformers = "^0.0.18"
 compel = "^1.1.3"
+llama-cpp-python = "^0.1.36"
 
 [[tool.poetry.source]]
 name = "torch"
