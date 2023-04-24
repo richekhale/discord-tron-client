@@ -4,7 +4,7 @@ from accelerate.utils import set_seed
 from typing import Dict
 from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.classes.app_config import AppConfig
-import torch, gc, logging, importlib
+import torch, gc, logging, diffusers
 
 hardware = HardwareInfo()
 config = AppConfig()
@@ -16,6 +16,17 @@ class DiffusionPipelineManager:
         "prompt_variation": StableDiffusionImg2ImgPipeline,
         "variation": StableDiffusionImageVariationPipeline,
         "upscaler": StableDiffusionUpscalePipeline
+    }
+    SCHEDULER_MAPPINGS = {
+        "DPMSolverMultistepScheduler": diffusers.DPMSolverMultistepScheduler,
+        "PNDMScheduler": diffusers.PNDMScheduler,
+        "EulerAncestralDiscreteScheduler": diffusers.EulerAncestralDiscreteScheduler,
+        "EulerDiscreteScheduler": diffusers.EulerDiscreteScheduler,
+        "KDPM2AncestralDiscreteScheduler": diffusers.KDPM2AncestralDiscreteScheduler,
+        "DDIMScheduler": diffusers.DDIMScheduler,
+        "EulerDiscreteScheduler": diffusers.EulerDiscreteScheduler,
+        "KDPM2DiscreteScheduler": diffusers.KDPM2DiscreteScheduler,
+        "IPNDMScheduler": diffusers.IPNDMScheduler
     }
     def __init__(self):
         self.pipelines = {}
@@ -139,7 +150,7 @@ class DiffusionPipelineManager:
 
         scheduler_name = scheduler_config["scheduler"]
 
-        scheduler_module = importlib.import_module("diffusers", scheduler_name)
+        scheduler_module = self.SCHEDULER_MAPPINGS[scheduler_name]
         if scheduler_name == "DPMSolverMultistepScheduler":
             logging.debug(f"Setting algorithm_type to dpmsolver++ for {name} scheduler, {scheduler_name}.")
             pipe.scheduler = scheduler_module.from_config(pipe.scheduler.config, algorithm_type="dpmsolver++")
