@@ -86,7 +86,10 @@ class DiffusionPipelineManager:
         if model_id not in self.pipelines:
             logging.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type)
-            if pipe_type in ["prompt_variation", "variation"]:
+            if pipe_type in ["variation"]:
+                # The lambda diffusers kind of suck ass.
+                self.set_scheduler(pipe=self.pipelines[model_id], user_config=None, scheduler_config=scheduler_config)
+            if pipe_type in ["prompt_variation"]:
                 self.set_scheduler(pipe=self.pipelines[model_id], user_config=None, scheduler_config=scheduler_config)
                 self.pipelines[model_id].enable_xformers_memory_efficient_attention(True)
                 self.pipelines[model_id].set_use_memory_efficient_attention_xformers(True)
