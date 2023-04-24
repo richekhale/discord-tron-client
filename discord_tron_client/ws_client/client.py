@@ -55,11 +55,11 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
                     payload = json.loads(message)
                     semaphore = general_semaphore
                     logging.info("Initial queue: generic semaphore")
-                    if "job_type" in message:
-                        if message["job_type"] == "gpu":
+                    if "job_type" in payload:
+                        if payload["job_type"] == "gpu":
                             logging.info("Using GPU-specific semaphore")
                             semaphore = gpu_semaphore
-                        if message["job_type"] == "llama":
+                        if payload["job_type"] == "llama":
                             logging.info("Using Llama-specific semaphore")
                             semaphore = llama_semaphore
                     asyncio.create_task(log_slow_callbacks(process_command_with_semaphore(processor, semaphore, payload=payload, websocket=websocket), threshold=0.5))
