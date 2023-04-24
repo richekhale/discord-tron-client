@@ -54,8 +54,8 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
                     logging.debug(f"{message}")
                     payload = json.loads(message)
                     semaphore = general_semaphore
-                    logging.info("Configured generic semaphore")
-                    if hasattr(message, "job_type"):
+                    logging.info("Initial queue: generic semaphore")
+                    if "job_type" in message:
                         if message["job_type"] == "gpu":
                             logging.info("Using GPU-specific semaphore")
                             semaphore = gpu_semaphore
