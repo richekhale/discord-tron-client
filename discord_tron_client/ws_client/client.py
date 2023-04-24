@@ -8,7 +8,8 @@ from discord_tron_client.classes.worker_processor import WorkerProcessor
 async def websocket_client(config: AppConfig, startup_sequence:str = None):
     processor = WorkerProcessor()
     concurrent_slots = config.get_concurrent_slots()
-    semaphore = asyncio.Semaphore(concurrent_slots)
+    gpu_semaphore = asyncio.Semaphore(concurrent_slots)
+    llama_semaphore = asyncio.Semaphore(concurrent_slots)
     while True:
         try:
             websocket_config = config.get_websocket_config()
@@ -51,6 +52,14 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
                     logging.info(f"Received message from master")
                     logging.debug(f"{message}")
                     payload = json.loads(message)
+                    if "job_type" in message:
+                        semaphore = gpu_semaphore
+                        if message["job_type"] == "gpu":
+                            logging.info("Using GPU-specific semaphore")
+                            semaphore = gpu_semaphore
+                        if message["job_type"] == "llama":
+                            logging.info("Using Llama-specific semaphore")
+                            semaphore = llama_semaphore
                     asyncio.create_task(log_slow_callbacks(process_command_with_semaphore(processor, semaphore, payload=payload, websocket=websocket), threshold=0.5))
         except asyncio.exceptions.IncompleteReadError as e:
             logging.warning(f"IncompleteReadError: {e}")
