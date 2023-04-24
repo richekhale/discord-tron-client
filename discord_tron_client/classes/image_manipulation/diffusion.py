@@ -86,7 +86,7 @@ class DiffusionPipelineManager:
         if model_id not in self.pipelines:
             logging.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type)
-            if pipe_type in ["variation"]:
+            if pipe_type in ["variation", "img2img"]:
                 # The lambda diffusers kind of suck ass.
                 self.set_scheduler(pipe=self.pipelines[model_id], user_config=None, scheduler_config=scheduler_config)
             if pipe_type in ["prompt_variation"]:
@@ -115,7 +115,7 @@ class DiffusionPipelineManager:
         )
         self.set_scheduler(self.pipelines[model_id])
         from xformers.ops import MemoryEfficientAttentionFlashAttentionOp
-        self.pipelines[model_id].enable_xformers_memory_efficient_attention(attention_op=MemoryEfficientAttentionFlashAttentionOp)
+        self.pipelines[model_id].enable_xformers_memory_efficient_attention()
         self.pipelines[model_id].safety_checker = lambda images, clip_input: (images, False)
         self.pipelines[model_id].to(self.device)
         logging.info("Return the pipe...")
