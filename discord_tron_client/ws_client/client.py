@@ -8,6 +8,7 @@ from discord_tron_client.classes.worker_processor import WorkerProcessor
 async def websocket_client(config: AppConfig, startup_sequence:str = None):
     processor = WorkerProcessor()
     concurrent_slots = config.get_concurrent_slots()
+    general_semaphore = asyncio.Semaphore(concurrent_slots)
     gpu_semaphore = asyncio.Semaphore(concurrent_slots)
     llama_semaphore = asyncio.Semaphore(concurrent_slots)
     while True:
@@ -52,8 +53,9 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None):
                     logging.info(f"Received message from master")
                     logging.debug(f"{message}")
                     payload = json.loads(message)
-                    if "job_type" in message:
-                        semaphore = gpu_semaphore
+                    semaphore = general_semaphore
+                    logging.info("Configured generic semaphore")
+                    if hasattr(message, "job_type"):
                         if message["job_type"] == "gpu":
                             logging.info("Using GPU-specific semaphore")
                             semaphore = gpu_semaphore
