@@ -99,6 +99,7 @@ class DiffusionPipelineManager:
         # This must happen here, or mem savings are minimal.
         self.pipelines[model_id].to(self.device)
         self.last_pipe_type[model_id] = pipe_type
+        self.last_pipe_scheduler[model_id] = scheduler_config["name"]
         return self.pipelines[model_id]
 
     def get_variation_pipe(self, model_id):
