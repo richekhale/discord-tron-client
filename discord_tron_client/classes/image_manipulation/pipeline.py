@@ -328,7 +328,8 @@ class PipelineRunner:
             self.seed = int(self.seed) + random.randint(-5, 5)
         elif int(self.seed) < 0:
             self.seed = random.randint(0, 2**32)
-        generator = torch.manual_seed(self.seed)
+        generator = torch.Generator(device=self.pipeline_manager.device)
+        generator.manual_seed(self.seed)
         logging.info(f"Seed: {self.seed}")
         return generator
 
