@@ -138,7 +138,8 @@ class DiffusionPipelineManager:
             return
 
         scheduler_name = scheduler_config["scheduler"]
-        scheduler_module = importlib.import_module(f"diffusers.{scheduler_name}")
+
+        scheduler_module = importlib.import_module("diffusers", scheduler_name)
         if scheduler_name == "DPMSolverMultistepScheduler":
             logging.debug(f"Setting algorithm_type to dpmsolver++ for {name} scheduler, {scheduler_name}.")
             pipe.scheduler = scheduler_module.from_config(pipe.scheduler.config, algorithm_type="dpmsolver++")
