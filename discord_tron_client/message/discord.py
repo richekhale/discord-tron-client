@@ -57,5 +57,5 @@ class DiscordMessage(WebsocketMessage):
                 f"**Seed**: `!seed {seed}`, **Guidance**: {user_config['guidance_scaling']}, **Steps**: `!steps {steps}`, **Strength (img2img)**: {strength}, **Temperature (txt2txt)**: {temperature}\n" \
                 f"**Model**: `!model {model_id}` **Scheduler**: `!scheduler {scheduler_name}`\n" \
                 f"**Resolution (txt2img)**: " + str(resolution["width"]) + "x" + str(resolution["height"]) + "\n" \
-                f"**{config.get_friendly_name() or hardware.get_system_hostname()}**: {payload['gpu_power_consumption']}W power used via {system_hw['gpu_type']} ({vmem}G), on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
+                f"**{HardwareInfo.get_identifier()}**: {payload['gpu_power_consumption']}W power used via {system_hw['gpu_type']} ({vmem}G), on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
                 

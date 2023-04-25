@@ -1,9 +1,11 @@
 import subprocess
 import logging, socket
 from discord_tron_client.classes.app_config import AppConfig
+
 config = AppConfig()
 
 class HardwareInfo:
+    identifier = None
     def __init__(self):
         self.gpu_type = "Unknown type"
         self.cpu_type = "Unknown type"
@@ -21,11 +23,14 @@ class HardwareInfo:
             "worker_id": worker_id
         }
 
-    def get_identifier(self):
-        identifier = config.get_friendly_name() or self.get_system_hostname()
+    @classmethod
+    def get_identifier(cls):
+        if HardwareInfo.identifier is not None:
+            return HardwareInfo.identifier
+        HardwareInfo.identifier = config.get_friendly_name() or HardwareInfo.get_system_hostname()
         import random
-        identifier = identifier + '-' + str(random.randint(0, 2))
-        return identifier
+        HardwareInfo.identifier = HardwareInfo.identifier + '-' + str(random.randint(0, 2))
+        return HardwareInfo.identifier
         
 
     def get_system_capabilities(self):
@@ -165,14 +170,14 @@ class HardwareInfo:
             self.disk_space_total = usage.total
             self.disk_space_used = usage.used
             break
-
-    def get_system_hostname(self):
+    @staticmethod
+    def get_system_hostname():
         hostname = socket.gethostname()
         return hostname
 
     def get_simple_hardware_info(self):
         self.get_machine_info()
-        identifier = config.get_friendly_name() or self.get_system_hostname()
+        identifier = HardwareInfo.get_identifier()
         return {
             "gpu": self.gpu_type,
             "cpu": self.cpu_type,
@@ -203,7 +208,7 @@ class HardwareInfo:
         self.get_memory_total()
         self.get_video_memory_info()
         self.get_disk_space()
-        identifier = config.get_friendly_name() or self.get_system_hostname()
+        identifier = HardwareInfo.get_identifier()
         return {
             "gpu_type": self.gpu_type,
             "cpu_type": self.cpu_type,
