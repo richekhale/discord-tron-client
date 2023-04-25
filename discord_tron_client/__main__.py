@@ -1,4 +1,4 @@
-import random
+import random, asyncio
 from .ws_client import websocket_client
 import logging
 from discord_tron_client.classes import log_format
