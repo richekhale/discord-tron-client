@@ -1,4 +1,4 @@
-import asyncio
+import random
 from .ws_client import websocket_client
 import logging
 from discord_tron_client.classes import log_format
@@ -27,6 +27,7 @@ def main():
         hardware_info = HardwareInfo()
         machine_info = hardware_info.get_machine_info()
         identifier = config.get_friendly_name() or hardware_info.get_system_hostname()
+        identifier = identifier + str(random.randint(0, 2))
         register_data = hardware_info.get_register_data(worker_id=identifier)
         register_data["hardware"] = hardware_info.get_simple_hardware_info()
         register_data["available_resolutions"] = ResolutionManager.get_resolutions_with_extra_data()
