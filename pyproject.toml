@@ -30,6 +30,10 @@ colorama = "^0.4.6"
 xformers = "^0.0.18"
 compel = "^1.1.3"
 llama-cpp-python = "^0.1.36"
+peft = "^0.2.0"
+sentencepiece = "^0.1.98"
+tokenizers = "^0.13.3"
+tensorrt = "^8.6.0"
 
 [[tool.poetry.source]]
 name = "torch"

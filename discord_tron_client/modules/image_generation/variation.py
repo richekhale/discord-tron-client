@@ -30,7 +30,7 @@ async def variate_image(payload, websocket):
         # Grab the image via http:
         import requests
         image = Image.open(io.BytesIO(requests.get(payload["image_data"]).content))
-        result = await pipeline_runner.generate_image(scheduler_config=scheduler_config, model_id=model_id, prompt=prompt, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, promptless_variation=True)
+        result = await pipeline_runner.generate_image(user_config=user_config, scheduler_config=scheduler_config, model_id=model_id, prompt=prompt, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, promptless_variation=True)
         payload["seed"] = pipeline_runner.seed
         payload["gpu_power_consumption"] = pipeline_runner.gpu_power_consumption            
         websocket = AppConfig.get_websocket()

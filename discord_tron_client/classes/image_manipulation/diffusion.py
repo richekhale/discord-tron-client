@@ -68,7 +68,7 @@ class DiffusionPipelineManager:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
         return pipeline
 
-    def get_pipe(self, scheduler_config: dict, resolution: dict, model_id: str, img2img: bool = False, prompt_variation: bool = False, variation: bool = False, upscaler: bool = False) -> Pipeline:
+    def get_pipe(self, user_config: dict, scheduler_config: dict, resolution: dict, model_id: str, img2img: bool = False, prompt_variation: bool = False, variation: bool = False, upscaler: bool = False) -> Pipeline:
         self.delete_pipes(keep_model=model_id)
         logging.info("Generating a new pipe...")
         if self.is_memory_constrained:
@@ -103,6 +103,11 @@ class DiffusionPipelineManager:
         self.pipelines[model_id].to(self.device)
         self.last_pipe_type[model_id] = pipe_type
         self.last_pipe_scheduler[model_id] = scheduler_config["name"]
+        enable_tiling = user_config.get("enable_tiling", True)
+        if enable_tiling:
+            self.pipelines[model_id].vae.enable_tiling()
+        else:
+            self.pipelines[model_id].vae.disable_tiling()
         return self.pipelines[model_id]
 
     def get_variation_pipe(self, model_id):

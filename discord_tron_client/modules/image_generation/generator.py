@@ -36,7 +36,7 @@ async def generate_image(payload, websocket):
             import io, requests
             image = Image.open(io.BytesIO(requests.get(payload["image_data"], timeout=10).content))
 
-        result = await pipeline_runner.generate_image(scheduler_config=scheduler_config, prompt=prompt + ' ' + positive_prompt, model_id=model_id, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, upscaler=upscaler)
+        result = await pipeline_runner.generate_image(user_config=user_config, scheduler_config=scheduler_config, prompt=prompt + ' ' + positive_prompt, model_id=model_id, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, upscaler=upscaler)
         websocket = AppConfig.get_websocket()
         delete_progress_bar = DiscordMessage(websocket=websocket, context=discord_msg.context, module_command="delete")
         for attempt in range(1, 6):

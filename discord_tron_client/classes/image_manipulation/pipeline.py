@@ -55,6 +55,7 @@ class PipelineRunner:
 
     async def _prepare_pipe_async(
         self,
+        user_config: dict,
         scheduler_config: dict,
         resolution,
         model_id: int,
@@ -66,6 +67,7 @@ class PipelineRunner:
         loop_return = await loop.run_in_executor(
             AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
             self._prepare_pipe,
+            user_config,
             scheduler_config,
             resolution,
             model_id,
@@ -77,6 +79,7 @@ class PipelineRunner:
 
     def _prepare_pipe(
         self,
+        user_config: dict,
         scheduler_config: dict,
         resolution: dict,
         model_id: int,
@@ -86,7 +89,7 @@ class PipelineRunner:
     ):
         logging.info(f"Retrieving pipe for model {model_id}")
         if not promptless_variation:
-            pipe = self.pipeline_manager.get_pipe(scheduler_config, resolution, model_id, img2img, promptless_variation, variation=False, upscaler=upscaler)
+            pipe = self.pipeline_manager.get_pipe(user_config, scheduler_config, resolution, model_id, img2img, promptless_variation, variation=False, upscaler=upscaler)
         else:
             pipe = self.pipeline_manager.get_variation_pipe(model_id)
         logging.info("Copied pipe to the local context")
@@ -272,6 +275,7 @@ class PipelineRunner:
     async def generate_image(
         self,
         model_id: int,
+        user_config: dict,
         scheduler_config: dict,
         prompt: str,
         side_x: int,
@@ -285,6 +289,7 @@ class PipelineRunner:
     ):
         resolution = {"width": side_x, "height": side_y}
         pipe = await self._prepare_pipe_async(
+            user_config,
             scheduler_config,
             resolution,
             model_id,
