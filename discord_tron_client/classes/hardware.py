@@ -26,7 +26,9 @@ class HardwareInfo:
     @classmethod
     def get_identifier(cls):
         if HardwareInfo.identifier is not None:
+            logging.info(f"Using current identifier: {HardwareInfo.identifier}")
             return HardwareInfo.identifier
+        logging.info(f"Identifier not found, configuring new one")
         HardwareInfo.identifier = config.get_friendly_name() or HardwareInfo.get_system_hostname()
         import random
         HardwareInfo.identifier = HardwareInfo.identifier + '-' + str(random.randint(0, 2))
