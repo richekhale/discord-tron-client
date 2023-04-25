@@ -26,7 +26,7 @@ def main():
         from discord_tron_client.classes.image_manipulation.resolution import ResolutionManager
         hardware_info = HardwareInfo()
         machine_info = hardware_info.get_machine_info()
-        identifier = hardware_info.get_identifier()
+        identifier = HardwareInfo.get_identifier()
         register_data = hardware_info.get_register_data(worker_id=identifier)
         register_data["hardware"] = hardware_info.get_simple_hardware_info()
         register_data["available_resolutions"] = ResolutionManager.get_resolutions_with_extra_data()

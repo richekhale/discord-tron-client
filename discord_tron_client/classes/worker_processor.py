@@ -47,9 +47,7 @@ class WorkerProcessor:
             handler_result = await handler(payload, websocket)
             if "job_id" in payload and payload["job_id"] != "":
                 # We have the output, but now we need to mark the Job as finished
-                hardware = HardwareInfo()
-                
-                identifier = hardware.get_identifier()
+                identifier = HardwareInfo.get_identifier()
                 
                 discord_msg = JobQueueMessage(websocket=websocket, job_id=payload["job_id"], worker_id=identifier, module_command="finish")
                 websocket = AppConfig.get_websocket()
