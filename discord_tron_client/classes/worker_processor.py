@@ -49,7 +49,7 @@ class WorkerProcessor:
                 # We have the output, but now we need to mark the Job as finished
                 hardware = HardwareInfo()
                 
-                identifier = config.get_friendly_name() or hardware.get_system_hostname()
+                identifier = hardware.get_identifier()
                 
                 discord_msg = JobQueueMessage(websocket=websocket, job_id=payload["job_id"], worker_id=identifier, module_command="finish")
                 websocket = AppConfig.get_websocket()

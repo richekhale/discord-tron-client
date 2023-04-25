@@ -21,6 +21,13 @@ class HardwareInfo:
             "worker_id": worker_id
         }
 
+    def get_identifier(self):
+        identifier = config.get_friendly_name() or self.get_system_hostname()
+        import random
+        identifier = identifier + '-' + str(random.randint(0, 2))
+        return identifier
+        
+
     def get_system_capabilities(self):
         self.get_gpu_info()
         self.get_cpu_info()
