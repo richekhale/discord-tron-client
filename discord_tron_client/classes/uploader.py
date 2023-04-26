@@ -28,7 +28,7 @@ class Uploader:
         self.thread_pool = ThreadPoolExecutor(max_workers=num_workers)
         return self.thread_pool
 
-    async def upload_images(self, images: List[PILImage]):
+    async def upload_images(self, images: List):
         self.start_thread_pool(len(images))
         tasks = [self.image(img) for img in images]
         results = await asyncio.gather(*tasks)
