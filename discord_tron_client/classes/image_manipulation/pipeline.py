@@ -315,7 +315,7 @@ class PipelineRunner:
         if isinstance(new_image, list):
             for i in range(len(new_image)):
                 new_image[i] = new_image[i].resize((int(side_x), int(side_y)), Image.ANTIALIAS)
-        if isinstance(new_image, Image):
+        if hasattr(new_image, "resize"):
             new_image = new_image.resize((int(side_x), int(side_y)), Image.ANTIALIAS)
         
         self.pipeline_manager.clear_cuda_cache()
