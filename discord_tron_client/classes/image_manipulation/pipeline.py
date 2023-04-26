@@ -228,7 +228,7 @@ class PipelineRunner:
                         num_inference_steps=int(float(steps)),
                         guidance_scale=guidance_scale,
                         generator=generator,
-                    )
+                    ).images
                 else:
                     new_image = pipe(
                         prompt_embeds=prompt_embed,
