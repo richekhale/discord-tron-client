@@ -129,6 +129,8 @@ class AppConfig:
             protocol="wss"
         return {'host': self.get_websocket_hub_host(), 'port': self.get_websocket_hub_port(), 'tls': self.get_websocket_hub_tls(), 'protocol': protocol, 'server_cert_path': self.get_tls_pem_path(), 'server_key_path': self.get_tls_key_path()}
 
+    def get_max_concurrent_uploads(self):
+        return self.config.get("max_concurrent_uploads", 8)
     def image_upload_toggle(self):
         return self.config.get("enable_image_uploads", True)
 
