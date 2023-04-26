@@ -29,7 +29,7 @@ async def variate_image(payload, websocket):
         logging.info("Generating image!")
         # Grab the image via http:
         import requests
-        image = Image.open(io.BytesIO(requests.get(payload["image_data"]).content, timeout=10))
+        image = Image.open(io.BytesIO(requests.get(payload["image_data"], timeout=10).content))
         image = image.resize((resolution["width"], resolution["height"]))
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")
         await websocket.send(discord_msg.to_json())
