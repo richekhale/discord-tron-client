@@ -87,8 +87,9 @@ async def prompt_variation(payload, websocket):
         logging.info("Image generated successfully!")
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="delete")
         await websocket.send(discord_msg.to_json())
-        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=DiscordMessage.print_prompt(payload), image=result)
-        await websocket.send(discord_msg.to_json())
+        for sending_image in result:
+            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=DiscordMessage.print_prompt(payload), image=sending_image)
+            await websocket.send(discord_msg.to_json())
 
     except Exception as e:
         import traceback
