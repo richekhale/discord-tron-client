@@ -223,11 +223,9 @@ class PipelineRunner:
                     new_images = pipe.img2img(
                         prompt=positive_prompt,
                         num_images_per_prompt=4,
-                        prompt_embeds=prompt_embed,
                         image=image,
                         strength=user_config["strength"],
                         num_inference_steps=int(float(steps)),
-                        negative_prompt_embeds=negative_embed,
                         guidance_scale=guidance_scale,
                         generator=generator,
                     )
