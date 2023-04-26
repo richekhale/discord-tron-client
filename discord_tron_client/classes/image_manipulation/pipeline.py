@@ -200,24 +200,26 @@ class PipelineRunner:
                     # Default "long prompt weighting" pipeline
                     new_image = pipe(
                         prompt=positive_prompt,
+                        num_images_per_prompt=4,
                         height=side_y,
                         width=side_x,
                         num_inference_steps=int(float(steps)),
                         negative_prompt=negative_prompt,
                         guidance_scale=guidance_scale,
                         generator=generator,
-                    ).images[0]
+                    ).images
                 else:
                     # Use the Compel library's prompt weights as input instead.
                     new_image = pipe(
                         positive_embeds=prompt_embed,
+                        num_images_per_prompt=4,
                         height=side_y,
                         width=side_x,
                         num_inference_steps=int(float(steps)),
                         negative_embeds=negative_embed,
                         guidance_scale=guidance_scale,
                         generator=generator,
-                    ).images[0]
+                    ).images
             elif not upscaler and not promptless_variation and image is not None:
                 if not alt_weight_algorithm:
                     new_image = pipe.img2img(
@@ -232,13 +234,14 @@ class PipelineRunner:
                 else:
                     new_image = pipe(
                         prompt_embeds=prompt_embed,
+                        num_images_per_prompt=4,
                         image=image,
                         strength=user_config["strength"],
                         num_inference_steps=int(float(steps)),
                         negative_prompt_embeds=negative_embed,
                         guidance_scale=guidance_scale,
                         generator=generator,
-                    ).images[0]
+                    ).images
             elif promptless_variation:
                 # Get the image width/height from 'image' if it's provided
                 logging.info(f"Running promptless variation with image.size {image.size}.")
