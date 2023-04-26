@@ -79,9 +79,13 @@ async def prompt_variation(payload, websocket):
         import requests
         image = Image.open(io.BytesIO(requests.get(payload["image_data"], timeout=10).content))
         image = image.resize((resolution["width"], resolution["height"]))
-        background = Image.new('RGBA', image.size, (255,255,255))
-        alpha_composite = Image.alpha_composite(background, image)
-        image = alpha_composite.convert('RGB')
+        try:
+            background = Image.new('RGBA', image.size, (255,255,255))
+            alpha_composite = Image.alpha_composite(background, image)
+            image = alpha_composite.convert('RGB')
+        except Exception as e:
+            logging.error(f"Error compositing image: {e}")
+            alpha_composite = image
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")
         await websocket.send(discord_msg.to_json())
         output_images = await pipeline_runner.generate_image(user_config=user_config, scheduler_config=scheduler_config, prompt=prompt + ' ' + positive_prompt, model_id=model_id, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, img2img=True)
