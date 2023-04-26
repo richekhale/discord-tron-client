@@ -181,3 +181,14 @@ class ResolutionManager:
             side_x = resolution["width"]
             side_y = resolution["height"]
         return aspect_ratio, side_x, side_y
+    
+    @staticmethod
+    def fudge_resolution_by_modulo(resolution, modulo: int = 8):
+        # Typically we want resolution to be divisible by 8.
+        width = resolution["width"]
+        height = resolution["height"]
+        if width % 8 > 0:
+            width = width - (width % 8)
+        if height % 8 > 0:
+            height = height - (height % 8)
+        return {"width": width, "height": height}
