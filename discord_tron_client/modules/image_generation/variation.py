@@ -1,6 +1,7 @@
 from discord_tron_client.classes.image_manipulation import diffusion, pipeline, resolution
 from discord_tron_client.classes.image_manipulation.model_manager import TransformerModelManager
 from discord_tron_client.message.discord import DiscordMessage
+from discord_tron_client.classes.uploader import Uploader
 import tqdm, logging, asyncio, io, base64
 from PIL import Image
 from discord_tron_client.classes.app_config import AppConfig
@@ -80,16 +81,32 @@ async def prompt_variation(payload, websocket):
         image = image.resize((resolution["width"], resolution["height"]))
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")
         await websocket.send(discord_msg.to_json())
-        result = await pipeline_runner.generate_image(user_config=user_config, scheduler_config=scheduler_config, prompt=prompt + ' ' + positive_prompt, model_id=model_id, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, img2img=True)
+        output_images = await pipeline_runner.generate_image(user_config=user_config, scheduler_config=scheduler_config, prompt=prompt + ' ' + positive_prompt, model_id=model_id, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, img2img=True)
         payload["seed"] = pipeline_runner.seed
         payload["gpu_power_consumption"] = pipeline_runner.gpu_power_consumption            
         websocket = AppConfig.get_websocket()
         logging.info("Image generated successfully!")
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="delete")
         await websocket.send(discord_msg.to_json())
-        for sending_image in result:
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=DiscordMessage.print_prompt(payload), image=sending_image)
-            await websocket.send(discord_msg.to_json())
+
+                # Try uploading via the HTTP API
+        api_client = AppConfig.get_api_client()
+        uploader = Uploader(api_client=api_client, config=config)
+
+        async def upload_images(image_list):
+            output_url_list = []
+            for image in image_list:
+                try:
+                    image_url = await uploader.image(image=image)
+                    output_url_list.append(image_url)
+                except Exception as e:
+                    import traceback
+                    logging.error(f"Could not upload image to central API: {image_url}: {traceback.format_exc()}")
+            return output_url_list
+        
+        url_list = await asyncio.create_task(upload_images(output_images))
+        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=DiscordMessage.print_prompt(payload), image_url_list=url_list)
+        await websocket.send(discord_msg.to_json())
 
     except Exception as e:
         import traceback

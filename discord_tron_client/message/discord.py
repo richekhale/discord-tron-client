@@ -8,7 +8,7 @@ from discord_tron_client.classes.app_config import AppConfig
 hardware = HardwareInfo()
 config = AppConfig()
 class DiscordMessage(WebsocketMessage):
-    def __init__(self, websocket: websocket,  context, module_command: str = "send", mention: str = None, message: str = None, name: str = None, image: Image = None, image_url: str = None):
+    def __init__(self, websocket: websocket,  context, module_command: str = "send", mention: str = None, message: str = None, name: str = None, image: Image = None, image_url: str = None, image_url_list: list = None):
         self.websocket = websocket
         if isinstance(context, DiscordMessage):
             # Extract the context from the existing DiscordMessage
@@ -26,6 +26,9 @@ class DiscordMessage(WebsocketMessage):
             arguments["image_url"] = str(image_url)
         if mention is not None:
             arguments["mention"] = mention
+        if image_url_list is not None:
+            arguments["image_url_list"] = image_url_list
+
         super().__init__(message_type="discord", module_name="message", module_command=module_command, data=context, arguments=arguments)
         
     def b64_image(self, image: Image):
