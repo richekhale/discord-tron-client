@@ -14,7 +14,7 @@ class Uploader:
         self.api_client = api_client
         self.config = config
         
-    async def image(self, image: PILImage):
+    async def image(self, image):
         logging.debug(f"Uploading image to {self.config.get_master_url()}")
         result = await asyncio.to_thread(self.api_client.send_pil_image, '/upload_image', image)
         logging.debug(f"Image uploader received result: {result}")
@@ -27,7 +27,7 @@ class Uploader:
         self.thread_pool = ThreadPoolExecutor(max_workers=num_workers)
         return self.thread_pool
 
-    async def upload_images(self, images: List[PILImage]):
+    async def upload_images(self, images: List):
         self.start_thread_pool(len(images))
         tasks = [self.image(img) for img in images]
         results = await asyncio.gather(*tasks)
