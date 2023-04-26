@@ -20,7 +20,7 @@ class Uploader:
         result = await loop.run_in_executor(self.thread_pool, self.api_client.send_pil_image, '/upload_image', image)
         logging.debug(f"Image uploader received result: {result}")
         
-        if "image_url" in result:
+        if "image_url" in await result:
             return result["image_url"]
         raise Exception(f"Image upload failed: {result}")
 
