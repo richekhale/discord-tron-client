@@ -47,7 +47,7 @@ class ResolutionManager:
             if aspectratio is not None and ResolutionManager.aspect_ratio(res) != aspectratio:
                 continue
             res["aspect_ratio"] = ResolutionManager.aspect_ratio(res)
-            res["attention_scale"] = hardware.should_enable_attention_slicing(res)
+            res["attention_scale"] = hardware.should_disable_resolution(res)
             if not hasattr(res, "default_max"):
                 res["default_max"] = False
         return ResolutionManager.resolutions
