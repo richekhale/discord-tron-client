@@ -12,6 +12,7 @@ try:
     llamarunner = LlamaFactory.get()
 except:
     logging.warn('Could not retrieve a Llama driver.')
+identifier = HardwareInfo.get_identifier()
 
 class WorkerProcessor:
     def __init__(self):
@@ -45,13 +46,6 @@ class WorkerProcessor:
             logging.info(f"Running handler for command: {payload['module_command']} in module: {payload['module_name']}")
             logging.debug("Executing incoming " + str(handler) + " for module " + str(payload["module_name"]) + ", command " + payload["module_command"] + ", payload: " + str(payload))
             handler_result = await handler(payload, websocket)
-            if "job_id" in payload and payload["job_id"] != "":
-                # We have the output, but now we need to mark the Job as finished
-                identifier = HardwareInfo.get_identifier()
-                
-                discord_msg = JobQueueMessage(websocket=websocket, job_id=payload["job_id"], worker_id=identifier, module_command="finish")
-                websocket = AppConfig.get_websocket()
-                await websocket.send(discord_msg.to_json())
 
         except Exception as e:
             # enable tracemalloc:
@@ -69,4 +63,11 @@ class WorkerProcessor:
             logging.error("Error processing command: " + str(e))
             
             return json.dumps({"error": str(e)})
+
+        finally:
+            if "job_id" in payload and payload["job_id"] != "":
+                # We have the output, but now we need to mark the Job as finished
+                discord_msg = JobQueueMessage(websocket=websocket, job_id=payload["job_id"], worker_id=identifier, module_command="finish")
+                websocket = AppConfig.get_websocket()
+                await websocket.send(discord_msg.to_json())
     # Add more command handler methods as needed
