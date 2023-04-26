@@ -1,4 +1,4 @@
-from concurrent.futures import ThreadPoolExecutor
+  from multiprocessing.dummy import Pool as ThreadPool
 from PIL import Image as PILImage
 from discord_tron_client.classes.auth import Auth
 from discord_tron_client.classes.app_config import AppConfig
@@ -14,9 +14,9 @@ class Uploader:
         self.api_client = api_client
         self.config = config
         
-    async def image(self, image):
+    def image(self, image):
         logging.debug(f"Uploading image to {self.config.get_master_url()}")
-        result = await asyncio.to_thread(self.api_client.send_pil_image, '/upload_image', image)
+        result = asyncio.run(self.api_client.send_pil_image('/upload_image', image))
         logging.debug(f"Image uploader received result: {result}")
         
         if "image_url" in result:
@@ -24,11 +24,14 @@ class Uploader:
         raise Exception(f"Image upload failed: {result}")
 
     def start_thread_pool(self, num_workers=4):
-        self.thread_pool = ThreadPoolExecutor(max_workers=num_workers)
+        self.thread_pool = ThreadPool(processes=num_workers)
         return self.thread_pool
+    def run_threads(self):
+        self.thread_pool.close()
+        self.thread_pool.join()
 
     async def upload_images(self, images: List):
         self.start_thread_pool(len(images))
-        tasks = [self.image(img) for img in images]
-        results = await asyncio.gather(*tasks)
+        results = self.thread_pool.map(self.image, images)
+        self.run_threads()
         return results
