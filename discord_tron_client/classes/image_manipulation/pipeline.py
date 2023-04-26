@@ -312,7 +312,11 @@ class PipelineRunner:
         side_x = resolution["width"]
         side_y = resolution["height"]
         logging.info(f"Rescaled resolution: {side_x}x{side_y}")
-        new_image = new_image.resize((int(side_x), int(side_y)), Image.ANTIALIAS)
+        if isinstance(new_image, list):
+            for i in range(len(new_image)):
+                new_image[i] = new_image[i].resize((int(side_x), int(side_y)), Image.ANTIALIAS)
+        if isinstance(new_image, Image):
+            new_image = new_image.resize((int(side_x), int(side_y)), Image.ANTIALIAS)
         
         self.pipeline_manager.clear_cuda_cache()
 
