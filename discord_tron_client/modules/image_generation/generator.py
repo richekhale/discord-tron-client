@@ -37,7 +37,7 @@ async def generate_image(payload, websocket):
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")
         await websocket.send(discord_msg.to_json())
 
-        result = await pipeline_runner.generate_image(user_config=user_config, scheduler_config=scheduler_config, prompt=prompt + ' ' + positive_prompt, model_id=model_id, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, upscaler=upscaler)
+        output_images = await pipeline_runner.generate_image(user_config=user_config, scheduler_config=scheduler_config, prompt=prompt + ' ' + positive_prompt, model_id=model_id, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, upscaler=upscaler)
         websocket = AppConfig.get_websocket()
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="delete")
         for attempt in range(1, 6):
@@ -58,26 +58,27 @@ async def generate_image(payload, websocket):
         # Try uploading via the HTTP API
         api_client = AppConfig.get_api_client()
         uploader = Uploader(api_client=api_client, config=config)
-        output_image = None
-        image_url = None
-        async def upload_image():
-            nonlocal image_url, output_image
-            try:
-                image_url = await uploader.image(image=result)
-            except Exception as e:
-                import traceback
-                logging.error(f"Could not upload image to central API: {image_url}, {e} Falling back to local upload: {traceback.format_exc()}")
-                image_url = None
-                output_image = result
-        enable_img_upload = config.image_upload_toggle()
-        if enable_img_upload:
-            upload_task = asyncio.create_task(upload_image())
-            await upload_task
-        else:
-            logging.debug(f"Not using master http server for upload. Sending directly.")
-            output_image = result
+
+        async def upload_images(image_list):
+            output_url_list = []
+            for image in image_list:
+                try:
+                    image_url = await uploader.image(image=image)
+                    output_url_list.append(image_url)
+                except Exception as e:
+                    import traceback
+                    logging.error(f"Could not upload image to central API: {image_url}: {traceback.format_exc()}")
+            return output_url_list
+
+        # Now we can remove the message.
+        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="delete")
+        await websocket.send(discord_msg.to_json())
+
+        url_list = await asyncio.create_task(upload_images(output_images))
+        # discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=DiscordMessage.print_prompt(payload), image_url_list=url_list)
+
         websocket = AppConfig.get_websocket()
-        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="create_thread", name=truncated_prompt, message=DiscordMessage.print_prompt(payload), image=output_image, image_url=image_url)
+        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="create_thread", name=truncated_prompt, message=DiscordMessage.print_prompt(payload), image_url_list=url_list)
         await websocket.send(discord_msg.to_json())
 
     except Exception as e:
