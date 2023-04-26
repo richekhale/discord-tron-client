@@ -21,9 +21,7 @@ async def generate_image(payload, websocket):
         model_config = payload.get("model_config", {})
         positive_prompt = user_config["positive_prompt"]
         upscaler = payload.get("upscaler", False)
-        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")
         websocket = AppConfig.get_websocket()
-        await websocket.send(discord_msg.to_json())
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="Your prompt is now being processed. This might take a while to get to the next step if we have to download your model!")
         await websocket.send(discord_msg.to_json())
         model_manager = TransformerModelManager()
@@ -35,6 +33,8 @@ async def generate_image(payload, websocket):
         if "image_data" in payload:
             import io, requests
             image = Image.open(io.BytesIO(requests.get(payload["image_data"], timeout=10).content))
+        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")
+        await websocket.send(discord_msg.to_json())
 
         result = await pipeline_runner.generate_image(user_config=user_config, scheduler_config=scheduler_config, prompt=prompt + ' ' + positive_prompt, model_id=model_id, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, upscaler=upscaler)
         websocket = AppConfig.get_websocket()
