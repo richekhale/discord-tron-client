@@ -30,7 +30,7 @@ async def variate_image(payload, websocket):
         # Grab the image via http:
         import requests
         image = Image.open(io.BytesIO(requests.get(payload["image_data"]).content))
-        image.resize((resolution["width"], resolution["height"]))
+        image = image.resize((resolution["width"], resolution["height"]))
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")
         await websocket.send(discord_msg.to_json())
         result = await pipeline_runner.generate_image(user_config=user_config, scheduler_config=scheduler_config, model_id=model_id, prompt=prompt, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, promptless_variation=True)
