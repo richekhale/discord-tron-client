@@ -39,7 +39,7 @@ async def generate_image(payload, websocket):
 
         result = await pipeline_runner.generate_image(user_config=user_config, scheduler_config=scheduler_config, prompt=prompt + ' ' + positive_prompt, model_id=model_id, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, upscaler=upscaler)
         websocket = AppConfig.get_websocket()
-        delete_progress_bar = DiscordMessage(websocket=websocket, context=discord_msg.context, module_command="delete")
+        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="delete")
         for attempt in range(1, 6):
             if not websocket or not hasattr(websocket, "open") or websocket.open != True:
                 logging.warn("WebSocket connection is not open. Retrieving fresh instance.")
