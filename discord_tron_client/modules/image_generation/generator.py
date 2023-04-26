@@ -35,6 +35,9 @@ async def generate_image(payload, websocket):
             import io, requests
             image = Image.open(io.BytesIO(requests.get(payload["image_data"], timeout=10).content))
             image = image.resize((resolution["width"], resolution["height"]))
+            background = Image.new('RGBA', image.size, (255,255,255))
+            alpha_composite = Image.alpha_composite(background, image)
+            image = alpha_composite.convert('RGB')
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")
         await websocket.send(discord_msg.to_json())
 
