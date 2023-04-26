@@ -58,4 +58,14 @@ class DiscordMessage(WebsocketMessage):
                 f"**Model**: `!model {model_id}` **Scheduler**: `!scheduler {scheduler_name}`\n" \
                 f"**Resolution (txt2img)**: " + str(resolution["width"]) + "x" + str(resolution["height"]) + "\n" \
                 f"**{HardwareInfo.get_identifier()}**: {payload['gpu_power_consumption']}W power used via {system_hw['gpu_type']} ({vmem}G), on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
-                
+    @staticmethod
+    def mention(payload):
+        """Create a Discord mention string from a payload
+
+        Args:
+            payload (dict): A dictionary from a Job.
+
+        Returns:
+            str: Discord mention string
+        """
+        return f"<@{payload['discord_context']['author']['id']}>"

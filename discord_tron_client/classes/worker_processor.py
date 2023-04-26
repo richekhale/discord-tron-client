@@ -2,7 +2,7 @@ from discord_tron_client.classes.message import WebsocketMessage
 from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.message.job_queue import JobQueueMessage
 from discord_tron_client.modules.image_generation import generator as image_generator
-from discord_tron_client.modules.image_generation import variation as image_variator
+from discord_tron_client.modules.image_generation import variation
 from discord_tron_client.classes.llama.factory import LlamaFactory
 from typing import Dict, Any
 import logging, json, websocket
@@ -24,7 +24,8 @@ class WorkerProcessor:
                 "upscale": image_generator.generate_image,
             },
             "image_variation": {
-                "variation_image": image_variator.variate_image,
+                "promptless_variation": variation.promptless_variation,
+                "prompt_variation": variation.prompt_variation,
             },
             "llama":{
                 "predict": llamarunner.predict_handler
