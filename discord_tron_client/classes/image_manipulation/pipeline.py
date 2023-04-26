@@ -220,9 +220,10 @@ class PipelineRunner:
                     ).images[0]
             elif not upscaler and not promptless_variation and image is not None:
                 if not alt_weight_algorithm:
-                    new_image = pipe.img2img(
+                    new_images = pipe.img2img(
                         prompt=positive_prompt,
-                        prompt_embed=prompt_embed,
+                        num_images_per_prompt=4,
+                        prompt_embeds=prompt_embed,
                         image=image,
                         strength=user_config["strength"],
                         num_inference_steps=int(float(steps)),
@@ -264,7 +265,7 @@ class PipelineRunner:
             raise e
         finally:
             sys.stderr = original_stderr
-        return new_image
+        return new_image or new_images
 
     async def generate_image(
         self,

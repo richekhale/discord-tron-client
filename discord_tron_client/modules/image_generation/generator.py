@@ -48,7 +48,7 @@ async def generate_image(payload, websocket):
             else:
                 logging.debug("WebSocket connection is open. Continuing.")
                 break
-        await websocket.send(delete_progress_bar.to_json())
+        await websocket.send(discord_msg.to_json())
         payload["seed"] = pipeline_runner.seed
         payload["gpu_power_consumption"] = pipeline_runner.gpu_power_consumption
         logging.info("Image generated successfully!")\
