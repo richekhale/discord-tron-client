@@ -31,6 +31,7 @@ async def generate_image(payload, websocket):
         prompt=prompt + ' ' + positive_prompt
         image = None
         if "image_data" in payload:
+            logging.debug(f"Found image data in payload: {payload['image_data']}")
             import io, requests
             image = Image.open(io.BytesIO(requests.get(payload["image_data"], timeout=10).content))
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")

@@ -118,7 +118,6 @@ class DiffusionPipelineManager:
         self.pipelines[model_id] = StableDiffusionImageVariationPipeline.from_pretrained(
             pretrained_model_name_or_path=model_id, torch_dtype=self.torch_dtype, revision="v2.0"
         )
-        self.set_scheduler(self.pipelines[model_id])
         from xformers.ops import MemoryEfficientAttentionFlashAttentionOp
         self.pipelines[model_id].enable_xformers_memory_efficient_attention()
         self.pipelines[model_id].safety_checker = lambda images, clip_input: (images, False)
