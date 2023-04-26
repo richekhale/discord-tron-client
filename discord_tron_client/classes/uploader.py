@@ -30,6 +30,6 @@ class Uploader:
 
     async def upload_images(self, images: List):
         self.start_thread_pool(len(images))
-        tasks = [self.image(img) for img in images]
+        tasks = [await self.image(img) for img in images]
         results = await asyncio.gather(*tasks)
         return results
