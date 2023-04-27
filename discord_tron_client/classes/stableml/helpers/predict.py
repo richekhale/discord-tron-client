@@ -26,10 +26,10 @@ def generate(tokenizer, model, user_prompt, user_config, max_tokens = 64, temper
     inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
     tokens = model.generate(
     **inputs,
-    max_new_tokens=max_tokens,
-    temperature=temperature,
-    top_p=top_p,
-    top_k=top_k,
+    max_new_tokens=user_config.get("max_tokens", max_tokens),
+    temperature=user_config.get("temperature", temperature),
+    top_p=user_config.get("top_p", top_p),
+    top_k=user_config.get("top_k", top_k),
     do_sample=True,
     stopping_criteria=StoppingCriteriaList([StopOnTokens()])
     )
