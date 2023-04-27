@@ -35,8 +35,8 @@ def generate(tokenizer, model, prompt, user_config, max_tokens = 64, temperature
     
 def clean_output(output: str, prompt: str):
     # Remove any substrings matching "<|.*|>", as well as the contents of "prompt", from "output":
-    output = re.sub("<\|.*?\|>", "", output)
     output = re.sub(prompt, "", output)
+    output = re.sub("<\|.*?\|>", "", output)
     return output
 
 def load(model_name = '7b'):
