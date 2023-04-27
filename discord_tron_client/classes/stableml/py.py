@@ -23,17 +23,18 @@ class StableMLPy:
 
     def _predict(self, prompt, seed = 1337, max_tokens = 512, temperature = 0.8, repeat_penalty = 1.1, top_p = 0.95, top_k=40):
         try:
-            self.llama.params.seed = seed
+            # self.StableML.params.seed = seed
+            pass
         except Exception as e:
-            logging.error(f"Could not set LLaMA prompt seed. Perhaps the ABI changed? {e}")
+            logging.error(f"Could not set StableML prompt seed. Perhaps the ABI changed? {e}")
         """
             >>> print(f"Result: {result}")
                 Result: {'id': 'cmpl-4b2d3c01-3e7d-41aa-8c2c-9a87ca4ad35d', 'object': 'text_completion', 'created': 1682215736,
-                'model': '/archive/models/LLaMA/7B/ggml-model-f16.bin',
+                'model': '/archive/models/StableML/7B/ggml-model-f16.bin',
                 'choices': [{'text': '\nI’m not really sure what to think about this yet, so I’ll leave it at that for now.', 'index': 0, 'logprobs': None, 'finish_reason': 'stop'}],
                 'usage': {'prompt_tokens': 10, 'completion_tokens': 25, 'total_tokens': 35}}
         """
-        return self.llama(prompt=prompt, max_tokens=max_tokens, temperature=temperature, top_p=top_p, top_k=top_k, repeat_penalty=repeat_penalty)
+        return predict.generate(tokenizer=self.tokenizer, model=self.stableml, prompt=prompt, max_tokens=max_tokens, temperature=temperature, top_p=top_p, top_k=top_k)
     
     def predict(self, prompt, user_config, max_tokens = 4096, temperature = 1.0, repeat_penalty = 1.1, top_p = 0.95, top_k=40):
         logging.debug(f"Begin StableMLPy prediction routine")
@@ -65,20 +66,20 @@ class StableMLPy:
             logging.debug("A pre-selected seed was provided.")
         logging.debug(f"Seed chosen: {seed}")
 
-        logging.debug("Beginning Llama.cpp prediction..")
-        cpp_result = self._predict(prompt=prompt, seed=seed, max_tokens=max_tokens, temperature=temperature, repeat_penalty=repeat_penalty, top_p=top_p, top_k=top_k)
+        logging.debug("Beginning StableML.Py prediction..")
+        llm_result = self._predict(prompt=prompt, seed=seed, max_tokens=max_tokens, temperature=temperature, repeat_penalty=repeat_penalty, top_p=top_p, top_k=top_k)
         time_end = time.time()
         time_duration = time_end - time_begin
-        logging.debug(f"Completed prediction in {time_duration} seconds: {cpp_result}")
-        if cpp_result is None:
-            raise RuntimeError("LLaMA.cpp returned no result.")
-        if "choices" not in cpp_result:
-            raise RuntimeError("LLaMA.cpp returned an invalid result.")
-        if "text" not in cpp_result["choices"][0] or cpp_result["choices"][0]["text"] == "":
-            raise RuntimeError("LLaMA.cpp returned an empty set.")
-        if "finish_reason" not in cpp_result["choices"][0]:
-            logging.warn(f"LLaMA.cpp did not return a finish_reason: {cpp_result}")
+        logging.debug(f"Completed prediction in {time_duration} seconds: {llm_result}")
+        if llm_result is None:
+            raise RuntimeError("StableML.Py returned no result.")
+        if "choices" not in llm_result:
+            raise RuntimeError("StableML.Py returned an invalid result.")
+        if "text" not in llm_result["choices"][0] or llm_result["choices"][0]["text"] == "":
+            raise RuntimeError("StableML.Py returned an empty set.")
+        if "finish_reason" not in llm_result["choices"][0]:
+            logging.warn(f"StableML.Py did not return a finish_reason: {llm_result}")
         self.usage = {"time_duration": time_duration}
-        if "usage" in cpp_result:
-            self.usage.update(cpp_result["usage"])
-        return cpp_result["choices"][0]['text']
+        if "usage" in llm_result:
+            self.usage.update(llm_result["usage"])
+        return llm_result["choices"][0]['text']
