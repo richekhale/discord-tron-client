@@ -33,7 +33,7 @@ def generate(tokenizer, model, user_prompt, user_config, max_tokens = 64, temper
     do_sample=True,
     stopping_criteria=StoppingCriteriaList([StopOnTokens()])
     )
-    output = tokenizer.decode(tokens[0], skip_special_tokens=True)
+    output = tokenizer.decode(tokens[0], skip_special_tokens=False)
     return clean_output(output, user_prompt)
     
 def clean_output(output: str, prompt: str):
