@@ -37,12 +37,16 @@ def clean_output(output: str):
     # Remove "prompt" and any preceeding text from "output":
     beginning_token = "<\|ASSISTANT\|>"
     end_token = "<\|endoftext\|>"
-    alt_end_token = "<\|USER\|>"
-    # Retrieve everything BETWEEN (non-inclusive) beginning and end tokens:
+    alt_end_token = "<\|.*\|>$"
+    # Find everything AFTER <|ASSISTANT|>:
+    search = re.search(f"{beginning_token}(.*)", output, flags=re.DOTALL)
+    if search is not None and hasattr(search, "group"):
+        output = search.group(1)
+    # Retrieve everything BEFORE the end tokens:
     if end_token in output:
-        search = re.search(f"{beginning_token}(.*){end_token}", output, flags=re.DOTALL)
+        search = re.search(f"(.*){end_token}", output, flags=re.DOTALL)
     else:
-        search = re.search(f"{beginning_token}(.*){alt_end_token}", output, flags=re.DOTALL)
+        search = re.search(f"(.*){alt_end_token}", output, flags=re.DOTALL)
     if search is not None and hasattr(search, "group"):
         output = search.group(1)
     print(f"Output: {output}")
