@@ -19,7 +19,9 @@ class StableMLRunner:
         driver_usage = self.driver.get_usage()
         if driver_usage is None:
             return None
-        time_duration = prompt_tokens = completion_tokens = -1
+        time_duration = -1
+        prompt_tokens = -1
+        completion_tokens = -1
         if "time_duration" in driver_usage:
             time_duration = driver_usage["time_duration"]
         if "prompt_tokens" in driver_usage:
