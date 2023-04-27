@@ -1,4 +1,4 @@
-import torch
+import torch, re
 from transformers import AutoModelForCausalLM, AutoTokenizer, StoppingCriteria, StoppingCriteriaList
 
 tokenizer = AutoTokenizer.from_pretrained("stabilityai/stablelm-tuned-alpha-7b")
@@ -32,4 +32,10 @@ def generate(prompt, user_config, max_tokens = 64, temperature = 0.7, repeat_pen
     do_sample=True,
     stopping_criteria=StoppingCriteriaList([StopOnTokens()])
     )
-    return(tokenizer.decode(tokens[0], skip_special_tokens=True))
+    output =tokenizer.decode(tokens[0], skip_special_tokens=True)
+    
+def clean_output(output: str, prompt: str):
+    # Remove any substrings matching "<|.*|>", as well as the contents of "prompt", from "output":
+    output = re.sub("<\|.*?\|>", "", output)
+    output = re.sub(prompt, "", output)
+    return output
