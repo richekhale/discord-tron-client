@@ -8,7 +8,8 @@ class LlamaRunner:
     def __init__(self, llama_driver):
         self.driver = llama_driver
         try:
-            self.driver.load_model()
+            if config.is_llama_enabled():
+                self.driver.load_model()
         except Exception as e:
             logging.error(f"Could not load Llama driver: {e}")
         
