@@ -16,7 +16,6 @@ class StableMLRunner:
     def predict(self, prompt, user_config):
         return self.driver.predict(prompt, user_config)
     def usage(self):
-        return None
         driver_usage = self.driver.get_usage()
         if driver_usage is None:
             return None
@@ -24,7 +23,12 @@ class StableMLRunner:
         prompt_tokens = driver_usage["prompt_tokens"] or -1
         completion_tokens = driver_usage["completion_tokens"] or -1
         driver_details = self.driver.details() or "Unknown Llama driver"
-        return f'`{int(time_duration)} seconds` with `{int(prompt_tokens)} prompt tokens` and `{int(completion_tokens)} completion tokens` via {driver_details}'
+        output_text = f"`{int(time_duration)} seconds`"
+        if int(prompt_tokens) > 0 and int(completion_tokens) > 0:
+            output_text = f"{output_text} with `{int(prompt_tokens)} prompt tokens` and `{int(completion_tokens)} completion tokens`"
+        output_text = f"{output_text} via {driver_details}"
+            
+        return output_text
 
     async def predict_handler(self, payload, websocket):
         # We extract the features from the payload and pass them onto the actual generator
