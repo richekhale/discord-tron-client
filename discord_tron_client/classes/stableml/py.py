@@ -67,12 +67,12 @@ class StableMLPy:
         logging.debug(f"Seed chosen: {seed}")
 
         logging.debug("Beginning StableML.Py prediction..")
-        llm_result = self._predict(prompt=prompt, user_config=user_config, seed=seed, max_tokens=max_tokens, temperature=temperature, repeat_penalty=repeat_penalty, top_p=top_p, top_k=top_k)
+        llm_result, token_count = self._predict(prompt=prompt, user_config=user_config, seed=seed, max_tokens=max_tokens, temperature=temperature, repeat_penalty=repeat_penalty, top_p=top_p, top_k=top_k)
         time_end = time.time()
         time_duration = time_end - time_begin
         logging.debug(f"Completed prediction in {time_duration} seconds: {llm_result}")
         if llm_result is None:
             raise RuntimeError("StableML.Py returned no result.")
-        self.usage = {"time_duration": time_duration}
+        self.usage = {"time_duration": time_duration, "total_token_count": token_count}
 
         return llm_result

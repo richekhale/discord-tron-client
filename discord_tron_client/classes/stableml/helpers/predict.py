@@ -22,16 +22,16 @@ def generate(tokenizer, model, user_prompt, user_config, max_tokens = 64, temper
     prompt = f"{system_prompt}<|USER|>{user_prompt}<|ASSISTANT|>"
     inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
     tokens = model.generate(
-    **inputs,
-    max_new_tokens=user_config.get("max_tokens", max_tokens),
-    temperature=user_config.get("temperature", temperature),
-    top_p=user_config.get("top_p", top_p),
-    top_k=user_config.get("top_k", top_k),
-    do_sample=True,
-    stopping_criteria=StoppingCriteriaList([StopOnTokens()])
+        **inputs,
+        max_new_tokens=user_config.get("max_tokens", max_tokens),
+        temperature=user_config.get("temperature", temperature),
+        top_p=user_config.get("top_p", top_p),
+        top_k=user_config.get("top_k", top_k),
+        do_sample=True,
+        stopping_criteria=StoppingCriteriaList([StopOnTokens()])
     )
     output = tokenizer.decode(tokens[0], skip_special_tokens=False)
-    return clean_output(output)
+    return clean_output(output), len(tokens)
     
 def clean_output(output: str):
     # Remove "prompt" and any preceeding text from "output":

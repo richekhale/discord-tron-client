@@ -26,6 +26,8 @@ class StableMLRunner:
         output_text = f"`{int(time_duration)} seconds`"
         if int(prompt_tokens) > 0 and int(completion_tokens) > 0:
             output_text = f"{output_text} with `{int(prompt_tokens)} prompt tokens` and `{int(completion_tokens)} completion tokens`"
+        if "total_token_count" in driver_usage:
+            output_text = f"{output_text} using {driver_usage['total_token_count']}"
         output_text = f"{output_text} via {driver_details}"
             
         return output_text
