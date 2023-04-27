@@ -19,9 +19,13 @@ class LlamaRunner:
         driver_usage = self.driver.get_usage()
         if driver_usage is None:
             return None
-        time_duration = driver_usage["time_duration"] or -1
-        prompt_tokens = driver_usage["prompt_tokens"] or -1
-        completion_tokens = driver_usage["completion_tokens"] or -1
+        time_duration = prompt_tokens = completion_tokens = -1
+        if "time_duration" in driver_usage:
+            time_duration = driver_usage["time_duration"]
+        if "prompt_tokens" in driver_usage:
+            prompt_tokens = driver_usage["prompt_tokens"]
+        if "completion_tokens" in driver_usage:
+            completion_tokens = driver_usage["completion_tokens"]
         driver_details = self.driver.details() or "Unknown Llama driver"
         return f'`{int(time_duration)} seconds` with `{int(prompt_tokens)} prompt tokens` and `{int(completion_tokens)} completion tokens` via {driver_details}'
 
