@@ -32,7 +32,8 @@ def generate(prompt, user_config, max_tokens = 64, temperature = 0.7, repeat_pen
     do_sample=True,
     stopping_criteria=StoppingCriteriaList([StopOnTokens()])
     )
-    output =tokenizer.decode(tokens[0], skip_special_tokens=True)
+    output = tokenizer.decode(tokens[0], skip_special_tokens=True)
+    return clean_output(output, prompt)
     
 def clean_output(output: str, prompt: str):
     # Remove any substrings matching "<|.*|>", as well as the contents of "prompt", from "output":
