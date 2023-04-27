@@ -21,7 +21,7 @@ class StableMLPy:
     def get_usage(self):
         return self.usage or None
 
-    def _predict(self, prompt, seed = 1337, max_tokens = 512, temperature = 0.8, repeat_penalty = 1.1, top_p = 0.95, top_k=40):
+    def _predict(self, user_config, prompt, seed = 1337, max_tokens = 512, temperature = 0.8, repeat_penalty = 1.1, top_p = 0.95, top_k=40):
         try:
             # self.StableML.params.seed = seed
             pass
@@ -34,7 +34,7 @@ class StableMLPy:
                 'choices': [{'text': '\nI’m not really sure what to think about this yet, so I’ll leave it at that for now.', 'index': 0, 'logprobs': None, 'finish_reason': 'stop'}],
                 'usage': {'prompt_tokens': 10, 'completion_tokens': 25, 'total_tokens': 35}}
         """
-        return predict.generate(tokenizer=self.tokenizer, model=self.stableml, prompt=prompt, max_tokens=max_tokens, temperature=temperature, top_p=top_p, top_k=top_k)
+        return predict.generate(tokenizer=self.tokenizer, model=self.stableml, user_config=user_config, prompt=prompt, max_tokens=max_tokens, temperature=temperature, top_p=top_p, top_k=top_k)
     
     def predict(self, prompt, user_config, max_tokens = 4096, temperature = 1.0, repeat_penalty = 1.1, top_p = 0.95, top_k=40):
         logging.debug(f"Begin StableMLPy prediction routine")
@@ -67,7 +67,7 @@ class StableMLPy:
         logging.debug(f"Seed chosen: {seed}")
 
         logging.debug("Beginning StableML.Py prediction..")
-        llm_result = self._predict(prompt=prompt, seed=seed, max_tokens=max_tokens, temperature=temperature, repeat_penalty=repeat_penalty, top_p=top_p, top_k=top_k)
+        llm_result = self._predict(prompt=prompt, user_config=user_config, seed=seed, max_tokens=max_tokens, temperature=temperature, repeat_penalty=repeat_penalty, top_p=top_p, top_k=top_k)
         time_end = time.time()
         time_duration = time_end - time_begin
         logging.debug(f"Completed prediction in {time_duration} seconds: {llm_result}")
