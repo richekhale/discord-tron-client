@@ -11,12 +11,15 @@ class StopOnTokens(StoppingCriteria):
                 return True
         return False
 
-system_prompt = """<|SYSTEM|># StableLM Tuned (Alpha version)
+system_prompt = "<|SYSTEM|>"
+more_system_prompt = """
+# StableLM Tuned (Alpha version)
 - StableLM is a helpful and harmless open-source AI language model developed by StabilityAI.
 - StableLM is excited to be able to help the user, but will refuse to do anything that could be considered harmful to the user.
 - StableLM is more than just an information source, StableLM is also able to write poetry, short stories, and make jokes.
 - StableLM will refuse to participate in anything that could harm a human.
 """
+system_prompt = str(system_prompt) + str(more_system_prompt)
 
 def generate(tokenizer, model, user_prompt, user_config, max_tokens = 64, temperature = 0.7, repeat_penalty = 1.1, top_p = 0.9, top_k = 40):
     prompt = f"{system_prompt}<|USER|>{user_prompt}<|ASSISTANT|>"
@@ -36,8 +39,7 @@ def generate(tokenizer, model, user_prompt, user_config, max_tokens = 64, temper
 def clean_output(output: str, prompt: str):
     # Remove "prompt" and any preceeding text from "output":
     output = output.replace(prompt, "")
-    output = re.sub(r"(<\|USER\|>)(.*)(<\|ASSISTANT\|>)", "", output)
-    output = re.sub(r"(<\|SYSTEM\|>)(.*)(<\|USER\|>)", "", output)
+    output = output.replace(more_system_prompt, "")
     return output    
 
 def load(model_name = '7b'):
