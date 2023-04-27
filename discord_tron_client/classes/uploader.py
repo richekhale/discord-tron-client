@@ -16,9 +16,9 @@ class Uploader:
         
     def image(self, image):
         logging.debug(f"Uploading image to {self.config.get_master_url()}")
-        result = asyncio.run(self.api_client.send_pil_image('/upload_image', image))
+        self.api_client.update_auth()
+        result = asyncio.run(self.api_client.send_pil_image('/upload_image', image, False))
         logging.debug(f"Image uploader received result: {result}")
-        
         if "image_url" in result:
             return result["image_url"]
         raise Exception(f"Image upload failed: {result}")
