@@ -19,9 +19,12 @@ class StableMLRunner:
         driver_usage = self.driver.get_usage()
         if driver_usage is None:
             return None
-        time_duration = driver_usage["time_duration"] or -1
-        prompt_tokens = driver_usage["prompt_tokens"] or -1
-        completion_tokens = driver_usage["completion_tokens"] or -1
+        if "time_duration" in driver_usage:
+            time_duration = driver_usage["time_duration"]
+        if "prompt_tokens" in driver_usage:
+            prompt_tokens = driver_usage["prompt_tokens"]
+        if "completion_tokens" in driver_usage:
+            completion_tokens = driver_usage["completion_tokens"]
         driver_details = self.driver.details() or "Unknown Llama driver"
         output_text = f"`{int(time_duration)} seconds`"
         if int(prompt_tokens) > 0 and int(completion_tokens) > 0:
