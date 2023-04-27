@@ -76,4 +76,4 @@ class StableMLPy:
         self.usage = {"time_duration": time_duration}
         if "usage" in llm_result:
             self.usage.update(llm_result["usage"])
-        return llm_result["choices"][0]['text']
+        return llm_result
