@@ -42,7 +42,8 @@ class HardwareInfo:
         self.get_video_memory_info()
         self.get_disk_space()
         capabilities = {
-            "llama": config.is_llama_enabled()
+            "llama": config.is_llama_enabled(),
+            "stableml": config.is_stableml_enabled()
         }
         if self.video_memory_amount != "Unknown" and int(self.video_memory_amount) >= 8:
             capabilities["gpu"] = True
