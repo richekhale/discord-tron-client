@@ -38,8 +38,10 @@ def generate(tokenizer, model, user_prompt, user_config, max_tokens = 64, temper
     
 def clean_output(output: str, prompt: str):
     # Remove "prompt" and any preceeding text from "output":
-    output = output.replace(prompt, "")
-    output = output.replace(more_system_prompt, "")
+    beginning_token = "<|ASSISTANT|>"
+    end_token = "<|endoftext|>"
+    # Retrieve everything BETWEEN (non-inclusive) beginning and end tokens:
+    output = re.search(f"{beginning_token}(.*){end_token}", output).group(1)
     return output    
 
 def load(model_name = '7b'):
