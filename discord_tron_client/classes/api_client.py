@@ -36,7 +36,8 @@ class ApiClient:
     def post(self, endpoint: str, params: dict = None, files: dict = None, send_auth: bool = True):
         if params is None:
             params = {}
-        headers = self._set_auth_header()
+        if send_auth:
+            headers = self._set_auth_header()
         url = self.base_url + endpoint
         response = requests.post(url, params=params, verify=self.verify_ssl, files=files, headers=headers)
         return self.handle_response(response)
