@@ -41,7 +41,7 @@ def clean_output(output: str, prompt: str):
     beginning_token = "<\|ASSISTANT\|>"
     end_token = "<\|endoftext\|>"
     # Retrieve everything BETWEEN (non-inclusive) beginning and end tokens:
-    output = re.search(f"{beginning_token}(\X+){end_token}", output).group(1)
+    output = re.search(f"{beginning_token}(.*){end_token}", output, flags=re.DOTALL).group(1)
     return output    
 
 def load(model_name = '7b'):
