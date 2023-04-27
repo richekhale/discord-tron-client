@@ -73,12 +73,6 @@ class StableMLPy:
         logging.debug(f"Completed prediction in {time_duration} seconds: {llm_result}")
         if llm_result is None:
             raise RuntimeError("StableML.Py returned no result.")
-        if "choices" not in llm_result:
-            raise RuntimeError("StableML.Py returned an invalid result.")
-        if "text" not in llm_result["choices"][0] or llm_result["choices"][0]["text"] == "":
-            raise RuntimeError("StableML.Py returned an empty set.")
-        if "finish_reason" not in llm_result["choices"][0]:
-            logging.warn(f"StableML.Py did not return a finish_reason: {llm_result}")
         self.usage = {"time_duration": time_duration}
         if "usage" in llm_result:
             self.usage.update(llm_result["usage"])
