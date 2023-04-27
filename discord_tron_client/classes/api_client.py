@@ -36,11 +36,10 @@ class ApiClient:
     def post(self, endpoint: str, params: dict = None, files: dict = None, send_auth: bool = True):
         if params is None:
             params = {}
-        headers = self.headers
         if send_auth:
-            headers = self._set_auth_header()
+            self.headers = self._set_auth_header()
         url = self.base_url + endpoint
-        response = requests.post(url, params=params, verify=self.verify_ssl, files=files, headers=headers)
+        response = requests.post(url, params=params, verify=self.verify_ssl, files=files, headers=self.headers)
         return self.handle_response(response)
 
     def send_file(self, endpoint: str, file_path: str):
