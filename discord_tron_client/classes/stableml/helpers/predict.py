@@ -37,7 +37,7 @@ def clean_output(output: str):
     # Remove "prompt" and any preceeding text from "output":
     beginning_token = "<\|ASSISTANT\|>"
     end_token = "<\|endoftext\|>"
-    alt_end_token = "<\|.*\|>$"
+    alt_end_token = "<\|.*\|>"
     # Find everything AFTER <|ASSISTANT|>:
     search = re.search(f"{beginning_token}(.*)", output, flags=re.DOTALL)
     if search is not None and hasattr(search, "group"):
@@ -47,7 +47,6 @@ def clean_output(output: str):
     if end_token in output:
         search = re.search(f"(.*){end_token}", output, flags=re.DOTALL)
         logging.debug(f"Search2 result: {search}")
-
     else:
         search = re.search(f"(.*){alt_end_token}", output, flags=re.DOTALL)
         logging.debug(f"Search3 result: {search}")
@@ -55,7 +54,6 @@ def clean_output(output: str):
     if search is not None and hasattr(search, "group"):
         output = search.group(1)
         logging.debug(f"Search4 result: {search}")
-
     print(f"Output: {output}")
     return output
 
