@@ -1,9 +1,7 @@
 import torch, re
 from transformers import AutoModelForCausalLM, AutoTokenizer, StoppingCriteria, StoppingCriteriaList
 
-tokenizer = AutoTokenizer.from_pretrained("stabilityai/stablelm-tuned-alpha-7b")
-model = AutoModelForCausalLM.from_pretrained("stabilityai/stablelm-tuned-alpha-7b")
-model.half().cuda()
+
 
 class StopOnTokens(StoppingCriteria):
     def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
@@ -20,7 +18,7 @@ system_prompt = """<|SYSTEM|># StableLM Tuned (Alpha version)
 - StableLM will refuse to participate in anything that could harm a human.
 """
 
-def generate(prompt, user_config, max_tokens = 64, temperature = 0.7, repeat_penalty = 1.1, top_p = 0.9, top_k = 40):
+def generate(tokenizer, model, prompt, user_config, max_tokens = 64, temperature = 0.7, repeat_penalty = 1.1, top_p = 0.9, top_k = 40):
     prompt = f"{system_prompt}<|USER|>{prompt}<|ASSISTANT|>"
     inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
     tokens = model.generate(
@@ -40,3 +38,9 @@ def clean_output(output: str, prompt: str):
     output = re.sub("<\|.*?\|>", "", output)
     output = re.sub(prompt, "", output)
     return output
+
+def load(model_name = '7b'):
+    tokenizer = AutoTokenizer.from_pretrained("stabilityai/stablelm-tuned-alpha-" + str(model_name))
+    model = AutoModelForCausalLM.from_pretrained("stabilityai/stablelm-tuned-alpha-" + str(model_name))
+    model.half().cuda()
+    return tokenizer, model

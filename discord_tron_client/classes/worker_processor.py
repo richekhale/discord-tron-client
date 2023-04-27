@@ -4,6 +4,7 @@ from discord_tron_client.message.job_queue import JobQueueMessage
 from discord_tron_client.modules.image_generation import generator as image_generator
 from discord_tron_client.modules.image_generation import variation
 from discord_tron_client.classes.llama.factory import LlamaFactory
+from discord_tron_client.classes.stableml.factory import StableMLFactory
 from typing import Dict, Any
 import logging, json, websocket
 from discord_tron_client.classes.app_config import AppConfig
@@ -12,6 +13,12 @@ try:
     llamarunner = LlamaFactory.get()
 except:
     logging.warn('Could not retrieve a Llama driver.')
+
+try:
+    stablemlrunner = StableMLFactory.get()
+except:
+    logging.warn('Could not retrieve a StableML driver.')
+
 identifier = HardwareInfo.get_identifier()
 
 class WorkerProcessor:
@@ -29,6 +36,9 @@ class WorkerProcessor:
             },
             "llama":{
                 "predict": llamarunner.predict_handler
+            },
+            "stableml": {
+                "predict": stablemlrunner.predict_handler
             }
             # Add more command handlers as needed
         }

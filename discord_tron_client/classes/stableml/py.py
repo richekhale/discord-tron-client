@@ -9,17 +9,17 @@ class StableMLPy:
     def __init__(self):
         self.model = config.stableml_model_default()
         self.model_config = None
+        self.tokenizer = None
+        self.stableml = None
+
+    def load_model(self):
+        self.tokenizer, self.stableml = predict.load(self.model)
 
     def details(self):
         return f'StableML.Py running the {self.model} parameter model'
 
     def get_usage(self):
         return self.usage or None
-
-    def load_model(self):
-        self.locate_model()
-        self.locate_ggml()
-        self.llama = Llama(model_path=self.model_path, n_ctx=8192)
 
     def _predict(self, prompt, seed = 1337, max_tokens = 512, temperature = 0.8, repeat_penalty = 1.1, top_p = 0.95, top_k=40):
         try:
