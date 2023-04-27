@@ -34,7 +34,7 @@ class StableMLPy:
                 'choices': [{'text': '\nI’m not really sure what to think about this yet, so I’ll leave it at that for now.', 'index': 0, 'logprobs': None, 'finish_reason': 'stop'}],
                 'usage': {'prompt_tokens': 10, 'completion_tokens': 25, 'total_tokens': 35}}
         """
-        return predict.generate(tokenizer=self.tokenizer, model=self.stableml, user_config=user_config, prompt=prompt, max_tokens=max_tokens, temperature=temperature, top_p=top_p, top_k=top_k)
+        return predict.generate(tokenizer=self.tokenizer, model=self.stableml, user_config=user_config, user_prompt=prompt, max_tokens=max_tokens, temperature=temperature, top_p=top_p, top_k=top_k)
     
     def predict(self, prompt, user_config, max_tokens = 4096, temperature = 1.0, repeat_penalty = 1.1, top_p = 0.95, top_k=40):
         logging.debug(f"Begin StableMLPy prediction routine")

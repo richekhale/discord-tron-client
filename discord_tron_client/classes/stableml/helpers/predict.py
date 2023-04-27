@@ -18,8 +18,8 @@ system_prompt = """<|SYSTEM|># StableLM Tuned (Alpha version)
 - StableLM will refuse to participate in anything that could harm a human.
 """
 
-def generate(tokenizer, model, prompt, user_config, max_tokens = 64, temperature = 0.7, repeat_penalty = 1.1, top_p = 0.9, top_k = 40):
-    prompt = f"{system_prompt}<|USER|>{prompt}<|ASSISTANT|>"
+def generate(tokenizer, model, user_prompt, user_config, max_tokens = 64, temperature = 0.7, repeat_penalty = 1.1, top_p = 0.9, top_k = 40):
+    prompt = f"{system_prompt}<|USER|>{user_prompt}<|ASSISTANT|>"
     inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
     tokens = model.generate(
     **inputs,
@@ -31,13 +31,14 @@ def generate(tokenizer, model, prompt, user_config, max_tokens = 64, temperature
     stopping_criteria=StoppingCriteriaList([StopOnTokens()])
     )
     output = tokenizer.decode(tokens[0], skip_special_tokens=True)
-    return clean_output(output, prompt)
+    return clean_output(output, user_prompt)
     
 def clean_output(output: str, prompt: str):
-    # Remove any substrings matching "<|.*|>", as well as the contents of "prompt", from "output":
-    output = re.sub(prompt, "", output)
-    output = re.sub("<\|.*?\|>", "", output)
-    return output
+    # Remove "prompt" and any preceeding text from "output":
+    output = output.replace(prompt, "")
+    output = re.sub(r"(<\|USER\|>)(.*)(<\|ASSISTANT\|>)", "", output)
+    output = re.sub(r"(<\|SYSTEM\|>)(.*)(<\|USER\|>)", "", output)
+    return output    
 
 def load(model_name = '7b'):
     tokenizer = AutoTokenizer.from_pretrained("stabilityai/stablelm-tuned-alpha-" + str(model_name))
