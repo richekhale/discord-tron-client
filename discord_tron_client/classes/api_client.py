@@ -13,7 +13,7 @@ class ApiClient:
         self.headers = self._set_auth_header()
 
     def update_auth(self):
-        self.auth.get()
+        self._set_auth_header()
 
     def get(self, endpoint: str, params: dict = None):
         if params is None:
@@ -76,4 +76,5 @@ class ApiClient:
     def _set_auth_header(self) -> dict:
         # We need the token from self.auth.get() to be set as the Authorization header using the Bearing token type
         current_ticket = self.auth.get()
-        return { "Authorization": f"Bearer {current_ticket['access_token']}" }
+        self.headers = { "Authorization": f"Bearer {current_ticket['access_token']}" }
+        return self.headers
