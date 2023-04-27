@@ -1,8 +1,5 @@
-import torch, re
+import torch, re, logging
 from transformers import AutoModelForCausalLM, AutoTokenizer, StoppingCriteria, StoppingCriteriaList
-
-
-
 class StopOnTokens(StoppingCriteria):
     def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
         stop_ids = [50278, 50279, 50277, 1, 0]
@@ -34,15 +31,19 @@ def generate(tokenizer, model, user_prompt, user_config, max_tokens = 64, temper
     stopping_criteria=StoppingCriteriaList([StopOnTokens()])
     )
     output = tokenizer.decode(tokens[0], skip_special_tokens=False)
-    return clean_output(output, user_prompt)
+    return clean_output(output)
     
-def clean_output(output: str, prompt: str):
+def clean_output(output: str):
     # Remove "prompt" and any preceeding text from "output":
     beginning_token = "<\|ASSISTANT\|>"
     end_token = "<\|endoftext\|>"
     # Retrieve everything BETWEEN (non-inclusive) beginning and end tokens:
-    output = re.search(f"{beginning_token}(.*){end_token}", output, flags=re.DOTALL).group(1)
-    return output    
+    search = re.search(f"{beginning_token}(.*){end_token}", output, flags=re.DOTALL)
+    if search is not None and hasattr(search, "group"):
+        output = search.group(1)
+    print(f"Output: {output}")
+    logging.debug(f"Search result: {search}")
+    return output
 
 def load(model_name = '7b'):
     tokenizer = AutoTokenizer.from_pretrained("stabilityai/stablelm-tuned-alpha-" + str(model_name))
