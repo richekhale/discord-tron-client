@@ -466,19 +466,19 @@ tox = ["tox"]
 
 [[package]]
 name = "diffusers"
-version = "0.14.0"
+version = "0.16.0"
 description = "Diffusers"
 category = "main"
 optional = false
 python-versions = ">=3.7.0"
 files = [
-    {file = "diffusers-0.14.0-py3-none-any.whl", hash = "sha256:2fcba252ce33a00afcc9de74bf08c56e696ea9e9dcc21825bd8dfca941b7fa04"},
-    {file = "diffusers-0.14.0.tar.gz", hash = "sha256:b2a42a12dab538cb45a3b0c65503053ba446e5f2df4836de385b5238df830a46"},
+    {file = "diffusers-0.16.0-py3-none-any.whl", hash = "sha256:a7293fbf429d617b763708f25ea0819ca2275ad5b8cbf5f66ec28054a45a0e2f"},
+    {file = "diffusers-0.16.0.tar.gz", hash = "sha256:b1ca05b0df04b21ce7634038ca5f36b3bcd9ea2d5912889dff79c1ae35851a4d"},
 ]
 
 [package.dependencies]
 filelock = "*"
-huggingface-hub = ">=0.10.0"
+huggingface-hub = ">=0.13.2"
 importlib-metadata = "*"
 numpy = "*"
 Pillow = "*"
@@ -486,13 +486,13 @@ regex = "!=2019.12.17"
 requests = "*"
 
 [package.extras]
-dev = ["Jinja2", "accelerate (>=0.11.0)", "black (>=23.1,<24.0)", "datasets", "flax (>=0.4.1)", "hf-doc-builder (>=0.3.0)", "isort (>=5.5.4)", "jax (>=0.2.8,!=0.3.2)", "jaxlib (>=0.1.65)", "k-diffusion (>=0.0.12)", "librosa", "parameterized", "pytest", "pytest-timeout", "pytest-xdist", "ruff (>=0.0.241)", "safetensors", "scipy", "sentencepiece (>=0.1.91,!=0.1.92)", "tensorboard", "torch (>=1.4)", "torchvision", "transformers (>=4.25.1)"]
+dev = ["Jinja2", "accelerate (>=0.11.0)", "black (>=23.1,<24.0)", "compel (==0.1.8)", "datasets", "flax (>=0.4.1)", "hf-doc-builder (>=0.3.0)", "isort (>=5.5.4)", "jax (>=0.2.8,!=0.3.2)", "jaxlib (>=0.1.65)", "k-diffusion (>=0.0.12)", "librosa", "note-seq", "parameterized", "protobuf (>=3.20.3,<4)", "pytest", "pytest-timeout", "pytest-xdist", "requests-mock (==1.10.0)", "ruff (>=0.0.241)", "safetensors", "scipy", "sentencepiece (>=0.1.91,!=0.1.92)", "tensorboard", "torch (>=1.4)", "torchvision", "transformers (>=4.25.1)"]
 docs = ["hf-doc-builder (>=0.3.0)"]
 flax = ["flax (>=0.4.1)", "jax (>=0.2.8,!=0.3.2)", "jaxlib (>=0.1.65)"]
 quality = ["black (>=23.1,<24.0)", "hf-doc-builder (>=0.3.0)", "isort (>=5.5.4)", "ruff (>=0.0.241)"]
-test = ["Jinja2", "datasets", "k-diffusion (>=0.0.12)", "librosa", "parameterized", "pytest", "pytest-timeout", "pytest-xdist", "safetensors", "scipy", "sentencepiece (>=0.1.91,!=0.1.92)", "torchvision", "transformers (>=4.25.1)"]
+test = ["Jinja2", "compel (==0.1.8)", "datasets", "k-diffusion (>=0.0.12)", "librosa", "note-seq", "parameterized", "pytest", "pytest-timeout", "pytest-xdist", "requests-mock (==1.10.0)", "safetensors", "scipy", "sentencepiece (>=0.1.91,!=0.1.92)", "torchvision", "transformers (>=4.25.1)"]
 torch = ["accelerate (>=0.11.0)", "torch (>=1.4)"]
-training = ["Jinja2", "accelerate (>=0.11.0)", "datasets", "tensorboard"]
+training = ["Jinja2", "accelerate (>=0.11.0)", "datasets", "protobuf (>=3.20.3,<4)", "tensorboard"]
 
 [[package]]
 name = "distlib"
@@ -3529,4 +3529,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "447c4785c717c78952950116dc6cc82a12b1671d313aee26eb01b2fddbd21b4c"
+content-hash = "817a337cb93331f600d6c2acf98cc591929557a05310a600f58c628f191d88b9"
