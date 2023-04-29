@@ -466,14 +466,14 @@ tox = ["tox"]
 
 [[package]]
 name = "diffusers"
-version = "0.16.0"
+version = "0.16.1"
 description = "Diffusers"
 category = "main"
 optional = false
 python-versions = ">=3.7.0"
 files = [
-    {file = "diffusers-0.16.0-py3-none-any.whl", hash = "sha256:a7293fbf429d617b763708f25ea0819ca2275ad5b8cbf5f66ec28054a45a0e2f"},
-    {file = "diffusers-0.16.0.tar.gz", hash = "sha256:b1ca05b0df04b21ce7634038ca5f36b3bcd9ea2d5912889dff79c1ae35851a4d"},
+    {file = "diffusers-0.16.1-py3-none-any.whl", hash = "sha256:1b6eccb02582ca40555456c7e0a98a00a5dd090d3272793d301a02abf61c6ee4"},
+    {file = "diffusers-0.16.1.tar.gz", hash = "sha256:4cd7400382c86d85e08425550de1b1a81d4ed03623fbd4bcd8377864d9c46efe"},
 ]
 
 [package.dependencies]
@@ -1267,13 +1267,13 @@ files = [
 
 [[package]]
 name = "llama-cpp-python"
-version = "0.1.38"
+version = "0.1.39"
 description = "A Python wrapper for llama.cpp"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "llama_cpp_python-0.1.38.tar.gz", hash = "sha256:a060078c2b3ad7bb0b0b4b7a3f43d269c4687b2e774a85db8f9ad06bf4a3d889"},
+    {file = "llama_cpp_python-0.1.39.tar.gz", hash = "sha256:6df7f81e58da56da7716b0a836eeb962e7f7e969e3ac9a4fd6376c3545e8ee17"},
 ]
 
 [package.dependencies]
@@ -2867,38 +2867,6 @@ url = "https://download.pytorch.org/whl/cu118"
 reference = "torch"
 
 [[package]]
-name = "torchvision"
-version = "0.15.1+cu118"
-description = "image and video datasets and models for torch deep learning"
-category = "main"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "torchvision-0.15.1+cu118-cp310-cp310-linux_x86_64.whl", hash = "sha256:9a679fa37a741018c804234693bbac3d487fb3dd55ee73f6b33677b177c8c07a"},
-    {file = "torchvision-0.15.1+cu118-cp310-cp310-win_amd64.whl", hash = "sha256:473ea5fba33c0e8fc482cf70ced986521f2a3d79497b0bdaa435353ca8752e5e"},
-    {file = "torchvision-0.15.1+cu118-cp311-cp311-linux_x86_64.whl", hash = "sha256:9ced2c90ee782bbb415b0de65bcc10d4fe811131864679b707442c9d9e8aaafd"},
-    {file = "torchvision-0.15.1+cu118-cp311-cp311-win_amd64.whl", hash = "sha256:9ff719de1c09f1825492e3e39f4e49c42782e559298529e4b47d3f1404c45d1f"},
-    {file = "torchvision-0.15.1+cu118-cp38-cp38-linux_x86_64.whl", hash = "sha256:9104730d655abf282c2845d4cd472bb08936f3c85083a28aefd76ad9eeaff261"},
-    {file = "torchvision-0.15.1+cu118-cp38-cp38-win_amd64.whl", hash = "sha256:22fe045677a74afecf7cd2f4146dca93dc926f40d0a658aa1bed3275f87dc7de"},
-    {file = "torchvision-0.15.1+cu118-cp39-cp39-linux_x86_64.whl", hash = "sha256:5ece279c8f521f8f6373bf971f2adc63a961d694c4aced538df81294210ee4ba"},
-    {file = "torchvision-0.15.1+cu118-cp39-cp39-win_amd64.whl", hash = "sha256:4008dee965103030a196d385ca8d84a9c20fc52585f5753fc8360219a7a06c4e"},
-]
-
-[package.dependencies]
-numpy = "*"
-pillow = ">=5.3.0,<8.3.0 || >=8.4.0"
-requests = "*"
-torch = "2.0.0"
-
-[package.extras]
-scipy = ["scipy"]
-
-[package.source]
-type = "legacy"
-url = "https://download.pytorch.org/whl/cu118"
-reference = "torch"
-
-[[package]]
 name = "tqdm"
 version = "4.65.0"
 description = "Fast, Extensible Progress Meter"
@@ -3232,14 +3200,14 @@ files = [
 
 [[package]]
 name = "werkzeug"
-version = "2.3.1"
+version = "2.3.2"
 description = "The comprehensive WSGI web application library."
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "Werkzeug-2.3.1-py3-none-any.whl", hash = "sha256:69a4b8fcbb30a4c3fa81a5cebd961541273e4d222a4c08593b0b18312e14f64a"},
-    {file = "Werkzeug-2.3.1.tar.gz", hash = "sha256:2d35a28a75ae03727eae14ea7d13627c0f77aed6b9998441e6dae0b387f697fc"},
+    {file = "Werkzeug-2.3.2-py3-none-any.whl", hash = "sha256:b7b8bc1609f35ae8e45d48a9b58d7a4eb1e41eec148d37e977e5df6ebf3398b2"},
+    {file = "Werkzeug-2.3.2.tar.gz", hash = "sha256:2f3278e9ef61511cdf82cc28fc5da0f5b501dd8f01ecf5ef6a5d810048f68702"},
 ]
 
 [package.dependencies]
@@ -3529,4 +3497,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "817a337cb93331f600d6c2acf98cc591929557a05310a600f58c628f191d88b9"
+content-hash = "f76ad5ecd92b6e34054083021baf1e1ad37a9417c7397759472128f3bad169f3"

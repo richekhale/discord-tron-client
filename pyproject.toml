@@ -25,7 +25,6 @@ accelerate = "^0.18.0"
 numpy = ">=1.23.2"
 torch = { version = ">=1.12.1", source="torch"}
 torchaudio = { version = ">=0.12.1", source="torch"}
-torchvision = { version = ">=0.13.1", source="torch"}
 colorama = "^0.4.6"
 xformers = "^0.0.18"
 compel = "^1.1.3"
