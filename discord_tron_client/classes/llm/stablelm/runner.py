@@ -4,14 +4,14 @@ from discord_tron_client.classes.debug import clean_traceback
 import logging, asyncio
 config = AppConfig()
 
-class StableMLRunner:
-    def __init__(self, stableml_driver):
-        self.driver = stableml_driver
+class StableLMRunner:
+    def __init__(self, stablelm_driver):
+        self.driver = stablelm_driver
         try:
-            if config.is_stableml_enabled():
+            if config.is_stablelm_enabled():
                 self.driver.load_model()
         except Exception as e:
-            logging.error(f"Could not load StableML driver: {e}")
+            logging.error(f"Could not load StableLM driver: {e}")
         
     def predict(self, prompt, user_config):
         return self.driver.predict(prompt, user_config)
@@ -34,7 +34,7 @@ class StableMLRunner:
         # We extract the features from the payload and pass them onto the actual generator
         user_config = payload["config"]
         prompt = payload["prompt"]
-        logging.debug(f"StableMLRunner predict_handler received prompt {prompt}")
+        logging.debug(f"StableLMRunner predict_handler received prompt {prompt}")
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="Thinking!")
         websocket = AppConfig.get_websocket()
         await websocket.send(discord_msg.to_json())
@@ -46,7 +46,7 @@ class StableMLRunner:
                 prompt,
                 user_config
             )
-            logging.debug(f"StableMLRunner predict_handler received result {loop_return}")
+            logging.debug(f"StableLMRunner predict_handler received result {loop_return}")
             discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send_large_message", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt + '`\n' + loop_return)
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
@@ -65,7 +65,7 @@ class StableMLRunner:
 
         except Exception as e:
             import traceback
-            logging.error(f"Received an error in StableMLRunner.predict_handler: {e}, traceback: {clean_traceback(traceback.format_exc())}")
+            logging.error(f"Received an error in StableLMRunner.predict_handler: {e}, traceback: {clean_traceback(traceback.format_exc())}")
             discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="We pooped the bed!")
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())

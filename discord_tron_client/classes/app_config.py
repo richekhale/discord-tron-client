@@ -184,9 +184,9 @@ class AppConfig:
     def llama_model_filename(self):
         return self.config.get("llama_model_filename", "ggml-model-f16.bin")
     
-    def is_stableml_enabled(self):
-        return self.config.get("enable_stableml", True)
-    def stableml_subsystem_type(self):
-        return self.config.get("stableml_subsystem", "stableml.py")
-    def stableml_model_default(self):
-        return self.config.get("stableml_model_default", "7b") # Possibilities include 3b, 7b. WIP are 15b, 30b, 65b, and planned is 175b.
+    def is_stablelm_enabled(self):
+        return self.config.get("enable_stablelm", True)
+    def stablelm_subsystem_type(self):
+        return self.config.get("stablelm_subsystem", "stablelm.py")
+    def stablelm_model_default(self):
+        return self.config.get("stablelm_model_default", "7b") # Possibilities include 3b, 7b. WIP are 15b, 30b, 65b, and planned is 175b.
