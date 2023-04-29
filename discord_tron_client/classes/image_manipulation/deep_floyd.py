@@ -23,7 +23,7 @@ if_III = StableStageIII('stable-diffusion-x4-upscaler', device=device)
 t5 = T5Embedder(device=device)
 prompt = 'ultra close-up color photo portrait of rainbow owl with deer horns in the woods'
 
-count = 4
+count = 1
 
 result = dream(
     t5=t5, if_I=if_I, if_II=if_II, if_III=if_III,

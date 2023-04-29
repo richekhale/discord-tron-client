@@ -1,7 +1,7 @@
 from discord_tron_client.classes.app_config import AppConfig
 
-from discord_tron_client.classes.llama.runner import LlamaRunner
-from discord_tron_client.classes.llama.cpp import LlamaCpp
+from discord_tron_client.classes.llm.llama.runner import LlamaRunner
+from discord_tron_client.classes.llm.llama.cpp import LlamaCpp
 
 config = AppConfig()
 driver = config.llama_subsystem_type()

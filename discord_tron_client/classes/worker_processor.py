@@ -3,7 +3,7 @@ from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.message.job_queue import JobQueueMessage
 from discord_tron_client.modules.image_generation import generator as image_generator
 from discord_tron_client.modules.image_generation import variation
-from discord_tron_client.classes.llama.factory import LlamaFactory
+from discord_tron_client.classes.llm.llama.factory import LlamaFactory
 from discord_tron_client.classes.stableml.factory import StableMLFactory
 from typing import Dict, Any
 import logging, json, websocket
