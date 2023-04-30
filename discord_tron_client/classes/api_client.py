@@ -61,8 +61,8 @@ class ApiClient:
             AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
             self.post,
             endpoint,
-            {"audio_base64": audio},
             None,
+            {"audio_base64": audio},
             send_auth
         )
         return response

@@ -39,6 +39,7 @@ class Uploader:
 
     async def audio(self, audio_data, sample_rate):
         logging.debug(f"Uploading audio to {self.config.get_master_url()}")
+        self.api_client.update_auth()
         wav_binary_stream = BytesIO()
         write_wav(wav_binary_stream, sample_rate, audio_data)
         # Reset the binary stream's position to the beginning
@@ -46,7 +47,7 @@ class Uploader:
         # Read the binary stream's content and base64 encode it
         wav_data_base64 = base64.b64encode(wav_binary_stream.read())
         logging.debug(f"Base64 audio format: {wav_data_base64}")
-        result = await self.api_client.send_base64_audio('/upload_audio', wav_data_base64, True)
+        result = await self.api_client.send_base64_audio('/upload_audio', wav_data_base64, False)
         logging.debug(f"Audio uploader received result: {result}")
         if "audio_url" in result:
             return result["audio_url"]
