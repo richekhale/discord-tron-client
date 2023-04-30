@@ -56,10 +56,10 @@ class BarkRunner:
             # Try uploading via the HTTP API
             api_client = AppConfig.get_api_client()
             logging.debug(f"Received result from TTS engine: {output_audio}, {self.sample_rate}")
-            # uploader = Uploader(api_client=api_client, config=config)
-            # url_list = await uploader.audio(output_audio, self.sample_rate)
+            uploader = Uploader(api_client=api_client, config=config)
+            url_list = await uploader.audio(output_audio, self.sample_rate)
             usage = self.usage()
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt + f'`\nUsage stats: {usage}', audio_data=output_audio)
+            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt + f'`\nUsage stats: {usage}', audio_url=audio_url, audio_data=output_audio)
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
 
