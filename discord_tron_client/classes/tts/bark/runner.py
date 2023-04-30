@@ -16,7 +16,7 @@ class BarkRunner:
                 self.driver.load_model()
         except Exception as e:
             logging.error(f"Could not load Bark driver: {e}")
-        audio, self.sample_rate = self.driver.generate_long(prompt, user_config)
+        audio, self.sample_rate = self.driver.generate_long_from_segments(prompt.split("\n"), user_config)
         
         return audio
 
