@@ -50,7 +50,7 @@ class BarkRunner:
             # Try uploading via the HTTP API
             api_client = AppConfig.get_api_client()
             uploader = Uploader(api_client=api_client, config=config)
-            url_list = await uploader.upload_audio(output_audio)
+            url_list = await uploader.audio(output_audio)
 
             logging.debug(f"BarkRunner generate_audio received result {output_audio}")
             usage = self.usage()
