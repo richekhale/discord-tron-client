@@ -44,4 +44,4 @@ class BarkTorch:
         if audio is None:
             raise RuntimeError(f"{self.model} returned no result.")
         self.usage = {"time_duration": time_duration}
-        return audio
+        return audio, SAMPLE_RATE

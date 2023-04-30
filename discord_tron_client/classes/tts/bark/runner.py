@@ -15,7 +15,8 @@ class BarkRunner:
                 self.driver.load_model()
         except Exception as e:
             logging.error(f"Could not load Bark driver: {e}")
-        return self.driver.generate(prompt, user_config)
+        audio, sample_rate = self.driver.generate(prompt, user_config)
+        return audio, sample_rate
 
     def usage(self):
         driver_usage = self.driver.get_usage()
@@ -44,7 +45,7 @@ class BarkRunner:
         await websocket.send(discord_msg.to_json())
         try:
             loop = asyncio.get_event_loop()
-            output_audio = await loop.run_in_executor(
+            output_audio, sample_rate = await loop.run_in_executor(
                 AppConfig.get_image_worker_thread(),  # Use the image processing thread worker.
                 self.generate,
                 prompt,
@@ -53,7 +54,7 @@ class BarkRunner:
             # Try uploading via the HTTP API
             api_client = AppConfig.get_api_client()
             uploader = Uploader(api_client=api_client, config=config)
-            url_list = await uploader.audio(output_audio)
+            url_list = await uploader.audio(output_audio, sample_rate)
 
             logging.debug(f"BarkRunner generate_audio received result {output_audio}")
             usage = self.usage()
