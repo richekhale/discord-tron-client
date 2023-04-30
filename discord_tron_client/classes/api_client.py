@@ -62,7 +62,7 @@ class ApiClient:
             self.post,
             endpoint,
             None,
-            {"audio_base64": buffer},
+            {"audio_buffer": buffer},
             send_auth
         )
         return response
