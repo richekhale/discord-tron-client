@@ -53,16 +53,16 @@ class ApiClient:
         with open(file_path, "rb") as f:
             response = requests.post(endpoint, files={"file": f})
         return response
-    async def send_base64_audio(self, endpoint: str, audio: str, send_auth: bool = True):
+    async def send_audio(self, endpoint: str, buffer: io.BytesIO, send_auth: bool = True):
         import asyncio
         loop = asyncio.get_event_loop()
-        logging.debug(f"Uploading base64 audio: {audio}")
+        logging.debug(f"Uploading audio: {buffer}")
         response = await loop.run_in_executor(
             AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
             self.post,
             endpoint,
             None,
-            {"audio_base64": audio},
+            {"audio_base64": buffer},
             send_auth
         )
         return response
