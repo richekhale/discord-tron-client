@@ -18,7 +18,7 @@ class BarkRunner:
             logging.error(f"Could not load Bark driver: {e}")
         audio, self.sample_rate = self.driver.generate(prompt, user_config)
         
-        return base64.b64encode(audio)
+        return base64.b64encode(audio).decode("utf-8")
 
     def usage(self):
         driver_usage = self.driver.get_usage()
