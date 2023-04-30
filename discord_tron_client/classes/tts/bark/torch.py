@@ -47,9 +47,5 @@ class BarkTorch:
         if audio is None:
             raise RuntimeError(f"{self.model} returned no result.")
         self.usage = {"time_duration": time_duration}
-        # Convert audio from wav to mp3:
-        wav_binary_stream = io.BytesIO()
-        write_wav(wav_binary_stream, SAMPLE_RATE, audio)
-        sound = AudioSegment.from_wav(wav_binary_stream)
-        audio = sound.export(format="mp3").read()
+
         return audio, SAMPLE_RATE

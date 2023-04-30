@@ -58,6 +58,15 @@ class BarkRunner:
             logging.debug(f"Received result from TTS engine: {output_audio}, {self.sample_rate}")
             uploader = Uploader(api_client=api_client, config=config)
             url_list = await uploader.audio(output_audio, self.sample_rate)
+            # Convert audio from wav to mp3:
+            import io
+            from pydub import write as write_wav
+            from pydub import AudioSegment
+            wav_binary_stream = io.BytesIO()
+            write_wav(wav_binary_stream, self.sample_rate, audio)
+            sound = AudioSegment.from_wav(wav_binary_stream)
+            audio = sound.export(format="mp3").read()
+
             usage = self.usage()
             discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt + f'`\nUsage stats: {usage}', audio_url=url_list, audio_data=output_audio)
             websocket = AppConfig.get_websocket()
