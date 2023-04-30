@@ -34,13 +34,19 @@ class ApiClient:
         return self.handle_response(response)
 
     def post(self, endpoint: str, params: dict = None, files: dict = None, send_auth: bool = True):
-        if params is None:
-            params = {}
-        if send_auth:
-            self.headers = self._set_auth_header()
-        url = self.base_url + endpoint
-        response = requests.post(url, params=params, verify=self.verify_ssl, files=files, headers=self.headers)
-        return self.handle_response(response)
+        attempt = 0
+        while attempt < 5:
+            try:
+                if params is None:
+                    params = {}
+                if send_auth:
+                    self.headers = self._set_auth_header()
+                url = self.base_url + endpoint
+                response = requests.post(url, params=params, verify=self.verify_ssl, files=files, headers=self.headers)
+                return self.handle_response(response)
+            except Exception as e:
+                logging.error("Error in ApiClient.post: " + str(e))
+                attempt += 1
 
     def send_file(self, endpoint: str, file_path: str):
         with open(file_path, "rb") as f:
