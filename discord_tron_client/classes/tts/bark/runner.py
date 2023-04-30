@@ -36,7 +36,7 @@ class BarkRunner:
         # We extract the features from the payload and pass them onto the actual generator
         user_config = payload["config"]
         prompt = payload["prompt"]
-        logging.debug(f"BarkRunner generate_audio received prompt {prompt}")
+        logging.debug(f"BarkRunner generate_handler received prompt {prompt}")
         thinking_msg = "Thinking!"
         if not self.driver.loaded:
             thinking_msg = "Loading model first! We may have to download it. This could take a while, but subsequent requests will be faster!"
@@ -54,9 +54,10 @@ class BarkRunner:
             # Try uploading via the HTTP API
             api_client = AppConfig.get_api_client()
             uploader = Uploader(api_client=api_client, config=config)
+            logging.debug(f"Received result from TTS engine: {output_audio}, {sample_rate}")
             url_list = await uploader.audio(output_audio, sample_rate)
 
-            logging.debug(f"BarkRunner generate_audio received result {output_audio}")
+            logging.debug(f"BarkRunner generate_handler received result {output_audio}")
             usage = self.usage()
             discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt + f'`\nUsage stats: {usage}', audio_url=url_list)
             websocket = AppConfig.get_websocket()
@@ -72,7 +73,7 @@ class BarkRunner:
 
         except Exception as e:
             import traceback
-            logging.error(f"Received an error in BarkRunner.generate_audio: {e}, traceback: {clean_traceback(traceback.format_exc())}")
+            logging.error(f"Received an error in BarkRunner.generate_handler: {e}, traceback: {clean_traceback(traceback.format_exc())}")
             discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message=f"We pooped the bed when generating your audio! {e}, traceback: {await clean_traceback(traceback.format_exc())})")
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
