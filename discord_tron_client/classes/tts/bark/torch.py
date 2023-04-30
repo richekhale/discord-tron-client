@@ -2,8 +2,9 @@ from discord_tron_client.classes.app_config import AppConfig
 from bark.api import generate_audio
 from bark.generation import preload_models
 from bark.generation import SAMPLE_RATE
-import os, sys, json, logging, time
+import os, sys, json, logging, time, io
 from pydub import AudioSegment
+from scipy.io.wavfile import write as write_wav
 
 config = AppConfig()
 sample_text_prompt = """
@@ -47,6 +48,8 @@ class BarkTorch:
             raise RuntimeError(f"{self.model} returned no result.")
         self.usage = {"time_duration": time_duration}
         # Convert audio from wav to mp3:
+        wav_binary_stream = io.BytesIO()
+        write_wav(wav_binary_stream, SAMPLE_RATE, audio)
         sound = AudioSegment.from_wav(audio)
         audio = sound.export(format="mp3")
         return audio, SAMPLE_RATE
