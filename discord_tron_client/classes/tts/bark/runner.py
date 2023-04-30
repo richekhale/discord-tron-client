@@ -63,9 +63,9 @@ class BarkRunner:
             from scipy.io.wavfile import write as write_wav
             from pydub import AudioSegment
             wav_binary_stream = io.BytesIO()
-            write_wav(wav_binary_stream, self.sample_rate, audio)
+            write_wav(wav_binary_stream, self.sample_rate, output_audio)
             sound = AudioSegment.from_wav(wav_binary_stream)
-            audio = sound.export(format="mp3").read()
+            output_audio = base64.b64encode(sound.export(format="mp3")).read()
 
             usage = self.usage()
             discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt + f'`\nUsage stats: {usage}', audio_url=url_list, audio_data=output_audio)
