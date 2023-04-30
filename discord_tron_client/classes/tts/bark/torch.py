@@ -37,7 +37,7 @@ class BarkTorch:
         logging.debug(f"Begin Bark generate() routine")
         time_begin = time.time()
         # User settings overrides.
-        audio = self._generate(prompt=prompt, user_config=user_config)
+        audio, semantic_x = self._generate(prompt=prompt, user_config=user_config)
         time_end = time.time()
         time_duration = time_end - time_begin
         logging.debug(f"Completed generation in {time_duration} seconds: {audio}")
