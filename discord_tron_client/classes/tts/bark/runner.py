@@ -9,13 +9,13 @@ class BarkRunner:
     def __init__(self, bark_driver):
         self.driver = bark_driver
         
-    def predict(self, prompt, user_config):
+    def generate(self, prompt, user_config):
         try:
             if config.is_bark_enabled():
                 self.driver.load_model()
         except Exception as e:
             logging.error(f"Could not load Bark driver: {e}")
-        return self.driver.predict(prompt, user_config)
+        return self.driver.generate(prompt, user_config)
 
     def usage(self):
         driver_usage = self.driver.get_usage()
@@ -43,7 +43,7 @@ class BarkRunner:
             loop = asyncio.get_event_loop()
             output_audio = await loop.run_in_executor(
                 AppConfig.get_image_worker_thread(),  # Use the image processing thread worker.
-                self.predict,
+                self.generate,
                 prompt,
                 user_config
             )
