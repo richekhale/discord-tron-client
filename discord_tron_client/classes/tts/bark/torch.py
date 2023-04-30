@@ -33,7 +33,7 @@ class BarkTorch:
 
     def _generate(self, prompt, user_config):
         # generate audio from text
-        audio = generate_audio(prompt)
+        audio = generate_audio(prompt, confused_travolta_mode=True)
         return audio
 
     def generate(self, prompt, user_config):
