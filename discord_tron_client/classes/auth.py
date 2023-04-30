@@ -36,6 +36,7 @@ class Auth:
         if not auth_ticket:
             raise Exception("No auth ticket found?")
         payload = { "api_key": api_key, "client_id": auth_ticket["client_id"] }
+        logging.debug(f"get_access_token payload: {payload}")
 
         import requests
         response = requests.post(url, json=payload, verify=self.config.verify_master_ssl())
