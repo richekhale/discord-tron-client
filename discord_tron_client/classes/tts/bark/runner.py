@@ -69,7 +69,7 @@ class BarkRunner:
         except Exception as e:
             import traceback
             logging.error(f"Received an error in BarkRunner.generate_audio: {e}, traceback: {clean_traceback(traceback.format_exc())}")
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message=f"We pooped the bed when generating your audio! {e}, traceback: {await clean_traceback(traceback.format_exc())})}")
+            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message=f"We pooped the bed when generating your audio! {e}, traceback: {await clean_traceback(traceback.format_exc())})")
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
             raise e
