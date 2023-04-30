@@ -51,5 +51,5 @@ class BarkTorch:
         wav_binary_stream = io.BytesIO()
         write_wav(wav_binary_stream, SAMPLE_RATE, audio)
         sound = AudioSegment.from_wav(wav_binary_stream)
-        audio = sound.export(format="mp3")
+        audio = sound.export(format="mp3").read()
         return audio, SAMPLE_RATE
