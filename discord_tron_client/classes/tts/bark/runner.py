@@ -36,7 +36,10 @@ class BarkRunner:
         user_config = payload["config"]
         prompt = payload["prompt"]
         logging.debug(f"BarkRunner generate_audio received prompt {prompt}")
-        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="Thinking!")
+        thinking_msg = "Thinking!"
+        if not self.driver.loaded:
+            thinking_msg = "Loading model first! We may have to download it. This could take a while, but subsequent requests will be faster!"
+        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message=thinking_msg)
         websocket = AppConfig.get_websocket()
         await websocket.send(discord_msg.to_json())
         try:
