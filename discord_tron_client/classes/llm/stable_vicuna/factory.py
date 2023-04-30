@@ -1,15 +1,15 @@
 from discord_tron_client.classes.app_config import AppConfig
 
-from discord_tron_client.classes.llm.stablelm.runner import StableLMRunner
-from discord_tron_client.classes.llm.stablelm.py import StableLMPy
+from discord_tron_client.classes.llm.stable_vicuna.runner import StableVicunaRunner
+from discord_tron_client.classes.llm.stable_vicuna.torch import StableVicunaTorch
 
 config = AppConfig()
-driver = config.stablelm_subsystem_type()
+driver = config.stablevicuna_subsystem_type()
 driver_mappings = {
-    "stablelm.py": StableLMPy
+    "stablevicuna": StableVicunaTorch
 }
 
-class StableLMFactory:
+class StableVicunaFactory:
     def __init__(self):
         self.driver = driver_mappings[driver]()
 
@@ -18,5 +18,5 @@ class StableLMFactory:
         return driver_mappings[driver]()
     
     @staticmethod
-    def get() -> StableLMRunner:
-        return StableLMRunner(StableLMFactory.get_driver())
+    def get() -> StableVicunaRunner:
+        return StableVicunaRunner(StableVicunaFactory.get_driver())

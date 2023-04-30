@@ -135,9 +135,17 @@ class AppConfig:
         return self.config.get("enable_image_uploads", True)
 
     def get_huggingface_api_key(self):
-        return self.config.get("huggingface_api", {}).get("api_key", None)
+        result = self.config.get("huggingface_api", {}).get("api_key", None)
+        if result is None:
+            # Does self.get_huggingface_model_path() . '/../token' exist? If so, use that contents:
+            token_path = self.get_huggingface_model_path() + '/../token'
+            if os.path.exists(token_path):
+                with open(token_path, "r") as token_file:
+                    result = token_file.read()
+        return result
+
     def get_huggingface_model_path(self):
-        return self.config.get("huggingface_api", {}).get("model_path", "/root/.cache/huggingface/hub")
+        return self.config.get("model_path", "/root/.cache/huggingface/hub")
 
     def get_discord_api_key(self):
         return self.config.get("discord", {}).get("api_key", None)
@@ -185,8 +193,20 @@ class AppConfig:
         return self.config.get("llama_model_filename", "ggml-model-f16.bin")
     
     def is_stablelm_enabled(self):
-        return self.config.get("enable_stablelm", True)
+        return self.config.get("enable_stablelm", False)
     def stablelm_subsystem_type(self):
         return self.config.get("stablelm_subsystem", "stablelm.py")
     def stablelm_model_default(self):
         return self.config.get("stablelm_model_default", "7b") # Possibilities include 3b, 7b. WIP are 15b, 30b, 65b, and planned is 175b.
+
+    def is_stablevicuna_enabled(self):
+        return self.config.get("enable_stablevicuna", True)
+    def stablevicuna_subsystem_type(self):
+        return self.config.get("stablevicuna_subsystem", "stablevicuna")
+    def stablevicuna_model_default(self):
+        return self.config.get("stablevicuna_model_default", "TheBloke/stable-vicuna-13B-HF")
+    
+    def is_bark_enabled(self):
+        return self.config.get("enable_bark", True)
+    def bark_subsystem_type(self):
+        return self.config.get("bark_subsystem", "torch")

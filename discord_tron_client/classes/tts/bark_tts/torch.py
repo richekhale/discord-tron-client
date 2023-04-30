@@ -21,7 +21,7 @@ class BarkTorch:
         return self.usage or None
 
     def load_model(self):
-        preload_models(text_use_small=True, coarse_use_small=True, fine_use_small=True)
+        preload_models()
 
     def _generate(self, prompt, user_config):
         # generate audio from text

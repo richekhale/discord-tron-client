@@ -89,6 +89,46 @@ files = [
 ]
 
 [[package]]
+name = "boto3"
+version = "1.26.123"
+description = "The AWS SDK for Python"
+category = "main"
+optional = false
+python-versions = ">= 3.7"
+files = [
+    {file = "boto3-1.26.123-py3-none-any.whl", hash = "sha256:2ccb1827dc9d654970375b9bbe1bd77eb6a50ec6fa76cf227a34b4bff144814f"},
+    {file = "boto3-1.26.123.tar.gz", hash = "sha256:51722a3a791108236c8ce05e0ced030b13c08276001132d4153d29353038f8cc"},
+]
+
+[package.dependencies]
+botocore = ">=1.29.123,<1.30.0"
+jmespath = ">=0.7.1,<2.0.0"
+s3transfer = ">=0.6.0,<0.7.0"
+
+[package.extras]
+crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
+
+[[package]]
+name = "botocore"
+version = "1.29.123"
+description = "Low-level, data-driven core of boto 3."
+category = "main"
+optional = false
+python-versions = ">= 3.7"
+files = [
+    {file = "botocore-1.29.123-py3-none-any.whl", hash = "sha256:88f743e1db5bb65e3770af674400642f1d09fca159a1508bdbb8f8cc691589ca"},
+    {file = "botocore-1.29.123.tar.gz", hash = "sha256:b69cdf1c6f451ab1314a363bf97753dfbfe1da93d33853ed241edbdcb806867d"},
+]
+
+[package.dependencies]
+jmespath = ">=0.7.1,<2.0.0"
+python-dateutil = ">=2.1,<3.0.0"
+urllib3 = ">=1.25.4,<1.27"
+
+[package.extras]
+crt = ["awscrt (==0.16.9)"]
+
+[[package]]
 name = "build"
 version = "0.10.0"
 description = "A simple, correct Python build frontend"
@@ -582,6 +622,38 @@ paramiko = ["paramiko"]
 pgp = ["gpg"]
 
 [[package]]
+name = "einops"
+version = "0.6.1"
+description = "A new flavour of deep learning operations"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "einops-0.6.1-py3-none-any.whl", hash = "sha256:99149e46cc808956b174932fe563d920db4d6e5dadb8c6ecdaa7483b7ef7cfc3"},
+    {file = "einops-0.6.1.tar.gz", hash = "sha256:f95f8d00f4ded90dbc4b19b6f98b177332614b0357dde66997f3ae5d474dc8c8"},
+]
+
+[[package]]
+name = "encodec"
+version = "0.1.1"
+description = "High fidelity neural audio codec"
+category = "main"
+optional = false
+python-versions = ">=3.8.0"
+files = [
+    {file = "encodec-0.1.1.tar.gz", hash = "sha256:36dde98ccfe6c51a15576476cadfcb3b35a63507b8b8555abd69889a6fba6772"},
+]
+
+[package.dependencies]
+einops = "*"
+numpy = "*"
+torch = "*"
+torchaudio = "*"
+
+[package.extras]
+dev = ["flake8", "mypy", "pdoc3"]
+
+[[package]]
 name = "filelock"
 version = "3.12.0"
 description = "A platform independent file lock."
@@ -668,6 +740,18 @@ sftp = ["paramiko"]
 smb = ["smbprotocol"]
 ssh = ["paramiko"]
 tqdm = ["tqdm"]
+
+[[package]]
+name = "funcy"
+version = "2.0"
+description = "A fancy and practical functional tools"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "funcy-2.0-py2.py3-none-any.whl", hash = "sha256:53df23c8bb1651b12f095df764bfb057935d49537a56de211b098f4c79614bb0"},
+    {file = "funcy-2.0.tar.gz", hash = "sha256:3963315d59d41c6f30c04bc910e10ab50a3ac4a225868bfa96feed133df075cb"},
+]
 
 [[package]]
 name = "gast"
@@ -1180,6 +1264,18 @@ MarkupSafe = ">=2.0"
 
 [package.extras]
 i18n = ["Babel (>=2.7)"]
+
+[[package]]
+name = "jmespath"
+version = "1.0.1"
+description = "JSON Matching Expressions"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "jmespath-1.0.1-py3-none-any.whl", hash = "sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980"},
+    {file = "jmespath-1.0.1.tar.gz", hash = "sha256:90261b206d6defd58fdd5e85f478bf633a2901798906be2ad389150c5c60edbe"},
+]
 
 [[package]]
 name = "jsonschema"
@@ -2022,14 +2118,14 @@ tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
 
 [[package]]
 name = "pyre-extensions"
-version = "0.0.23"
+version = "0.0.29"
 description = "Type system extensions for use with the pyre type checker"
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "pyre-extensions-0.0.23.tar.gz", hash = "sha256:df019263900af45e83e41fb9e889824e8b7bcdb9cb67fe2957bb80104eadcbc7"},
-    {file = "pyre_extensions-0.0.23-py3-none-any.whl", hash = "sha256:e945fdf4113172cec517c5daeca56f61f6632fd5b8d8165f1253c8865c87e62b"},
+    {file = "pyre-extensions-0.0.29.tar.gz", hash = "sha256:4113600706c47306a156dcc9c405f4d458c505be432699571e357ef20e2d5d77"},
+    {file = "pyre_extensions-0.0.29-py3-none-any.whl", hash = "sha256:f4fef9089872c0656f82de7e8f357af0377dcbb6c2deadc1a7d3037aaf43757e"},
 ]
 
 [package.dependencies]
@@ -2072,6 +2168,21 @@ files = [
     {file = "pyrsistent-0.19.3-py3-none-any.whl", hash = "sha256:ccf0d6bd208f8111179f0c26fdf84ed7c3891982f2edaeae7422575f47e66b64"},
     {file = "pyrsistent-0.19.3.tar.gz", hash = "sha256:1a2994773706bbb4995c31a97bc94f1418314923bd1048c6d964837040376440"},
 ]
+
+[[package]]
+name = "python-dateutil"
+version = "2.8.2"
+description = "Extensions to the standard Python datetime module"
+category = "main"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
+files = [
+    {file = "python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
+    {file = "python_dateutil-2.8.2-py2.py3-none-any.whl", hash = "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"},
+]
+
+[package.dependencies]
+six = ">=1.5"
 
 [[package]]
 name = "pywin32-ctypes"
@@ -2382,6 +2493,24 @@ files = [
 pyasn1 = ">=0.1.3"
 
 [[package]]
+name = "s3transfer"
+version = "0.6.0"
+description = "An Amazon S3 Transfer Manager"
+category = "main"
+optional = false
+python-versions = ">= 3.7"
+files = [
+    {file = "s3transfer-0.6.0-py3-none-any.whl", hash = "sha256:06176b74f3a15f61f1b4f25a1fc29a4429040b7647133a463da8fa5bd28d5ecd"},
+    {file = "s3transfer-0.6.0.tar.gz", hash = "sha256:2ed07d3866f523cc561bf4a00fc5535827981b117dd7876f036b0c1aca42c947"},
+]
+
+[package.dependencies]
+botocore = ">=1.12.36,<2.0a.0"
+
+[package.extras]
+crt = ["botocore[crt] (>=1.20.29,<2.0a.0)"]
+
+[[package]]
 name = "scipy"
 version = "1.10.1"
 description = "Fundamental algorithms for scientific computing in Python"
@@ -2531,6 +2660,36 @@ files = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
 ]
+
+[[package]]
+name = "suno-bark"
+version = "0.0.1a0"
+description = "Bark text to audio model"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+files = []
+develop = false
+
+[package.dependencies]
+boto3 = "*"
+encodec = "*"
+funcy = "*"
+numpy = "*"
+scipy = "*"
+tokenizers = "*"
+torch = "*"
+tqdm = "*"
+transformers = "*"
+
+[package.extras]
+dev = ["bandit", "black", "codecov", "flake8", "huggingface-hub", "hypothesis (>=6.14,<7)", "isort (>=5.0.0,<6)", "jupyter", "mypy", "nbconvert", "nbformat", "pydocstyle", "pylint", "pytest", "pytest-cov"]
+
+[package.source]
+type = "git"
+url = "https://github.com/suno-ai/bark.git"
+reference = "HEAD"
+resolved_reference = "39e7305f4ad596032717619a900ec4730d168531"
 
 [[package]]
 name = "sympy"
@@ -3392,23 +3551,23 @@ cffi = ">=1.0"
 
 [[package]]
 name = "xformers"
-version = "0.0.18"
+version = "0.0.20.dev526"
 description = "XFormers: A collection of composable Transformer building blocks."
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "xformers-0.0.18-cp310-cp310-manylinux2014_x86_64.whl", hash = "sha256:398aa397035b5f00479beffe3671d0b639c1ff5a8edad340cc550c232b11871c"},
-    {file = "xformers-0.0.18-cp310-cp310-win_amd64.whl", hash = "sha256:26e784b0aa78842ce197a1e26155f0b322f7eb3c0328e9e9df62a58a38a179ee"},
-    {file = "xformers-0.0.18-cp38-cp38-manylinux2014_x86_64.whl", hash = "sha256:dccf82478d2eac467372d9245a77c669972e8994d4835cc7d86f835c5328fdf3"},
-    {file = "xformers-0.0.18-cp38-cp38-win_amd64.whl", hash = "sha256:537ba72528ec7840a17efb132718c209cd6bed463835d18303f0ba49866e86f8"},
-    {file = "xformers-0.0.18-cp39-cp39-manylinux2014_x86_64.whl", hash = "sha256:e8af4f7f699c97d133bee55f9911f2ac2e271ec9f4466a6e667a50b4746130a8"},
-    {file = "xformers-0.0.18-cp39-cp39-win_amd64.whl", hash = "sha256:55578d68e98155888b5ea74485f3fedb4592789ea953710076b7d4e817f00e5e"},
+    {file = "xformers-0.0.20.dev526-cp310-cp310-manylinux2014_x86_64.whl", hash = "sha256:d6dc4cbfced7dfd406d5e8e48b406086448102d57cabc53445c8386565044921"},
+    {file = "xformers-0.0.20.dev526-cp310-cp310-win_amd64.whl", hash = "sha256:b0d1d94a70ac52814480965dcdc1a25c90a707cccc8c13cba5cc5c709ef3102f"},
+    {file = "xformers-0.0.20.dev526-cp38-cp38-manylinux2014_x86_64.whl", hash = "sha256:de1f2e720052691b0dddd9e8a4342e04838fc147395e61d321007744a34cb276"},
+    {file = "xformers-0.0.20.dev526-cp38-cp38-win_amd64.whl", hash = "sha256:cdc07ed7b351063ae18283d74190cdcfe5e51906096ce5fcc94dfa06f811054b"},
+    {file = "xformers-0.0.20.dev526-cp39-cp39-manylinux2014_x86_64.whl", hash = "sha256:5a2488b5f196496cbdd2e88f827062f99fd778caa5263f9097fb4afdba0f0c02"},
+    {file = "xformers-0.0.20.dev526-cp39-cp39-win_amd64.whl", hash = "sha256:871230a8df7102f992859117fe9d833de143bc63834fe38d7c278824f115d85b"},
 ]
 
 [package.dependencies]
 numpy = "*"
-pyre-extensions = "0.0.23"
+pyre-extensions = "0.0.29"
 torch = "2.0.0"
 
 [[package]]
@@ -3497,4 +3656,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "f76ad5ecd92b6e34054083021baf1e1ad37a9417c7397759472128f3bad169f3"
+content-hash = "d6f15f929ce892e165a0fe86dd62d2511530bccf19e6403f7aeb12f2fd1699b8"
