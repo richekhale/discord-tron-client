@@ -125,19 +125,12 @@ class BarkTorch:
         concatenated_audio = self.concatenate_audio_segments(audio_segments)
 
         return concatenated_audio, SAMPLE_RATE
-
     @staticmethod
     def concatenate_audio_segments(audio_segments):
-        combined_audio = AudioSegment.empty()
+        combined_audio = np.array([], dtype=np.int16)
 
         for audio in audio_segments:
-            # Convert the NumPy array to an AudioSegment object
-            wav_binary_stream = io.BytesIO()
-            write_wav(wav_binary_stream, SAMPLE_RATE, audio)
-            wav_binary_stream.seek(0)
-            audio_segment = AudioSegment.from_wav(wav_binary_stream)
-
             # Concatenate the audio
-            combined_audio += audio_segment
+            combined_audio = np.concatenate((combined_audio, audio))
 
         return combined_audio
