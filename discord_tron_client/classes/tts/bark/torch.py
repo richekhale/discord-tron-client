@@ -27,6 +27,7 @@ class BarkTorch:
             return
         logging.info(f"Loading Bark TTS model, as it was not already found loaded.")
         preload_models()
+        self.loaded = True
 
     def _generate(self, prompt, user_config):
         # generate audio from text
