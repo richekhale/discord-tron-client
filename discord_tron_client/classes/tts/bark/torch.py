@@ -50,6 +50,6 @@ class BarkTorch:
         # Convert audio from wav to mp3:
         wav_binary_stream = io.BytesIO()
         write_wav(wav_binary_stream, SAMPLE_RATE, audio)
-        sound = AudioSegment.from_wav(audio)
+        sound = AudioSegment.from_wav(wav_binary_stream)
         audio = sound.export(format="mp3")
         return audio, SAMPLE_RATE
