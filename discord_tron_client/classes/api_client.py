@@ -46,7 +46,18 @@ class ApiClient:
         with open(file_path, "rb") as f:
             response = requests.post(endpoint, files={"file": f})
         return response
-
+    async def send_base64_audio(self, endpoint: str, audio: str, send_auth: bool = True):
+        import asyncio
+        loop = asyncio.get_event_loop()
+        response = await loop.run_in_executor(
+            AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
+            self.post,
+            endpoint,
+            None,
+            {"audio_base64": audio},
+            send_auth
+        )
+        return response
     async def send_pil_image(self, endpoint: str, image: Image, send_auth: bool = True):
         buffer = io.BytesIO()
         image.save(buffer, format="PNG")
