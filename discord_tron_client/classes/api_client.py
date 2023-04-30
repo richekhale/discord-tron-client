@@ -35,7 +35,7 @@ class ApiClient:
 
     def post(self, endpoint: str, params: dict = None, files: dict = None, send_auth: bool = True):
         attempt = 0
-        while attempt < 5:
+        while attempt < 15:
             try:
                 if params is None:
                     params = {}
