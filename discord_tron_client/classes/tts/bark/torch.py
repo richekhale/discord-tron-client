@@ -12,6 +12,7 @@ sample_text_prompt = """
 
 class BarkTorch:
     def __init__(self):
+        self.loaded = False
         self.model = 'Bark'
 
     def details(self):
@@ -21,6 +22,10 @@ class BarkTorch:
         return self.usage or None
 
     def load_model(self):
+        if self.loaded:
+            logging.debug(f"Not reloading Bark TTS models.")
+            return
+        logging.info(f"Loading Bark TTS model, as it was not already found loaded.")
         preload_models()
 
     def _generate(self, prompt, user_config):
