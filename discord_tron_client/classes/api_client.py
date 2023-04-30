@@ -47,7 +47,7 @@ class ApiClient:
             except Exception as e:
                 logging.error("Error in ApiClient.post: " + str(e))
                 attempt += 1
-        raise Exception("ApiClient.post failed after 15 attempts.")
+        raise Exception("Upload failed after 15 attempts.")
 
     def send_file(self, endpoint: str, file_path: str):
         with open(file_path, "rb") as f:
