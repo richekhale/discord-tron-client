@@ -37,7 +37,7 @@ class Uploader:
         self.run_threads()
         return results
 
-    def audio(self, audio_data, sample_rate):
+    async def audio(self, audio_data, sample_rate):
         logging.debug(f"Uploading audio to {self.config.get_master_url()}")
         self.api_client.update_auth()
         wav_binary_stream = BytesIO()
@@ -46,7 +46,7 @@ class Uploader:
         wav_binary_stream.seek(0)
         # Read the binary stream's content and base64 encode it
         wav_data_base64 = base64.b64encode(wav_binary_stream.read())
-        result = asyncio.run(self.api_client.send_base64_audio('/upload_audio', wav_data_base64, False))
+        result = await self.api_client.send_base64_audio('/upload_audio', wav_data_base64, False)
         logging.debug(f"Audio uploader received result: {result}")
         if "audio_url" in result:
             return result["audio_url"]
