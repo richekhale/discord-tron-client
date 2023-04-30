@@ -60,7 +60,7 @@ class BarkRunner:
             url_list = await uploader.audio(output_audio, self.sample_rate)
             # Convert audio from wav to mp3:
             import io
-            from pydub import write as write_wav
+            from scipy.io.wavfile import write as write_wav
             from pydub import AudioSegment
             wav_binary_stream = io.BytesIO()
             write_wav(wav_binary_stream, self.sample_rate, audio)
