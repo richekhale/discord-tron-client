@@ -6,6 +6,7 @@ import os, sys, json, logging, time, io, re
 from pydub import AudioSegment
 from scipy.io.wavfile import write as write_wav
 from typing import List
+import numpy as np
 
 config = AppConfig()
 sample_text_prompt = """
