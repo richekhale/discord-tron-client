@@ -3,6 +3,7 @@ from bark.api import generate_audio
 from bark.generation import preload_models
 from bark.generation import SAMPLE_RATE
 import os, sys, json, logging, time
+from pydub import AudioSegment
 
 config = AppConfig()
 sample_text_prompt = """
@@ -45,4 +46,7 @@ class BarkTorch:
         if audio is None:
             raise RuntimeError(f"{self.model} returned no result.")
         self.usage = {"time_duration": time_duration}
+        # Convert audio from wav to mp3:
+        sound = AudioSegment.from_wav(audio)
+        audio = sound.export(format="mp3")
         return audio, SAMPLE_RATE
