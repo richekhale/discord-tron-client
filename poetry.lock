@@ -2687,9 +2687,9 @@ dev = ["bandit", "black", "codecov", "flake8", "huggingface-hub", "hypothesis (>
 
 [package.source]
 type = "git"
-url = "https://github.com/suno-ai/bark.git"
+url = "https://github.com/JonathanFly/bark"
 reference = "HEAD"
-resolved_reference = "39e7305f4ad596032717619a900ec4730d168531"
+resolved_reference = "d2edfe66caf3441b8f980b99cb8f8dbccf481f3a"
 
 [[package]]
 name = "sympy"
@@ -3656,4 +3656,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "d6f15f929ce892e165a0fe86dd62d2511530bccf19e6403f7aeb12f2fd1699b8"
+content-hash = "8daabf3668953f995d830d42714ce5aebfd6aa62b0c4485f34a87ecc8a9d798a"
