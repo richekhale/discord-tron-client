@@ -4,7 +4,8 @@ from discord_tron_client.classes.auth import Auth
 from discord_tron_client.classes.app_config import AppConfig
 from discord_tron_client.classes.api_client import ApiClient
 from typing import List
-import logging, json, asyncio
+from io import BytesIO
+import logging, json, asyncio, base64
 from scipy.io.wavfile import write as write_wav
 
 config = AppConfig()
@@ -47,7 +48,6 @@ class Uploader:
         wav_data_base64 = base64.b64encode(wav_binary_stream.read())
         result = asyncio.run(self.api_client.send_base64_audio('/upload_audio', wav_data_base64, False))
         logging.debug(f"Audio uploader received result: {result}")
-
         if "audio_url" in result:
             return result["audio_url"]
         raise Exception(f"Audio upload failed: {result}")

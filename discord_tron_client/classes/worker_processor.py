@@ -6,6 +6,7 @@ from discord_tron_client.modules.image_generation import variation
 from discord_tron_client.classes.llm.llama.factory import LlamaFactory
 from discord_tron_client.classes.llm.stablelm.factory import StableLMFactory
 from discord_tron_client.classes.llm.stable_vicuna.factory import StableVicunaFactory
+from discord_tron_client.classes.tts.bark.factory import BarkFactory
 from typing import Dict, Any
 import logging, json, websocket
 from discord_tron_client.classes.app_config import AppConfig
@@ -40,6 +41,9 @@ class WorkerProcessor:
             },
             "stablelm": {
                 "predict": stablelmrunner.predict_handler
+            },
+            "tts_bark": {
+                "generate": BarkFactory.get().generate_handler
             }
             # Add more command handlers as needed
         }

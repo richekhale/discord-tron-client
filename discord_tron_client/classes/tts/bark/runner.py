@@ -31,18 +31,18 @@ class BarkRunner:
         output_text = f"{output_text} via {driver_details}"
         return output_text
 
-    async def predict_handler(self, payload, websocket):
+    async def generate_handler(self, payload, websocket):
         # We extract the features from the payload and pass them onto the actual generator
         user_config = payload["config"]
         prompt = payload["prompt"]
-        logging.debug(f"BarkRunner predict_handler received prompt {prompt}")
+        logging.debug(f"BarkRunner generate_audio received prompt {prompt}")
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="Thinking!")
         websocket = AppConfig.get_websocket()
         await websocket.send(discord_msg.to_json())
         try:
             loop = asyncio.get_event_loop()
             output_audio = await loop.run_in_executor(
-                AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
+                AppConfig.get_image_worker_thread(),  # Use the image processing thread worker.
                 self.predict,
                 prompt,
                 user_config
@@ -52,27 +52,23 @@ class BarkRunner:
             uploader = Uploader(api_client=api_client, config=config)
             url_list = await uploader.upload_audio(output_audio)
 
-
-            logging.debug(f"BarkRunner predict_handler received result {output_audio}")
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send_large_message", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt + '`' + url_list)
+            logging.debug(f"BarkRunner generate_audio received result {output_audio}")
+            usage = self.usage()
+            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt + f'`\nUsage stats: {usage}', audio_url=url_list)
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
-            usage = self.usage()
-            if usage is not None:
-                discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + 'Your prompt, `' + prompt + '`, used ' + f'{usage}')
-                websocket = AppConfig.get_websocket()
-                await websocket.send(discord_msg.to_json())
 
             discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="delete")
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
+
             discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
 
         except Exception as e:
             import traceback
-            logging.error(f"Received an error in BarkRunner.predict_handler: {e}, traceback: {clean_traceback(traceback.format_exc())}")
+            logging.error(f"Received an error in BarkRunner.generate_audio: {e}, traceback: {clean_traceback(traceback.format_exc())}")
             discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="We pooped the bed!")
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())

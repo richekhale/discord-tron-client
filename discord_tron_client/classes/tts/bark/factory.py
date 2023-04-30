@@ -3,7 +3,7 @@ from discord_tron_client.classes.tts.bark.runner import BarkRunner
 from discord_tron_client.classes.tts.bark.torch import BarkTorch
 
 config = AppConfig()
-driver = config.llama_subsystem_type()
+driver = config.bark_subsystem_type()
 driver_mappings = {
     "torch": BarkTorch
 }
