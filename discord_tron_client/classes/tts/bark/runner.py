@@ -8,15 +8,17 @@ config = AppConfig()
 class BarkRunner:
     def __init__(self, bark_driver):
         self.driver = bark_driver
-        
+        self.sample_rate = None
+
     def generate(self, prompt, user_config):
         try:
             if config.is_bark_enabled():
                 self.driver.load_model()
         except Exception as e:
             logging.error(f"Could not load Bark driver: {e}")
-        audio, sample_rate = self.driver.generate(prompt, user_config)
-        return audio, sample_rate
+        audio, self.sample_rate = self.driver.generate(prompt, user_config)
+        
+        return audio
 
     def usage(self):
         driver_usage = self.driver.get_usage()
@@ -45,7 +47,7 @@ class BarkRunner:
         await websocket.send(discord_msg.to_json())
         try:
             loop = asyncio.get_event_loop()
-            output_audio, sample_rate = await loop.run_in_executor(
+            output_audio = await loop.run_in_executor(
                 AppConfig.get_image_worker_thread(),  # Use the image processing thread worker.
                 self.generate,
                 prompt,
@@ -54,10 +56,8 @@ class BarkRunner:
             # Try uploading via the HTTP API
             api_client = AppConfig.get_api_client()
             uploader = Uploader(api_client=api_client, config=config)
-            logging.debug(f"Received result from TTS engine: {output_audio}, {sample_rate}")
-            url_list = await uploader.audio(output_audio, sample_rate)
-
-            logging.debug(f"BarkRunner generate_handler received result {output_audio}")
+            logging.debug(f"Received result from TTS engine: {output_audio}, {self.sample_rate}")
+            url_list = await uploader.audio(output_audio, self.sample_rate)
             usage = self.usage()
             discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt + f'`\nUsage stats: {usage}', audio_url=url_list)
             websocket = AppConfig.get_websocket()
