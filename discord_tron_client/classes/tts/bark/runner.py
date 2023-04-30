@@ -2,7 +2,7 @@ from discord_tron_client.classes.app_config import AppConfig
 from discord_tron_client.message.discord import DiscordMessage
 from discord_tron_client.classes.debug import clean_traceback
 from discord_tron_client.classes.uploader import Uploader
-import logging, asyncio
+import logging, asyncio, base64
 config = AppConfig()
 
 class BarkRunner:
@@ -18,7 +18,7 @@ class BarkRunner:
             logging.error(f"Could not load Bark driver: {e}")
         audio, self.sample_rate = self.driver.generate(prompt, user_config)
         
-        return audio
+        return base64.encode(audio)
 
     def usage(self):
         driver_usage = self.driver.get_usage()
@@ -55,11 +55,11 @@ class BarkRunner:
             )
             # Try uploading via the HTTP API
             api_client = AppConfig.get_api_client()
-            uploader = Uploader(api_client=api_client, config=config)
             logging.debug(f"Received result from TTS engine: {output_audio}, {self.sample_rate}")
-            url_list = await uploader.audio(output_audio, self.sample_rate)
+            # uploader = Uploader(api_client=api_client, config=config)
+            # url_list = await uploader.audio(output_audio, self.sample_rate)
             usage = self.usage()
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt + f'`\nUsage stats: {usage}', audio_url=url_list)
+            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt + f'`\nUsage stats: {usage}', audio_data=output_audio)
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
 
