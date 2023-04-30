@@ -75,8 +75,8 @@ class WorkerProcessor:
                 print(stat)
             # disable tracemalloc:
             tracemalloc.stop()
-            
-            logging.error("Error processing command: " + str(e))
+            import traceback
+            logging.error(f"Error processing command: {e}, traceback: {traceback.format_exc()} ")
             
             return json.dumps({"error": str(e)})
 
