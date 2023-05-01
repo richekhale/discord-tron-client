@@ -35,16 +35,6 @@ class BarkTorch:
 
     def _generate(self, prompt, user_config):
         # generate audio from text
-        longer_than_14_seconds, estimated_time = self.estimate_spoken_time(prompt)
-        print(f"Estimated time: {estimated_time:.2f} seconds.")
-        if longer_than_14_seconds:
-            print(f"Text Prompt could be too long, might want to try a shorter one if you get a bad result.")
-            print("now split the text_prompt to less than 14 seconds asap")
-            text_prompts_to_process, Len = self.split_text_prompt(prompt)
-            print(f"split text_prompt to {Len} segments")
-
-        print(f"Generating: {prompt}")
-
         audio = generate_audio(prompt, confused_travolta_mode=user_config.get("confused_tts", False), history_prompt=user_config.get("tts_voice", "en_female_intense"), text_temp=user_config.get("temperature", 0.7), waveform_temp=user_config.get("waveform_temp", 0.7))
         return audio
 
