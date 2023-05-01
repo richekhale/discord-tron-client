@@ -45,7 +45,7 @@ class BarkTorch:
 
         print(f"Generating: {prompt}")
 
-        audio = generate_audio(prompt, confused_travolta_mode=user_config.get("confused_tts", False), history_prompt=user_config.get("persona_tts", "en_fiery"), text_temp=user_config.get("temperature", 0.7), waveform_temp=user_config.get("waveform_temp", 0.7))
+        audio = generate_audio(prompt, confused_travolta_mode=user_config.get("confused_tts", False), history_prompt=user_config.get("tts_voice", "en_female_intense"), text_temp=user_config.get("temperature", 0.7), waveform_temp=user_config.get("waveform_temp", 0.7))
         return audio
 
     def generate(self, prompt, user_config):
