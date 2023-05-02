@@ -99,7 +99,7 @@ class BarkTorch:
     def generate_long(self, prompt, user_config):
         # Split the prompt into smaller segments
         segments, _ = self.split_text_prompt(prompt)
-        return self.generate_long_from_segments(segments, user_config)       
+        return self.generate_long_from_segments(segments, user_config)
 
     def generate_long_from_segments(self, prompts: List[str], user_config):
         # Generate audio for each prompt
