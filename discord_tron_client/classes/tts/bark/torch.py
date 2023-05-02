@@ -18,6 +18,7 @@ class BarkTorch:
     def __init__(self):
         self.loaded = False
         self.model = 'Bark'
+        self.usage = None
 
     def details(self):
         return f'PyTorch running the {self.model} audio generation model'
@@ -129,7 +130,7 @@ class BarkTorch:
         return combined_audio
 
     @staticmethod
-    def process_line(line, characters):
+    def  process_line(line, characters):
         if characters is None:
             return line, None
         pattern = r"\{([^}]+)\}:?"
