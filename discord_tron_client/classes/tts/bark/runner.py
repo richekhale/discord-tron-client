@@ -68,7 +68,7 @@ class BarkRunner:
             output_audio = base64.b64encode(sound.export(format="mp3").read()).decode("utf-8")
 
             usage = self.usage()
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt[70:] + f'...`\nVoice: `{user_config.get("tts_voice")}` Usage stats: {usage}', audio_url=url_list, audio_data=output_audio)
+            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt[:32] + f'...`\nVoice: `{user_config.get("tts_voice")}` Usage stats: {usage}', audio_url=url_list, audio_data=output_audio)
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
 
