@@ -111,7 +111,7 @@ class BarkTorch:
             if voice is not None:
                 # Set a voice, if found. Otherwise, keep last voice.
                 current_voice = voice
-            audio, _, semantics = self.generate(line, user_config, current_voice)
+            audio, _, semantics = self._generate(line, user_config, current_voice)
             audio_segments.append(audio)
         # Concatenate the audio segments
         concatenated_audio = self.concatenate_audio_segments(audio_segments)
