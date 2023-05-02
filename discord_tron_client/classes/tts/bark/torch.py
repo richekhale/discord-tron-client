@@ -105,6 +105,7 @@ class BarkTorch:
         # Generate audio for each prompt
         audio_segments = []
         actors = user_config.get("tts_actors", None)
+        logging.debug(f"Generating long prompt with {len(prompts)} segments. using actors {actors}")
         current_voice = None
         for prompt in prompts:
             line, voice = BarkTorch.process_line(prompt, actors)
