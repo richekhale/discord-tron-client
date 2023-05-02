@@ -33,16 +33,21 @@ class BarkTorch:
         preload_models()
         self.loaded = True
 
-    def _generate(self, prompt, user_config):
+    def _generate(self, prompt, user_config, character_voice: str = None):
         # generate audio from text
-        audio = generate_audio(prompt, confused_travolta_mode=user_config.get("confused_tts", False), history_prompt=user_config.get("tts_voice", "en_female_intense"), text_temp=user_config.get("temperature", 0.7), waveform_temp=user_config.get("waveform_temp", 0.7))
-        return audio
+        if character_voice is None:
+            logging.debug(f"No voice provided, using default.")
+            character_voice = user_config.get("tts_voice", "en_female_intense")
+        logging.debug(f"Generating text {prompt[32:]}.. with voice {character_voice}")
+
+        audio, semantics = generate_audio(prompt, confused_travolta_mode=user_config.get("confused_tts", False), history_prompt=character_voice, text_temp=user_config.get("temperature", 0.7), waveform_temp=user_config.get("waveform_temp", 0.7))
+        return audio, semantics
 
     def generate(self, prompt, user_config):
         logging.debug(f"Begin Bark generate() routine")
         time_begin = time.time()
         # User settings overrides.
-        audio, semantic_x = self._generate(prompt=prompt, user_config=user_config)
+        audio, _, semantic_x = self.generate_long(prompt=prompt, user_config=user_config)
         time_end = time.time()
         time_duration = time_end - time_begin
         logging.debug(f"Completed generation in {time_duration} seconds: {audio}")
@@ -50,7 +55,7 @@ class BarkTorch:
             raise RuntimeError(f"{self.model} returned no result.")
         self.usage = {"time_duration": time_duration}
 
-        return audio, SAMPLE_RATE
+        return audio, SAMPLE_RATE, semantic_x
     
     def split_text_prompt(self, text_prompt, maxword=30):
         text_prompt = re.sub(r'\s{2,}', ' ', text_prompt)
@@ -90,32 +95,28 @@ class BarkTorch:
             return True, time_in_seconds
         else:
             return False, time_in_seconds
+
     def generate_long(self, prompt, user_config):
         # Split the prompt into smaller segments
         segments, _ = self.split_text_prompt(prompt)
-        
-        # Generate audio for each segment
-        audio_segments = []
-        for segment in segments:
-            audio, _ = self.generate(segment, user_config)
-            audio_segments.append(audio)
-
-        # Concatenate the audio segments
-        concatenated_audio = self.concatenate_audio_segments(audio_segments)
-
-        return concatenated_audio, SAMPLE_RATE
+        return self.generate_long_from_segments(segments, user_config)       
 
     def generate_long_from_segments(self, prompts: List[str], user_config):
         # Generate audio for each prompt
         audio_segments = []
+        actors = user_config.get("tts_actors", None)
+        current_voice = None
         for prompt in prompts:
-            audio, _ = self.generate(prompt, user_config)
+            line, voice = BarkTorch.process_line(prompt, actors)
+            if voice is not None:
+                # Set a voice, if found. Otherwise, keep last voice.
+                current_voice = voice
+            audio, _, semantics = self.generate(line, user_config, current_voice)
             audio_segments.append(audio)
-
         # Concatenate the audio segments
         concatenated_audio = self.concatenate_audio_segments(audio_segments)
+        return concatenated_audio, SAMPLE_RATE, semantics
 
-        return concatenated_audio, SAMPLE_RATE
     @staticmethod
     def concatenate_audio_segments(audio_segments):
         combined_audio = np.array([], dtype=np.int16)
@@ -125,3 +126,18 @@ class BarkTorch:
             combined_audio = np.concatenate((combined_audio, audio))
 
         return combined_audio
+
+    @staticmethod
+    def process_line(line, characters):
+        if characters is None:
+            return line, None
+        pattern = r"\{([^}]+)\}:?"
+        match = re.search(pattern, line)
+        if match:
+            actor = match.group(1)
+            line = re.sub(pattern, "", line).strip()
+            # This can strip out "not-found" {STRINGS} so beware...
+            character_voice = characters.get(actor, {}).get("voice", None)
+        else:
+            character_voice = None
+        return line, character_voice
