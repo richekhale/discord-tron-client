@@ -132,14 +132,20 @@ class BarkTorch:
     @staticmethod
     def  process_line(line, characters):
         if characters is None:
+            logging.debug(f"No characters were given to process_line so we will just return the input line: {line}")
             return line, None
+        logging.debug(f"We have the characters we need.")
         pattern = r"\{([^}]+)\}:?"
         match = re.search(pattern, line)
+        logging.debug(f"For line {line} we have {match} match?")
         if match:
             actor = match.group(1)
+            logging.debug(f"We found actor {actor}")
             line = re.sub(pattern, "", line).strip()
+            logging.debug(f"Stripping the actor out of the line to: {line}")
             # This can strip out "not-found" {STRINGS} so beware...
             character_voice = characters.get(actor, {}).get("voice", None)
+            logging.debug(f"Selected character voice: {character_voice}")
         else:
             character_voice = None
         return line, character_voice
