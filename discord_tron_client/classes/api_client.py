@@ -46,6 +46,14 @@ class ApiClient:
                 return self.handle_response(response)
             except Exception as e:
                 logging.error("Error in ApiClient.post: " + str(e))
+                try:
+                    error = json.loads(e.args[0])
+                    logging.error("Error is JSON")
+                    if "error" in error and error["error"] == "Authentication required":
+                        logging.error("Error is authentication related. Refreshing auth.")
+                        self.update_auth()
+                except Exception as e2:
+                    logging.error("Error in ApiClient.post when checking error: " + str(e2))
                 attempt += 1
         raise Exception("Upload failed after 15 attempts.")
 

@@ -120,6 +120,10 @@ class BarkTorch:
         return concatenated_audio, SAMPLE_RATE, semantics
 
     @staticmethod
+    def clean_audio(audio):
+        
+
+    @staticmethod
     def concatenate_audio_segments(audio_segments):
         combined_audio = np.array([], dtype=np.int16)
 

@@ -72,18 +72,21 @@ class Auth:
 
     # Request an access token from the auth server, refreshing it if necessary.
     def get(self):
-        try:
-            is_expired = self.is_token_expired()
-            live_token = self.get_access_token()["access_token"]
-            logging.debug(f"Using existing token to refresh: {live_token}")
-            return live_token
-        except Exception as e:
-            logging.error(f"Error checking token expiration: {e}")
-            is_expired = True
-        if is_expired:
-            logging.warning("Access token is expired. Attempting to refresh...")
-            current_ticket = self.config.get_auth_ticket()
-            current_ticket = self.refresh_client_token(current_ticket["refresh_token"])
-            import json
-            print(f"New ticket: {json.dumps(current_ticket, indent=4)}")
-        return current_ticket
+        attempts = 10
+        for i in range(attempts):
+            try:
+                is_expired = self.is_token_expired()
+                live_token = self.get_access_token()["access_token"]
+                logging.debug(f"Using existing token to refresh: {live_token}")
+                return live_token
+            except Exception as e:
+                logging.error(f"Error checking token expiration: {e}")
+                is_expired = True
+            if is_expired:
+                logging.warning("Access token is expired. Attempting to refresh...")
+                current_ticket = self.config.get_auth_ticket()
+                current_ticket = self.refresh_client_token(current_ticket["refresh_token"])
+                import json
+                print(f"New ticket: {json.dumps(current_ticket, indent=4)}")
+            return current_ticket
+        raise Exception("Unable to get access token after {} attempts.".format(attempts))
