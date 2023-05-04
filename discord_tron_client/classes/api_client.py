@@ -47,9 +47,7 @@ class ApiClient:
             except Exception as e:
                 logging.error("Error in ApiClient.post: " + str(e))
                 try:
-                    error = json.loads(str(e))
-                    logging.error("Error is JSON")
-                    if "error" in error and error["error"] == "Authentication required":
+                    if "Authentication required" in str(e):
                         logging.error("Error is authentication related. Refreshing auth.")
                         self.update_auth()
                 except Exception as e2:
