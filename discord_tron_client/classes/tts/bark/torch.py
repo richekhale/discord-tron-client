@@ -41,8 +41,8 @@ class BarkTorch:
             character_voice = user_config.get("tts_voice", "en_female_intense")
         logging.debug(f"Generating text {prompt[32:]}.. with voice {character_voice}")
 
-        audio, semantics = generate_audio(prompt, history_prompt=character_voice, output_full = True, text_temp=user_config.get("temperature", 0.7), waveform_temp=user_config.get("waveform_temp", 0.7), max_gen_duration_s=user_config.get("max_tts_duration", 13))
-        return audio, semantics
+        audio = generate_audio(prompt, history_prompt=character_voice, text_temp=user_config.get("temperature", 0.7), waveform_temp=user_config.get("waveform_temp", 0.7), max_gen_duration_s=user_config.get("max_tts_duration", 13))
+        return audio, None
 
     def generate(self, prompt, user_config):
         logging.debug(f"Begin Bark generate() routine")
