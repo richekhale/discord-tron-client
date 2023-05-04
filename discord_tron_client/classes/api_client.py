@@ -42,7 +42,7 @@ class ApiClient:
                 if send_auth:
                     self.headers = self._set_auth_header()
                 url = self.base_url + endpoint
-                response = requests.post(url, timeout=15, params=params, verify=self.verify_ssl, files=files, headers=self.headers)
+                response = requests.post(url, timeout=60, params=params, verify=self.verify_ssl, files=files, headers=self.headers)
                 return self.handle_response(response)
             except Exception as e:
                 logging.error("Error in ApiClient.post: " + str(e))
