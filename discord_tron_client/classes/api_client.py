@@ -101,5 +101,8 @@ class ApiClient:
     def _set_auth_header(self) -> dict:
         # We need the token from self.auth.get() to be set as the Authorization header using the Bearing token type
         current_ticket = self.auth.get()
+        if current_ticket is None or "access_token" not in current_ticket or current_ticket['access_token'] == '':
+            raise Exception(f"No auth ticket found: {current_ticket}")
+
         self.headers = { "Authorization": f"Bearer {current_ticket['access_token']}" }
         return self.headers
