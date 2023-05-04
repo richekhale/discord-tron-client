@@ -121,7 +121,7 @@ class BarkTorch:
 
     @staticmethod
     def clean_audio(audio):
-        
+        pass
 
     @staticmethod
     def concatenate_audio_segments(audio_segments):
