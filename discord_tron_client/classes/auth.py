@@ -64,7 +64,7 @@ class Auth:
 
     def is_token_expired(self):
         token_received_at = datetime.fromisoformat(self.token_received_at).timestamp()
-        expires_in = int(self.expires_in)
+        expires_in = int(self.expires_in) / 2
         test = time.time() >= (token_received_at + expires_in)
         if test:
             logging.warning(f"Token expired. Token received at {token_received_at}, expires in {expires_in}, current time is {time.time()}.")
@@ -75,7 +75,11 @@ class Auth:
         attempts = 10
         for i in range(attempts):
             try:
+                current_ticket = self.config.get_auth_ticket()
                 is_expired = self.is_token_expired()
+                if not is_expired:
+                    return current_ticket
+
                 live_token = self.get_access_token()["access_token"]
                 logging.debug(f"Using existing token to refresh: {live_token}")
                 return live_token
@@ -84,7 +88,6 @@ class Auth:
                 is_expired = True
             if is_expired:
                 logging.warning("Access token is expired. Attempting to refresh...")
-                current_ticket = self.config.get_auth_ticket()
                 current_ticket = self.refresh_client_token(current_ticket["refresh_token"])
                 import json
                 print(f"New ticket: {json.dumps(current_ticket, indent=4)}")
