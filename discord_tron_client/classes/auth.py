@@ -66,6 +66,7 @@ class Auth:
         token_received_at = datetime.fromisoformat(self.token_received_at).timestamp()
         expires_in = int(self.expires_in) / 2
         test = time.time() >= (token_received_at + expires_in)
+        logging.debug(f"Token received at {token_received_at} and expires {self.expires_in} seconds after, which we reduce to {expires_in} seconds after that. Current time is {time.time()}.. The result of the test is {test}")
         if test:
             logging.warning(f"Token expired. Token received at {token_received_at}, expires in {expires_in}, current time is {time.time()}.")
         return test
