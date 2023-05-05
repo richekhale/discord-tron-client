@@ -33,6 +33,7 @@ class StableVicunaTorch:
         logging.debug(f"Our received parameters: max_tokens {max_tokens} top_p {top_p} top_k {top_k} repeat_penalty {repeat_penalty} temperature {temperature}")
         time_begin = time.time()
         # User settings overrides.
+        seed = self.set_seed(time_begin)
         if hasattr(user_config, "get"):
             seed = user_config.get("seed", None)
             temperature = user_config.get("temperature", temperature)
@@ -55,7 +56,7 @@ class StableVicunaTorch:
 
         return llm_result
     
-    def set_seed(self):
+    def set_seed(self, time_begin):
         # If the user has not specified a seed, we will use the current time.
         if seed is None or seed == 0:
             logging.debug("Timestamp being used as the seed.")
