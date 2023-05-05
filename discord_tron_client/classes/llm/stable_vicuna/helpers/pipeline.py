@@ -136,7 +136,6 @@ def generate(tokenizer, model, user_prompt, user_config, max_tokens=64, temperat
         top_p=user_config.get("top_p", top_p),
         top_k=user_config.get("top_k", top_k),
         do_sample=True,
-        seed=seed
     )
     thread = Thread(target=model.generate, kwargs=generate_kwargs)
     thread.start()
