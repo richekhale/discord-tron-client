@@ -2,10 +2,11 @@ import json, logging
 logging.basicConfig(level=logging.INFO)
 import ssl, websockets, asyncio
 from discord_tron_client.classes.app_config import AppConfig
+from discord_tron_client.classes.auth import Auth
 from discord_tron_client.classes.message import WebsocketMessage
 from discord_tron_client.classes.worker_processor import WorkerProcessor
 
-async def websocket_client(config: AppConfig, startup_sequence:str = None):
+async def websocket_client(config: AppConfig, startup_sequence:str = None, auth: Auth = None):
     processor = WorkerProcessor()
     concurrent_slots = config.get_concurrent_slots()
     general_semaphore = asyncio.Semaphore(concurrent_slots)

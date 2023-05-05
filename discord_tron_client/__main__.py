@@ -37,7 +37,7 @@ def main():
         main_loop = asyncio.get_event_loop()
         # Add the main loop to the central Config object.
         AppConfig.set_loop(main_loop)
-        main_loop.run_until_complete(websocket_client(config, startup_sequence))
+        main_loop.run_until_complete(websocket_client(config, startup_sequence, auth=auth))
 
         # Start the Flask server
         from discord_tron_client.app_factory import create_app
