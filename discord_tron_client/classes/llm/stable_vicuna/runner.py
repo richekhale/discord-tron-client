@@ -48,8 +48,8 @@ class StableVicunaRunner:
                 AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
                 self.predict,
                 prompt,
+                user_config,
                 history,
-                user_config
             )
             logging.debug(f"StableVicunaRunner predict_handler received result {loop_return}")
             discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send_large_message", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt + '`\n' + loop_return)
