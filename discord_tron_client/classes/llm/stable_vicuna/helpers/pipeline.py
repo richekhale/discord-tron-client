@@ -131,7 +131,7 @@ def generate(tokenizer, model, user_prompt, user_config, max_tokens=64, temperat
     generate_kwargs = dict(
         inputs,
         streamer=streamer,
-        max_new_tokens=max_tokens,
+        max_new_tokens=user_config.get("max_tokens", max_tokens),
         temperature=user_config.get("temperature", temperature),
         top_p=user_config.get("top_p", top_p),
         top_k=user_config.get("top_k", top_k),
