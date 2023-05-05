@@ -31,15 +31,16 @@ class StableVicunaTorch:
         logging.debug(f"Our received parameters: max_tokens {max_tokens} top_p {top_p} top_k {top_k} repeat_penalty {repeat_penalty} temperature {temperature}")
         time_begin = time.time()
         # User settings overrides.
-        seed = user_config.get("seed", None)
-        temperature = user_config.get("temperature", temperature)
-        top_p = user_config.get("top_p", top_p)
-        top_k = user_config.get("top_k", top_k)
-        repeat_penalty = user_config.get("repeat_penalty", repeat_penalty)
-        # Maybe the user wants fewer tokens.
-        user_max_tokens = user_config.get("max_tokens", max_tokens)
-        if max_tokens >= user_max_tokens:
-            max_tokens = user_max_tokens
+        if hasattr(user_config, "get"):
+            seed = user_config.get("seed", None)
+            temperature = user_config.get("temperature", temperature)
+            top_p = user_config.get("top_p", top_p)
+            top_k = user_config.get("top_k", top_k)
+            repeat_penalty = user_config.get("repeat_penalty", repeat_penalty)
+            # Maybe the user wants fewer tokens.
+            user_max_tokens = user_config.get("max_tokens", max_tokens)
+            if max_tokens >= user_max_tokens:
+                max_tokens = user_max_tokens
         logging.debug(f"Our post-override parameters: max_tokens {max_tokens} top_p {top_p} top_k {top_k} repeat_penalty {repeat_penalty} temperature {temperature}")
         logging.debug("Beginning StableVicuna prediction..")
         llm_result, token_count = self._predict(prompt=prompt, history=history, user_config=user_config, seed=seed, max_tokens=max_tokens, temperature=temperature, repeat_penalty=repeat_penalty, top_p=top_p, top_k=top_k)

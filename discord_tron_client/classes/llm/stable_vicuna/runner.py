@@ -14,7 +14,7 @@ class StableVicunaRunner:
                 self.driver.load_model()
         except Exception as e:
             logging.error(f"Could not load StableVicuna driver '{self.driver}': {e}")
-        return self.driver.predict(prompt=prompt, user_config=user_config, history=history)
+        return self.driver.predict(prompt=prompt, history=history, user_config=user_config)
 
     def usage(self):
         driver_usage = self.driver.get_usage()
