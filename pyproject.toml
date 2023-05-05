@@ -33,9 +33,10 @@ peft = "^0.2.0"
 sentencepiece = "^0.1.98"
 tokenizers = "^0.13.3"
 tensorrt = "^8.6.0"
-suno-bark = {git = "https://github.com/JonathanFly/bark"}
+suno-bark = {git = "https://github.com/bghira/bghira-bark"}
 pydub = "^0.25.1"
 tiktoken = "^0.3.3"
+pyopenssl = "^23.1.1"
 
 [[tool.poetry.source]]
 name = "torch"

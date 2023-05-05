@@ -2099,6 +2099,25 @@ files = [
 ]
 
 [[package]]
+name = "pyopenssl"
+version = "23.1.1"
+description = "Python wrapper module around the OpenSSL library"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "pyOpenSSL-23.1.1-py3-none-any.whl", hash = "sha256:9e0c526404a210df9d2b18cd33364beadb0dc858a739b885677bc65e105d4a4c"},
+    {file = "pyOpenSSL-23.1.1.tar.gz", hash = "sha256:841498b9bec61623b1b6c47ebbc02367c07d60e0e195f19790817f10cc8db0b7"},
+]
+
+[package.dependencies]
+cryptography = ">=38.0.0,<41"
+
+[package.extras]
+docs = ["sphinx (!=5.2.0,!=5.2.0.post0)", "sphinx-rtd-theme"]
+test = ["flaky", "pretend", "pytest (>=3.0.1)"]
+
+[[package]]
 name = "pyparsing"
 version = "3.0.9"
 description = "pyparsing module - Classes and methods to define and execute parsing grammars"
@@ -2699,9 +2718,9 @@ dev = ["bandit", "black", "codecov", "flake8", "huggingface-hub", "hypothesis (>
 
 [package.source]
 type = "git"
-url = "https://github.com/JonathanFly/bark"
+url = "https://github.com/bghira/bghira-bark"
 reference = "HEAD"
-resolved_reference = "d2edfe66caf3441b8f980b99cb8f8dbccf481f3a"
+resolved_reference = "d3cf0bf493828230ad5bd0470218d68a0e032cd9"
 
 [[package]]
 name = "sympy"
@@ -3714,4 +3733,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "796dcce65d28700566858f837f5264b447120c4bf9abce45f4e46f624224a3f3"
+content-hash = "262b44fe06b8b3755361fa0367fd8786dce43d0347dad282e839d114bdd0949c"
