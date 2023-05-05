@@ -13,6 +13,8 @@ class StableVicunaTorch:
         self.vicuna = None
 
     def load_model(self):
+        if not config.is_stablevicuna_enabled():
+            return
         self.tokenizer, self.vicuna, self.max_context_length = predict.load(self.model)
 
     def details(self):

@@ -21,6 +21,11 @@ try:
 except:
     logging.warn('Could not retrieve a StableLM driver.')
 
+try:
+    stablevicunarunner = StableVicunaFactory.get()
+except:
+    logging.warn('Could not retrieve a StableVicuna driver.')
+
 identifier = HardwareInfo.get_identifier()
 
 class WorkerProcessor:
@@ -41,6 +46,9 @@ class WorkerProcessor:
             },
             "stablelm": {
                 "predict": stablelmrunner.predict_handler
+            },
+            "stablevicuna": {
+                "predict": stablevicunarunner.predict_handler
             },
             "tts_bark": {
                 "generate": BarkFactory.get().generate_handler

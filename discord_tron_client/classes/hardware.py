@@ -44,6 +44,7 @@ class HardwareInfo:
         capabilities = {
             "llama": config.is_llama_enabled(),
             "stablelm": config.is_stablelm_enabled(),
+            "stablevicuna": config.is_stablevicuna_enabled(),
             "tts_bark": config.is_bark_enabled()
         }
         if self.video_memory_amount != "Unknown" and int(self.video_memory_amount) >= 8:
