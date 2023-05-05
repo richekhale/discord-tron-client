@@ -7,13 +7,13 @@ config = AppConfig()
 class StableLMRunner:
     def __init__(self, stablelm_driver):
         self.driver = stablelm_driver
+        
+    def predict(self, prompt, user_config):
         try:
             if config.is_stablelm_enabled():
                 self.driver.load_model()
         except Exception as e:
             logging.error(f"Could not load StableLM driver: {e}")
-        
-    def predict(self, prompt, user_config):
         return self.driver.predict(prompt, user_config)
     def usage(self):
         driver_usage = self.driver.get_usage()

@@ -7,13 +7,13 @@ config = AppConfig()
 class LlamaRunner:
     def __init__(self, llama_driver):
         self.driver = llama_driver
+        
+    def predict(self, prompt, user_config):
         try:
             if config.is_llama_enabled():
                 self.driver.load_model()
         except Exception as e:
             logging.error(f"Could not load Llama driver: {e}")
-        
-    def predict(self, prompt, user_config):
         return self.driver.predict(prompt, user_config)
     def usage(self):
         driver_usage = self.driver.get_usage()

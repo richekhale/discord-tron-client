@@ -7,13 +7,13 @@ config = AppConfig()
 class StableVicunaRunner:
     def __init__(self, stablevicuna_driver):
         self.driver = stablevicuna_driver
+        
+    def predict(self, prompt, user_config, history = None):
         try:
             if config.is_stablevicuna_enabled():
                 self.driver.load_model()
         except Exception as e:
             logging.error(f"Could not load StableVicuna driver '{self.driver}': {e}")
-        
-    def predict(self, prompt, user_config, history = None):
         return self.driver.predict(prompt=prompt, user_config=user_config, history=history)
 
     def usage(self):
