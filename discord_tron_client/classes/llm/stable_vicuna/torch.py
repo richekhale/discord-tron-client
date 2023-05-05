@@ -28,6 +28,8 @@ class StableVicunaTorch:
 
     def predict(self, prompt, history, user_config, max_tokens = 4096, temperature = 1.0, repeat_penalty = 1.1, top_p = 0.95, top_k=40):
         logging.debug(f"Begin StableVicuna prediction routine")
+        logging.debug(f"Received user_config: {user_config}")
+        logging.debug(f"Received history: {history}")
         logging.debug(f"Our received parameters: max_tokens {max_tokens} top_p {top_p} top_k {top_k} repeat_penalty {repeat_penalty} temperature {temperature}")
         time_begin = time.time()
         # User settings overrides.
