@@ -1,7 +1,8 @@
 import logging, time
 from discord_tron_client.classes.app_config import AppConfig
 from datetime import datetime
-
+from threading import Semaphore
+auth_semaphore = Semaphore(1)
 class Auth:
     def __init__(self, config: AppConfig, access_token: str, refresh_token: str, expires_in: int, token_received_at: int):
         logging.info("Loaded auth ticket helper.")
@@ -39,7 +40,8 @@ class Auth:
         logging.debug(f"get_access_token payload: {payload}")
 
         import requests
-        response = requests.post(url, json=payload, verify=self.config.verify_master_ssl())
+        with auth_semaphore:
+            response = requests.post(url, json=payload, verify=self.config.verify_master_ssl())
         print(f"Response: {response.text}")
         if response.status_code == 200:
             new_ticket = response.json()['access_token']

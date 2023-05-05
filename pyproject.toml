@@ -35,6 +35,7 @@ tokenizers = "^0.13.3"
 tensorrt = "^8.6.0"
 suno-bark = {git = "https://github.com/JonathanFly/bark"}
 pydub = "^0.25.1"
+tiktoken = "^0.3.3"
 
 [[tool.poetry.source]]
 name = "torch"

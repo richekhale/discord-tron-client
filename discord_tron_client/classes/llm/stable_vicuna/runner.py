@@ -13,8 +13,8 @@ class StableVicunaRunner:
         except Exception as e:
             logging.error(f"Could not load StableVicuna driver '{self.driver}': {e}")
         
-    def predict(self, prompt, user_config):
-        return self.driver.predict(prompt, user_config)
+    def predict(self, prompt, user_config, history = None):
+        return self.driver.predict(prompt=prompt, user_config=user_config, history=history)
 
     def usage(self):
         driver_usage = self.driver.get_usage()
@@ -35,6 +35,9 @@ class StableVicunaRunner:
         # We extract the features from the payload and pass them onto the actual generator
         user_config = payload["config"]
         prompt = payload["prompt"]
+        history = None
+        if "history" in payload:
+            history = payload["history"]
         logging.debug(f"StableVicunaRunner predict_handler received prompt {prompt}")
         discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="Thinking!")
         websocket = AppConfig.get_websocket()
@@ -45,6 +48,7 @@ class StableVicunaRunner:
                 AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
                 self.predict,
                 prompt,
+                history
                 user_config
             )
             logging.debug(f"StableVicunaRunner predict_handler received result {loop_return}")
@@ -71,3 +75,4 @@ class StableVicunaRunner:
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
             raise e
+        

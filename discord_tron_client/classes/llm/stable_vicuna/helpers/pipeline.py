@@ -49,51 +49,7 @@ def get_system_prompt(tokenizer):
     max_sys_tokens = system_prompt_tokens['input_ids'].size(-1)
     return max_sys_tokens, system_prompt_tokens
 
-def bot(tokenizer, history, max_context_length, model):
-    history = history or []
-    max_sys_tokens, system_prompt_tokens = get_system_prompt(tokenizer)
-    # Inject prompt formatting into the history
-    prompt_history = []
-    for human, bot in history:
-        if bot is not None:
-            bot = bot.replace("<br>", "\n")
-            bot = bot.rstrip()
-        prompt_history.append(
-            prompt_template.substitute(
-                human=human, bot=bot if bot is not None else "")
-        )
-
-    msg_tokens = tokenizer(
-        "\n\n".join(prompt_history).strip(),
-        return_tensors="pt",
-        add_special_tokens=False  # Use <BOS> from the system prompt
-    )
-
-    # Take only the most recent context up to the max context length and prepend the
-    # system prompt with the messages
-    max_tokens = -max_context_length + max_new_tokens + max_sys_tokens
-    inputs = BatchEncoding({
-        k: torch.concat([system_prompt_tokens[k], msg_tokens[k][:, max_tokens:]], dim=-1)
-        for k in msg_tokens
-    }).to('cuda')
-    # Remove `token_type_ids` b/c it's not yet supported for LLaMA `transformers` models
-    if inputs.get("token_type_ids", None) is not None:
-        inputs.pop("token_type_ids")
-    text = model.generate(
-        inputs,
-        streamer=streamer,
-        max_new_tokens=max_new_tokens,
-        do_sample=True,
-        top_p=1.0,
-        temperature=1.0
-    )
-    return text
-
-
-def user(user_message, history):
-    return "", history + [[user_message, None]]
-
-def chatml_convert(conversation: list):
+def chatml_convert(conversation: list, new_message: str = None):
     """
     Convert the conversation to the desired format.
 
@@ -101,24 +57,43 @@ def chatml_convert(conversation: list):
         conversation (list): A list of conversation dictionaries.
 
     Returns:
-        chatml_history (str): Conversation string.
+        chatml_history (list): A list of formatted conversation strings.
     """
-    stablevicuna_history = []
-    for i in range(len(conversation)):
-        if i % 2 == 0:
+    chatml_history = []
+    start_role = conversation[0]["role"]
+
+    for i in range(0, len(conversation), 2):
+        if start_role == "user":
             human = conversation[i]["content"]
             if i + 1 < len(conversation):
                 bot = conversation[i + 1]["content"]
             else:
                 bot = ""
-            stablevicuna_history.append(prompt_template.substitute(human=human, bot=bot))
-    return stablevicuna_history.join("\n")
+        else:
+            bot = conversation[i]["content"]
+            if i + 1 < len(conversation):
+                human = conversation[i + 1]["content"]
+            else:
+                human = ""
+                
+        chatml_history.append(prompt_template.substitute(human=human, bot=bot))
+    if new_message is not None:
+        chatml_history.append(prompt_template.substitute(human=new_message, bot=""))
 
+    # Lists don't have .join, but:
+    return '\n'.join(chatml_history)
 
-def generate(tokenizer, model, user_prompt, user_config, max_tokens=64, temperature=0.7, repeat_penalty=1.1, top_p=0.9, top_k=40, seed=None):
+def generate(tokenizer, model, user_config, max_tokens=64, temperature=0.7, repeat_penalty=1.1, top_p=0.9, top_k=40, seed=None, prompt = None, user_prompt = None):
+    if prompt is None and user_prompt is None:
+        raise ValueError("User prompt and raw prompt cannot both be null.")
+    if prompt is not None:
+        if user_prompt is None:
+            user_prompt = "What is the first thing you would like to say to StableVicuna?"
+        prompt = chatml_convert(prompt, user_prompt)
+    else:      
+        prompt = prompt_template.substitute(human=user_prompt, bot="")
+
     logging.info(f"Generating with user config: {user_config}, user_prompt: {user_prompt}")
-    system_prompt = "### Assistant: I am StableVicuna, a large language model created by CarperAI. I am here to chat!"
-    prompt = prompt_template.substitute(human=user_prompt, bot="")
     logging.debug(f"Generated prompt: {prompt}")
     inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
     if inputs.get("token_type_ids", None) is not None:
