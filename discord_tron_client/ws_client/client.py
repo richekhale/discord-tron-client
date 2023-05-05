@@ -31,7 +31,7 @@ async def websocket_client(config: AppConfig, startup_sequence:str = None, auth:
                     ssl_context.verify_mode = ssl.CERT_NONE  # Disable certificate verification
 
             # Add the access token to the header
-            access_token = config.get_auth_ticket().get("access_token", None)
+            access_token = auth.get()["access_token"]
             headers = {
                 "Authorization": f"Bearer {access_token}",
             }
