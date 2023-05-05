@@ -32,6 +32,7 @@ def load(model_id = default_model_id):
     )
 
     model.eval()
+    model.to("cuda")
     max_context_length = model.config.max_position_embeddings
     logging.debug(f"Model context length max: {max_context_length}")
     return tokenizer, model, max_context_length
@@ -114,7 +115,7 @@ def chatml_convert(conversation: list):
     return stablevicuna_history.join("\n")
 
 
-def generate(tokenizer, model, user_prompt, user_config, max_tokens=64, temperature=0.7, repeat_penalty=1.1, top_p=0.9, top_k=40):
+def generate(tokenizer, model, user_prompt, user_config, max_tokens=64, temperature=0.7, repeat_penalty=1.1, top_p=0.9, top_k=40, seed=None):
     logging.info(f"Generating with user config: {user_config}, user_prompt: {user_prompt}")
     system_prompt = "### Assistant: I am StableVicuna, a large language model created by CarperAI. I am here to chat!"
     prompt = prompt_template.substitute(human=user_prompt, bot="")
@@ -135,6 +136,7 @@ def generate(tokenizer, model, user_prompt, user_config, max_tokens=64, temperat
         top_p=user_config.get("top_p", top_p),
         top_k=user_config.get("top_k", top_k),
         do_sample=True,
+        seed=seed
     )
     thread = Thread(target=model.generate, kwargs=generate_kwargs)
     thread.start()
