@@ -48,7 +48,7 @@ class StableVicunaRunner:
                 AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
                 self.predict,
                 prompt,
-                history
+                history,
                 user_config
             )
             logging.debug(f"StableVicunaRunner predict_handler received result {loop_return}")
