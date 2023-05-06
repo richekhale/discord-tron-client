@@ -10,7 +10,6 @@ from typing import Dict
 from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.classes.app_config import AppConfig
 import torch, gc, logging, diffusers
-torch.backends.cudnn.benchmark = True
 hardware = HardwareInfo()
 config = AppConfig()
 

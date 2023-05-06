@@ -1,4 +1,4 @@
-import subprocess
+import subprocess, torch
 import logging, socket
 from discord_tron_client.classes.app_config import AppConfig
 
@@ -108,6 +108,9 @@ class HardwareInfo:
                 for line in f:
                     if line.startswith("MemTotal:"):
                         self.memory_amount = int(int(line.split()[1]) / 1024 / 1024)
+                        if (int(self.memory_amount)) < 10:
+                            logging.warn(f"Enabling cuDNN benchmark. Could affect determinism. Obtain a GPU with more than 10G RAM to fix this.")
+                            torch.backends.cudnn.benchmark = True
                         break
         except:
             self.memory_amount = "Unknown"
