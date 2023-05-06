@@ -11,10 +11,6 @@ from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.classes.app_config import AppConfig
 import torch, gc, logging, diffusers
 
-# Allow fallback to Eager mode.
-import torch._dynamo
-torch._dynamo.config.suppress_errors = True
-
 hardware = HardwareInfo()
 config = AppConfig()
 
@@ -177,15 +173,6 @@ class DiffusionPipelineManager:
             self.pipelines[model_id].vae.enable_tiling()
         else:
             self.pipelines[model_id].vae.disable_tiling()
-        if hasattr(self.pipelines[model_id], "unet"):
-            logging.debug(f"Unet for model: {self.pipelines[model_id].unet}")
-            try:
-                old_unet = self.pipelines[model_id].unet
-                self.pipelines[model_id].unet = torch.compile(self.pipelines[model_id].unet)
-            except Exception as e:
-                logging.error(f"Can  not set UNet to torch compile: {e}")
-                self.pipelines[model_id].unet = old_unet
-
         return self.pipelines[model_id]
 
     def get_variation_pipe(self, model_id):

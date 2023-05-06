@@ -3690,18 +3690,18 @@ cffi = ">=1.0"
 
 [[package]]
 name = "xformers"
-version = "0.0.20.dev526"
+version = "0.0.19"
 description = "XFormers: A collection of composable Transformer building blocks."
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "xformers-0.0.20.dev526-cp310-cp310-manylinux2014_x86_64.whl", hash = "sha256:d6dc4cbfced7dfd406d5e8e48b406086448102d57cabc53445c8386565044921"},
-    {file = "xformers-0.0.20.dev526-cp310-cp310-win_amd64.whl", hash = "sha256:b0d1d94a70ac52814480965dcdc1a25c90a707cccc8c13cba5cc5c709ef3102f"},
-    {file = "xformers-0.0.20.dev526-cp38-cp38-manylinux2014_x86_64.whl", hash = "sha256:de1f2e720052691b0dddd9e8a4342e04838fc147395e61d321007744a34cb276"},
-    {file = "xformers-0.0.20.dev526-cp38-cp38-win_amd64.whl", hash = "sha256:cdc07ed7b351063ae18283d74190cdcfe5e51906096ce5fcc94dfa06f811054b"},
-    {file = "xformers-0.0.20.dev526-cp39-cp39-manylinux2014_x86_64.whl", hash = "sha256:5a2488b5f196496cbdd2e88f827062f99fd778caa5263f9097fb4afdba0f0c02"},
-    {file = "xformers-0.0.20.dev526-cp39-cp39-win_amd64.whl", hash = "sha256:871230a8df7102f992859117fe9d833de143bc63834fe38d7c278824f115d85b"},
+    {file = "xformers-0.0.19-cp310-cp310-manylinux2014_x86_64.whl", hash = "sha256:a64fc7be47813e66cac278f7d5451db16243fa758973e90acce3649c63bbf771"},
+    {file = "xformers-0.0.19-cp310-cp310-win_amd64.whl", hash = "sha256:542d2d04f1bc42c11f22fd2360b52b737132a405a8572dde1e251082be477790"},
+    {file = "xformers-0.0.19-cp38-cp38-manylinux2014_x86_64.whl", hash = "sha256:f5a874c4bf7831e55c691b8f133499db4ae489dfaa14c1af9674b929f59d4c79"},
+    {file = "xformers-0.0.19-cp38-cp38-win_amd64.whl", hash = "sha256:2fa58b84db175c9636d6b04d8278f1b4284b096e774b6ed7f449cf7949a3bc49"},
+    {file = "xformers-0.0.19-cp39-cp39-manylinux2014_x86_64.whl", hash = "sha256:ed352f4a09b30f72409c57248cf15728838967ec175e2befe8aaece6e90be456"},
+    {file = "xformers-0.0.19-cp39-cp39-win_amd64.whl", hash = "sha256:8f86c18ff582d7aa456afde361c9050d6f5188312ed4727136bbcb00a3c49e8f"},
 ]
 
 [package.dependencies]
@@ -3795,4 +3795,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "af82eba807950db2a5147c92d1f1158c796ac363d9dae829dd0b5988a2acc650"
+content-hash = "df310af915e3f9224c78011c87176a947c55fc498e73e363eb3e226eafbd942e"
