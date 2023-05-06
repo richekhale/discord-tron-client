@@ -6,7 +6,7 @@ class TokenTester:
         self.tokenizer = tiktoken.encoding_for_model(engine)
 
     def tokenize(self, text):
-        return self.tokenizer.encode(text, allowed_special='all')
+        return self.tokenizer.encode(text, allowed_special="all")
 
     def get_token_count(self, text):
         tokens = self.tokenize(text)

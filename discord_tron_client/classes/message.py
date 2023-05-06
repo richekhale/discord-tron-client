@@ -3,7 +3,9 @@ from PIL import Image
 
 
 class WebsocketMessage:
-    def __init__(self, message_type: str, module_name: str, module_command, data = {}, arguments = {}):
+    def __init__(
+        self, message_type: str, module_name: str, module_command, data={}, arguments={}
+    ):
         self.message_type = message_type
         self.module_name = module_name
         self.module_command = module_command
@@ -12,8 +14,17 @@ class WebsocketMessage:
         self.base_arguments = arguments
         self.arguments = None
 
-    def update(self, message_type = None, module_name = None, module_command = None, data = None, arguments = None):
-        logging.debug(f"Calling update on message: {message_type}, {module_name}, {module_command}, {data}, {arguments}")
+    def update(
+        self,
+        message_type=None,
+        module_name=None,
+        module_command=None,
+        data=None,
+        arguments=None,
+    ):
+        logging.debug(
+            f"Calling update on message: {message_type}, {module_name}, {module_command}, {data}, {arguments}"
+        )
         if message_type:
             self.message_type = message_type
         if module_name:
@@ -30,9 +41,10 @@ class WebsocketMessage:
     def encode_image_to_base64(image: Image) -> str:
         import io
         import base64
+
         buffered = io.BytesIO()
         image.save(buffered, format="PNG")
-        return base64.b64encode(buffered.getvalue()).decode('utf-8')
+        return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
     def add_image(self, image: Image):
         if "images" not in self.data:
@@ -50,10 +62,11 @@ class WebsocketMessage:
             "module_command": self.module_command,
             "timestamp": self.timestamp,
             "data": self.data,
-            "arguments": self.arguments
+            "arguments": self.arguments,
         }
         return output
-        
+
     def to_json(self):
         import json
+
         return json.dumps(self.to_dict())

@@ -4,8 +4,10 @@ from discord_tron_client.classes.app_config import AppConfig
 
 config = AppConfig()
 
+
 class HardwareInfo:
     identifier = None
+
     def __init__(self):
         self.gpu_type = "Unknown type"
         self.cpu_type = "Unknown type"
@@ -20,7 +22,7 @@ class HardwareInfo:
         return {
             "supported_job_types": self.get_system_capabilities(),
             "hardware_limits": self.get_hardware_limits(),
-            "worker_id": worker_id
+            "worker_id": worker_id,
         }
 
     @classmethod
@@ -29,11 +31,15 @@ class HardwareInfo:
             logging.info(f"Using current identifier: {HardwareInfo.identifier}")
             return HardwareInfo.identifier
         logging.info(f"Identifier not found, configuring new one")
-        HardwareInfo.identifier = config.get_friendly_name() or HardwareInfo.get_system_hostname()
+        HardwareInfo.identifier = (
+            config.get_friendly_name() or HardwareInfo.get_system_hostname()
+        )
         import random
-        HardwareInfo.identifier = HardwareInfo.identifier + '-' + str(random.randint(0, 2))
+
+        HardwareInfo.identifier = (
+            HardwareInfo.identifier + "-" + str(random.randint(0, 2))
+        )
         return HardwareInfo.identifier
-        
 
     def get_system_capabilities(self):
         self.get_gpu_info()
@@ -45,7 +51,7 @@ class HardwareInfo:
             "llama": config.is_llama_enabled(),
             "stablelm": config.is_stablelm_enabled(),
             "stablevicuna": config.is_stablevicuna_enabled(),
-            "tts_bark": config.is_bark_enabled()
+            "tts_bark": config.is_bark_enabled(),
         }
         if self.video_memory_amount != "Unknown" and int(self.video_memory_amount) >= 8:
             capabilities["gpu"] = True
@@ -157,7 +163,10 @@ class HardwareInfo:
             return power_consumption
         except Exception as e:
             import traceback
-            logging.error(f"Caught exception during get_gpu_power_consumption: {e}, traceback: {traceback.format_exc()}")
+
+            logging.error(
+                f"Caught exception during get_gpu_power_consumption: {e}, traceback: {traceback.format_exc()}"
+            )
             return -1
 
     def get_disk_space(self):
@@ -175,6 +184,7 @@ class HardwareInfo:
             self.disk_space_total = usage.total
             self.disk_space_used = usage.used
             break
+
     @staticmethod
     def get_system_hostname():
         hostname = socket.gethostname()
@@ -189,14 +199,14 @@ class HardwareInfo:
             "cpu_count": self.get_cpu_count(),
             "memory_amount": self.memory_amount,
             "video_memory_amount": self.video_memory_amount,
-            "hostname": identifier
+            "hostname": identifier,
         }
 
     def should_disable_resolution(self, resolution: dict):
         logging.info(f"Running attention slicing check for resolution {resolution}...")
         gpu_memory = self.video_memory_amount
         pixel_count = resolution["width"] * resolution["height"]
-        memory_to_pixel_ratio = gpu_memory * (1024 ** 3) / pixel_count
+        memory_to_pixel_ratio = gpu_memory * (1024**3) / pixel_count
         # In practice, an 8GB GPU can handle about 1280x720 which is a ratio of 9320 pixels per GiB.
         resolution_performance_threshold = 9000
         result = memory_to_pixel_ratio < resolution_performance_threshold

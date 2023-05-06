@@ -1,5 +1,6 @@
 import traceback
 
+
 def clean_traceback(traceback: str):
     lines = traceback.split("\n")
     new_lines = []

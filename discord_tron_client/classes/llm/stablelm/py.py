@@ -5,6 +5,7 @@ import os, sys, json, logging, time
 
 config = AppConfig()
 
+
 class StableLMPy:
     def __init__(self):
         self.model = config.stablelm_model_default()
@@ -16,17 +17,29 @@ class StableLMPy:
         self.tokenizer, self.stablelm = predict.load(self.model)
 
     def details(self):
-        return f'StableLM.Py running the {self.model} parameter model'
+        return f"StableLM.Py running the {self.model} parameter model"
 
     def get_usage(self):
         return self.usage or None
 
-    def _predict(self, user_config, prompt, seed = 1337, max_tokens = 512, temperature = 0.8, repeat_penalty = 1.1, top_p = 0.95, top_k=40):
+    def _predict(
+        self,
+        user_config,
+        prompt,
+        seed=1337,
+        max_tokens=512,
+        temperature=0.8,
+        repeat_penalty=1.1,
+        top_p=0.95,
+        top_k=40,
+    ):
         try:
             # self.StableLM.params.seed = seed
             pass
         except Exception as e:
-            logging.error(f"Could not set StableLM prompt seed. Perhaps the ABI changed? {e}")
+            logging.error(
+                f"Could not set StableLM prompt seed. Perhaps the ABI changed? {e}"
+            )
         """
             >>> print(f"Result: {result}")
                 Result: {'id': 'cmpl-4b2d3c01-3e7d-41aa-8c2c-9a87ca4ad35d', 'object': 'text_completion', 'created': 1682215736,
@@ -34,12 +47,32 @@ class StableLMPy:
                 'choices': [{'text': '\nI’m not really sure what to think about this yet, so I’ll leave it at that for now.', 'index': 0, 'logprobs': None, 'finish_reason': 'stop'}],
                 'usage': {'prompt_tokens': 10, 'completion_tokens': 25, 'total_tokens': 35}}
         """
-        return predict.generate(tokenizer=self.tokenizer, model=self.stablelm, user_config=user_config, user_prompt=prompt, max_tokens=max_tokens, temperature=temperature, top_p=top_p, top_k=top_k)
-    
-    def predict(self, prompt, user_config, max_tokens = 4096, temperature = 1.0, repeat_penalty = 1.1, top_p = 0.95, top_k=40):
+        return predict.generate(
+            tokenizer=self.tokenizer,
+            model=self.stablelm,
+            user_config=user_config,
+            user_prompt=prompt,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            top_k=top_k,
+        )
+
+    def predict(
+        self,
+        prompt,
+        user_config,
+        max_tokens=4096,
+        temperature=1.0,
+        repeat_penalty=1.1,
+        top_p=0.95,
+        top_k=40,
+    ):
         logging.debug(f"Begin StableLMPy prediction routine")
 
-        logging.debug(f"Our received parameters: max_tokens {max_tokens} top_p {top_p} top_k {top_k} repeat_penalty {repeat_penalty} temperature {temperature}")
+        logging.debug(
+            f"Our received parameters: max_tokens {max_tokens} top_p {top_p} top_k {top_k} repeat_penalty {repeat_penalty} temperature {temperature}"
+        )
         time_begin = time.time()
         # User settings overrides.
         seed = user_config.get("seed", None)
@@ -51,7 +84,9 @@ class StableLMPy:
         user_max_tokens = user_config.get("max_tokens", max_tokens)
         if max_tokens >= user_max_tokens:
             max_tokens = user_max_tokens
-        logging.debug(f"Our post-override parameters: max_tokens {max_tokens} top_p {top_p} top_k {top_k} repeat_penalty {repeat_penalty} temperature {temperature}")
+        logging.debug(
+            f"Our post-override parameters: max_tokens {max_tokens} top_p {top_p} top_k {top_k} repeat_penalty {repeat_penalty} temperature {temperature}"
+        )
 
         # If the user has not specified a seed, we will use the current time.
         if seed is None or seed == 0:
@@ -61,13 +96,23 @@ class StableLMPy:
             # -1 is a special condition for randomizing the seed more than just using the timestamp.
             logging.debug("Ultra-seed randomizer engaged!")
             import random
+
             seed = random.randint(0, 999999999)
         else:
             logging.debug("A pre-selected seed was provided.")
         logging.debug(f"Seed chosen: {seed}")
 
         logging.debug("Beginning StableLM.Py prediction..")
-        llm_result, token_count = self._predict(prompt=prompt, user_config=user_config, seed=seed, max_tokens=max_tokens, temperature=temperature, repeat_penalty=repeat_penalty, top_p=top_p, top_k=top_k)
+        llm_result, token_count = self._predict(
+            prompt=prompt,
+            user_config=user_config,
+            seed=seed,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            repeat_penalty=repeat_penalty,
+            top_p=top_p,
+            top_k=top_k,
+        )
         time_end = time.time()
         time_duration = time_end - time_begin
         logging.debug(f"Completed prediction in {time_duration} seconds: {llm_result}")

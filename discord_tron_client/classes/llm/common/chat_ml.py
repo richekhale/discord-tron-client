@@ -10,6 +10,7 @@ app = AppConfig.flask
 if app is None:
     raise Exception("Flask app is not initialized.")
 
+
 class ChatML:
     def __init__(self, history: dict = None, token_limit: int = 2048):
         self.history = history or []
@@ -37,12 +38,14 @@ class ChatML:
 
     async def get_history_token_count(self):
         # Pad the value by 64 to accommodate for the metadata in the JSON we can't really count right here.
-        return self.tokenizer.get_token_count(json.dumps(await self.get_history())) + 512
+        return (
+            self.tokenizer.get_token_count(json.dumps(await self.get_history())) + 512
+        )
 
     # Format the history as a string for OpenAI.
     async def get_prompt(self):
         return json.dumps(await self.get_history())
-        
+
     async def set_history(self, history: dict):
         self.history = history
 
@@ -58,20 +61,28 @@ class ChatML:
             return True
         return False
 
-    def truncate_conversation_history(self, conversation_history, new_prompt, max_tokens=2048):
+    def truncate_conversation_history(
+        self, conversation_history, new_prompt, max_tokens=2048
+    ):
         # Calculate tokens for new_prompt
         new_prompt_token_count = self.tokenizer.get_token_count(new_prompt)
         if new_prompt_token_count >= max_tokens:
             raise ValueError("The new prompt alone exceeds the maximum token limit.")
-    
+
         # Calculate tokens for conversation_history
-        conversation_history_token_counts = [len(self.tokenizer.tokenize(entry)) for entry in conversation_history]
+        conversation_history_token_counts = [
+            len(self.tokenizer.tokenize(entry)) for entry in conversation_history
+        ]
         total_tokens = sum(conversation_history_token_counts) + new_prompt_token_count
-    
+
         # Truncate conversation history if total tokens exceed max_tokens
         while total_tokens > max_tokens:
             conversation_history.pop(0)  # Remove the oldest entry
-            conversation_history_token_counts.pop(0)  # Remove the oldest entry's token count
-            total_tokens = sum(conversation_history_token_counts) + new_prompt_token_count
-    
-        return conversation_history  
+            conversation_history_token_counts.pop(
+                0
+            )  # Remove the oldest entry's token count
+            total_tokens = (
+                sum(conversation_history_token_counts) + new_prompt_token_count
+            )
+
+        return conversation_history

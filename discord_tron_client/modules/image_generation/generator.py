@@ -1,12 +1,21 @@
-from discord_tron_client.classes.image_manipulation import diffusion, pipeline, resolution
-from discord_tron_client.classes.image_manipulation.model_manager import TransformerModelManager
+from discord_tron_client.classes.image_manipulation import (
+    diffusion,
+    pipeline,
+    resolution,
+)
+from discord_tron_client.classes.image_manipulation.model_manager import (
+    TransformerModelManager,
+)
 from discord_tron_client.message.discord import DiscordMessage
 from discord_tron_client.classes.uploader import Uploader
 import tqdm, logging, asyncio
 from PIL import Image
 from discord_tron_client.classes.app_config import AppConfig
+
 config = AppConfig()
 from discord_tron_client.classes.debug import clean_traceback
+
+
 # Image generator plugin for the worker.
 async def generate_image(payload, websocket):
     # We extract the features from the payload and pass them onto the actual generator
@@ -22,31 +31,72 @@ async def generate_image(payload, websocket):
         positive_prompt = user_config["positive_prompt"]
         upscaler = payload.get("upscaler", False)
         websocket = AppConfig.get_websocket()
-        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="Your prompt is now being processed. This might take a while to get to the next step if we have to download your model!")
+        discord_msg = DiscordMessage(
+            websocket=websocket,
+            context=payload["discord_first_message"],
+            module_command="edit",
+            message="Your prompt is now being processed. This might take a while to get to the next step if we have to download your model!",
+        )
         await websocket.send(discord_msg.to_json())
         model_manager = TransformerModelManager()
         pipeline_manager = AppConfig.get_pipeline_manager()
-        pipeline_runner = pipeline.PipelineRunner(model_manager=model_manager, pipeline_manager=pipeline_manager, app_config=config, user_config=user_config, discord_msg=discord_msg, websocket=websocket, model_config=model_config)
+        pipeline_runner = pipeline.PipelineRunner(
+            model_manager=model_manager,
+            pipeline_manager=pipeline_manager,
+            app_config=config,
+            user_config=user_config,
+            discord_msg=discord_msg,
+            websocket=websocket,
+            model_config=model_config,
+        )
         # Attach a positive prompt weight to the end so that it's more likely to show up this way.
-        prompt=prompt + ' ' + positive_prompt
+        prompt = prompt + " " + positive_prompt
         image = None
         if "image_data" in payload:
             logging.debug(f"Found image data in payload: {payload['image_data']}")
             import io, requests
-            image = Image.open(io.BytesIO(requests.get(payload["image_data"], timeout=10).content))
+
+            image = Image.open(
+                io.BytesIO(requests.get(payload["image_data"], timeout=10).content)
+            )
             image = image.resize((resolution["width"], resolution["height"]))
-            background = Image.new('RGBA', image.size, (255,255,255))
+            background = Image.new("RGBA", image.size, (255, 255, 255))
             alpha_composite = Image.alpha_composite(background, image)
-            image = alpha_composite.convert('RGB')
-        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")
+            image = alpha_composite.convert("RGB")
+        discord_msg = DiscordMessage(
+            websocket=websocket,
+            context=payload["discord_context"],
+            module_command="delete",
+        )
         await websocket.send(discord_msg.to_json())
 
-        output_images = await pipeline_runner.generate_image(user_config=user_config, scheduler_config=scheduler_config, prompt=prompt + ' ' + positive_prompt, model_id=model_id, side_x=resolution["width"], side_y=resolution["height"], negative_prompt=negative_prompt, steps=steps, image=image, upscaler=upscaler)
+        output_images = await pipeline_runner.generate_image(
+            user_config=user_config,
+            scheduler_config=scheduler_config,
+            prompt=prompt + " " + positive_prompt,
+            model_id=model_id,
+            side_x=resolution["width"],
+            side_y=resolution["height"],
+            negative_prompt=negative_prompt,
+            steps=steps,
+            image=image,
+            upscaler=upscaler,
+        )
         websocket = AppConfig.get_websocket()
-        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="delete")
+        discord_msg = DiscordMessage(
+            websocket=websocket,
+            context=payload["discord_first_message"],
+            module_command="delete",
+        )
         for attempt in range(1, 6):
-            if not websocket or not hasattr(websocket, "open") or websocket.open != True:
-                logging.warn("WebSocket connection is not open. Retrieving fresh instance.")
+            if (
+                not websocket
+                or not hasattr(websocket, "open")
+                or websocket.open != True
+            ):
+                logging.warn(
+                    "WebSocket connection is not open. Retrieving fresh instance."
+                )
                 websocket = AppConfig.get_websocket()
                 await asyncio.sleep(2)
             else:
@@ -55,33 +105,61 @@ async def generate_image(payload, websocket):
         await websocket.send(discord_msg.to_json())
         payload["seed"] = pipeline_runner.seed
         payload["gpu_power_consumption"] = pipeline_runner.gpu_power_consumption
-        logging.info("Image generated successfully!")\
-        # Truncate prompt to 32 chars and add a ...
-        truncated_prompt = prompt[:29] + '...'
+        logging.info(
+            "Image generated successfully!"
+        )  # Truncate prompt to 32 chars and add a ...
+        truncated_prompt = prompt[:29] + "..."
 
         # Try uploading via the HTTP API
         api_client = AppConfig.get_api_client()
         uploader = Uploader(api_client=api_client, config=config)
         url_list = await uploader.upload_images(output_images)
         # Now we can remove the message.
-        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="delete")
+        discord_msg = DiscordMessage(
+            websocket=websocket,
+            context=payload["discord_first_message"],
+            module_command="delete",
+        )
         await websocket.send(discord_msg.to_json())
         # discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=DiscordMessage.print_prompt(payload), image_url_list=url_list)
 
         websocket = AppConfig.get_websocket()
-        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="create_thread", name=truncated_prompt, message=DiscordMessage.print_prompt(payload), image_url_list=url_list)
+        discord_msg = DiscordMessage(
+            websocket=websocket,
+            context=payload["discord_first_message"],
+            module_command="create_thread",
+            name=truncated_prompt,
+            message=DiscordMessage.print_prompt(payload),
+            image_url_list=url_list,
+        )
         await websocket.send(discord_msg.to_json())
 
     except Exception as e:
         import traceback
+
         try:
-            logging.error(f"Error generating image: {e}\n\nStack trace:\n{traceback.format_exc()}")
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete_errors")
+            logging.error(
+                f"Error generating image: {e}\n\nStack trace:\n{traceback.format_exc()}"
+            )
+            discord_msg = DiscordMessage(
+                websocket=websocket,
+                context=payload["discord_context"],
+                module_command="delete_errors",
+            )
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message=f"It seems we had an error while generating this image!\n```{e}\n{clean_traceback(traceback.format_exc())}\n```")
+            discord_msg = DiscordMessage(
+                websocket=websocket,
+                context=payload["discord_first_message"],
+                module_command="edit",
+                message=f"It seems we had an error while generating this image!\n```{e}\n{clean_traceback(traceback.format_exc())}\n```",
+            )
             await websocket.send(discord_msg.to_json())
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")
+            discord_msg = DiscordMessage(
+                websocket=websocket,
+                context=payload["discord_context"],
+                module_command="delete",
+            )
             await websocket.send(discord_msg.to_json())
             raise e
         except:

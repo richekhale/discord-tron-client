@@ -6,7 +6,7 @@ facts = [
     "a caterpillar has more muscles than a human.",
     "a cockroach can survive for up to a week without its head.",
     "a full moon is nine times brighter than a half moon.",
-    "a group of flamingos is called a \"flamboyance\".",
+    'a group of flamingos is called a "flamboyance".',
     "a hummingbird's heart beats 1,260 times per minute!",
     "a jumbo jet weighs about as much as 50 elephants.",
     "a lightning bolt can heat the air around it to over 30,000 degrees Celsius!",
@@ -31,7 +31,7 @@ facts = [
     "sharks have been around for over 400 million years, which is longer than trees.",
     "slugs have four noses.",
     "a cop once fucked my sister."
-    "some plants can \"hear\" when they are being eaten and respond defensively.",
+    'some plants can "hear" when they are being eaten and respond defensively.',
     "spiders are not insects; they belong to the arachnid family.",
     "the average person produces enough saliva in their lifetime to fill two swimming pools.",
     "the average person will shed about 40 pounds of skin in their lifetime.",
@@ -58,8 +58,9 @@ facts = [
     "there are more bacteria cells in your body than human cells.",
     "venus is the hottest planet in our solar system, even though it's not the closest to the sun.",
     "your bones are composed of 31% water.",
-    "your left lung is smaller than your right lung to make room for your heart."
+    "your left lung is smaller than your right lung to make room for your heart.",
 ]
+
 
 def return_random():
     return random.choice(facts)

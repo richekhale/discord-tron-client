@@ -12,25 +12,31 @@ config = AppConfig()
 
 semaphore = asyncio.Semaphore(config.get_max_concurrent_uploads())
 
+
 class Uploader:
     def __init__(self, api_client: ApiClient, config: AppConfig):
         self.api_client = api_client
         self.config = config
+
     def start_thread_pool(self, num_workers=4):
         self.thread_pool = ThreadPool(processes=num_workers)
         return self.thread_pool
+
     def run_threads(self):
         self.thread_pool.close()
         self.thread_pool.join()
-        
+
     def image(self, image):
         logging.debug(f"Uploading image to {self.config.get_master_url()}")
         self.api_client.update_auth()
-        result = asyncio.run(self.api_client.send_pil_image('/upload_image', image, False))
+        result = asyncio.run(
+            self.api_client.send_pil_image("/upload_image", image, False)
+        )
         logging.debug(f"Image uploader received result: {result}")
         if "image_url" in result:
             return result["image_url"]
         raise Exception(f"Image upload failed: {result}")
+
     async def upload_images(self, images: List):
         self.start_thread_pool(len(images))
         results = self.thread_pool.map(self.image, images)
@@ -44,11 +50,14 @@ class Uploader:
         write_wav(wav_binary_stream, sample_rate, audio_data)
         # Reset the binary stream's position to the beginning
         wav_binary_stream.seek(0)
-        result = await self.api_client.send_audio('/upload_audio', wav_binary_stream, False)
+        result = await self.api_client.send_audio(
+            "/upload_audio", wav_binary_stream, False
+        )
         logging.debug(f"Audio uploader received result: {result}")
         if "audio_url" in result:
             return result["audio_url"]
         raise Exception(f"Audio upload failed: {result}")
+
     async def upload_audio_files(self, audio_files_data: List, sample_rates: List):
         self.start_thread_pool(len(audio_files_data))
         results = self.thread_pool.map(self.audio, audio_files_data, sample_rates)

@@ -5,18 +5,17 @@ from discord_tron_client.classes.llm.stable_vicuna.torch import StableVicunaTorc
 
 config = AppConfig()
 driver = config.stablevicuna_subsystem_type()
-driver_mappings = {
-    "stablevicuna": StableVicunaTorch
-}
+driver_mappings = {"stablevicuna": StableVicunaTorch}
+
 
 class StableVicunaFactory:
     def __init__(self):
         self.driver = driver_mappings[driver]()
 
-    @staticmethod        
+    @staticmethod
     def get_driver():
         return driver_mappings[driver]()
-    
+
     @staticmethod
     def get() -> StableVicunaRunner:
         return StableVicunaRunner(StableVicunaFactory.get_driver())

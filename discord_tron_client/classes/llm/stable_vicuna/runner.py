@@ -2,19 +2,23 @@ from discord_tron_client.classes.app_config import AppConfig
 from discord_tron_client.message.discord import DiscordMessage
 from discord_tron_client.classes.debug import clean_traceback
 import logging, asyncio
+
 config = AppConfig()
+
 
 class StableVicunaRunner:
     def __init__(self, stablevicuna_driver):
         self.driver = stablevicuna_driver
-        
-    def predict(self, prompt, user_config, history = None):
+
+    def predict(self, prompt, user_config, history=None):
         try:
             if config.is_stablevicuna_enabled():
                 self.driver.load_model()
         except Exception as e:
             logging.error(f"Could not load StableVicuna driver '{self.driver}': {e}")
-        return self.driver.predict(prompt=prompt, history=history, user_config=user_config)
+        return self.driver.predict(
+            prompt=prompt, history=history, user_config=user_config
+        )
 
     def usage(self):
         driver_usage = self.driver.get_usage()
@@ -26,9 +30,11 @@ class StableVicunaRunner:
         driver_details = self.driver.details() or "`Unknown LLM driver`"
         output_text = f"`{int(time_duration)} seconds`"
         if "total_token_count" in driver_usage:
-            output_text = f"{output_text} using `{driver_usage['total_token_count']} tokens`"
+            output_text = (
+                f"{output_text} using `{driver_usage['total_token_count']} tokens`"
+            )
         output_text = f"{output_text} via {driver_details}"
-            
+
         return output_text
 
     async def predict_handler(self, payload, websocket):
@@ -39,7 +45,12 @@ class StableVicunaRunner:
         if "history" in payload:
             history = payload["history"]
         logging.debug(f"StableVicunaRunner predict_handler received prompt {prompt}")
-        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="Thinking!")
+        discord_msg = DiscordMessage(
+            websocket=websocket,
+            context=payload["discord_first_message"],
+            module_command="edit",
+            message="Thinking!",
+        )
         websocket = AppConfig.get_websocket()
         await websocket.send(discord_msg.to_json())
         try:
@@ -51,28 +62,63 @@ class StableVicunaRunner:
                 user_config,
                 history,
             )
-            logging.debug(f"StableVicunaRunner predict_handler received result {loop_return}")
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send_large_message", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt + '`\n' + loop_return)
+            logging.debug(
+                f"StableVicunaRunner predict_handler received result {loop_return}"
+            )
+            discord_msg = DiscordMessage(
+                websocket=websocket,
+                context=payload["discord_first_message"],
+                module_command="send_large_message",
+                message=f'<@{payload["discord_context"]["author"]["id"]}>: '
+                + "`"
+                + prompt
+                + "`\n"
+                + loop_return,
+            )
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
             usage = self.usage()
             if usage is not None:
-                discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + 'Your prompt, `' + prompt + '`, used ' + f'{usage}')
+                discord_msg = DiscordMessage(
+                    websocket=websocket,
+                    context=payload["discord_first_message"],
+                    module_command="send",
+                    message=f'<@{payload["discord_context"]["author"]["id"]}>: '
+                    + "Your prompt, `"
+                    + prompt
+                    + "`, used "
+                    + f"{usage}",
+                )
                 websocket = AppConfig.get_websocket()
                 await websocket.send(discord_msg.to_json())
 
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="delete")
+            discord_msg = DiscordMessage(
+                websocket=websocket,
+                context=payload["discord_first_message"],
+                module_command="delete",
+            )
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")
+            discord_msg = DiscordMessage(
+                websocket=websocket,
+                context=payload["discord_context"],
+                module_command="delete",
+            )
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
 
         except Exception as e:
             import traceback
-            logging.error(f"Received an error in StableVicunaRunner.predict_handler: {e}, traceback: {clean_traceback(traceback.format_exc())}")
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="We pooped the bed!")
+
+            logging.error(
+                f"Received an error in StableVicunaRunner.predict_handler: {e}, traceback: {clean_traceback(traceback.format_exc())}"
+            )
+            discord_msg = DiscordMessage(
+                websocket=websocket,
+                context=payload["discord_first_message"],
+                module_command="edit",
+                message="We pooped the bed!",
+            )
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
             raise e
-        

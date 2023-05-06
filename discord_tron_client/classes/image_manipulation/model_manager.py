@@ -1,6 +1,8 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from discord_tron_client.classes.app_config import AppConfig
+
 config = AppConfig()
+
 
 class TransformerModelManager:
     def __init__(self):
@@ -14,4 +16,3 @@ class TransformerModelManager:
 
     def get_tokenizer(self, model_id):
         return AutoTokenizer.from_pretrained(model_id)
-    

@@ -3,6 +3,7 @@ from discord_tron_client.classes.auth import Auth
 from discord_tron_client.classes.app_config import AppConfig
 from PIL import Image
 
+
 class ApiClient:
     def __init__(self, auth: Auth, config: AppConfig):
         self.auth = auth
@@ -33,7 +34,13 @@ class ApiClient:
         response = requests.put(url, params=params, verify=self.verify_ssl)
         return self.handle_response(response)
 
-    def post(self, endpoint: str, params: dict = None, files: dict = None, send_auth: bool = True):
+    def post(
+        self,
+        endpoint: str,
+        params: dict = None,
+        files: dict = None,
+        send_auth: bool = True,
+    ):
         attempt = 0
         while attempt < 15:
             try:
@@ -42,16 +49,27 @@ class ApiClient:
                 if send_auth:
                     self.headers = self._set_auth_header()
                 url = self.base_url + endpoint
-                response = requests.post(url, timeout=60, params=params, verify=self.verify_ssl, files=files, headers=self.headers)
+                response = requests.post(
+                    url,
+                    timeout=60,
+                    params=params,
+                    verify=self.verify_ssl,
+                    files=files,
+                    headers=self.headers,
+                )
                 return self.handle_response(response)
             except Exception as e:
                 logging.error("Error in ApiClient.post: " + str(e))
                 try:
                     if "Authentication required" in str(e):
-                        logging.error("Error is authentication related. Refreshing auth.")
+                        logging.error(
+                            "Error is authentication related. Refreshing auth."
+                        )
                         self.update_auth()
                 except Exception as e2:
-                    logging.error("Error in ApiClient.post when checking error: " + str(e2))
+                    logging.error(
+                        "Error in ApiClient.post when checking error: " + str(e2)
+                    )
                 attempt += 1
         raise Exception("Upload failed after 15 attempts.")
 
@@ -59,8 +77,12 @@ class ApiClient:
         with open(file_path, "rb") as f:
             response = requests.post(endpoint, files={"file": f})
         return response
-    async def send_audio(self, endpoint: str, buffer: io.BytesIO, send_auth: bool = True):
+
+    async def send_audio(
+        self, endpoint: str, buffer: io.BytesIO, send_auth: bool = True
+    ):
         import asyncio
+
         loop = asyncio.get_event_loop()
         logging.debug(f"Uploading audio: {buffer}")
         response = await loop.run_in_executor(
@@ -69,14 +91,16 @@ class ApiClient:
             endpoint,
             None,
             {"audio_buffer": buffer},
-            send_auth
+            send_auth,
         )
         return response
+
     async def send_pil_image(self, endpoint: str, image: Image, send_auth: bool = True):
         buffer = io.BytesIO()
         image.save(buffer, format="PNG")
         buffer.seek(0)
         import asyncio
+
         loop = asyncio.get_event_loop()
         response = await loop.run_in_executor(
             AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
@@ -84,7 +108,7 @@ class ApiClient:
             endpoint,
             None,
             {"image": buffer},
-            send_auth
+            send_auth,
         )
         return response
 
@@ -101,8 +125,12 @@ class ApiClient:
     def _set_auth_header(self) -> dict:
         # We need the token from self.auth.get() to be set as the Authorization header using the Bearing token type
         current_ticket = self.auth.get()
-        if current_ticket is None or "access_token" not in current_ticket or current_ticket['access_token'] == '':
+        if (
+            current_ticket is None
+            or "access_token" not in current_ticket
+            or current_ticket["access_token"] == ""
+        ):
             raise Exception(f"No auth ticket found: {current_ticket}")
 
-        self.headers = { "Authorization": f"Bearer {current_ticket['access_token']}" }
+        self.headers = {"Authorization": f"Bearer {current_ticket['access_token']}"}
         return self.headers

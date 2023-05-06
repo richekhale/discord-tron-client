@@ -3,8 +3,17 @@ from discord_tron_client.message.discord import DiscordMessage
 from discord_tron_client.classes.app_config import AppConfig
 import logging, websockets, time, asyncio
 from websockets.client import WebSocketClientProtocol
+
+
 class DiscordProgressBar:
-    def __init__(self, websocket: WebSocketClientProtocol, websocket_message: DiscordMessage, discord_first_message: Dict, progress_bar_steps = 100, progress_bar_length = 20):
+    def __init__(
+        self,
+        websocket: WebSocketClientProtocol,
+        websocket_message: DiscordMessage,
+        discord_first_message: Dict,
+        progress_bar_steps=100,
+        progress_bar_length=20,
+    ):
         self.total_steps = progress_bar_steps
         self.progress_bar_length = progress_bar_length
         self.current_step = 0
@@ -13,9 +22,12 @@ class DiscordProgressBar:
         self.discord_first_message = discord_first_message
         # Last updated time.
         self.last_update = time.time()
+
     async def update_progress_bar(self, step: int):
         if step < self.current_step:
-            logging.warn(f"Step {step} is less than current step {self.current_step}. This means the progress bar tried updating to the same state more than once.")
+            logging.warn(
+                f"Step {step} is less than current step {self.current_step}. This means the progress bar tried updating to the same state more than once."
+            )
         self.current_step = step
         progress = self.current_step / self.total_steps
         filled_length = int(progress * self.progress_bar_length)
@@ -24,7 +36,9 @@ class DiscordProgressBar:
         progress_text = "`" + f"[{bar}] {percent}% complete`"
         we_have_another_fifth_of_progress = percent % 20
         if we_have_another_fifth_of_progress == 0:
-            logging.debug(f"Current document for websocket_msg: {self.websocket_msg.to_json()}")
+            logging.debug(
+                f"Current document for websocket_msg: {self.websocket_msg.to_json()}"
+            )
             # await self.discord_first_message.edit(content=progress_text)
             logging.info("Sending progress bar to websocket!")
             try:
@@ -33,9 +47,12 @@ class DiscordProgressBar:
                 to_send = self.websocket_msg.to_json()
                 logging.debug(f"Sending data: {to_send}")
                 self.websocket = AppConfig.get_websocket()
-                await self.send_update(self.websocket, str(to_send))  # Use the send_update function here
+                await self.send_update(
+                    self.websocket, str(to_send)
+                )  # Use the send_update function here
             except Exception as e:
                 logging.error("Traceback: ", exc_info=True)
+
     async def send_update(self, websocket, message, max_retries=5):
         try:
             await websocket.send(message)
@@ -53,6 +70,6 @@ class DiscordProgressBar:
                 "discord_first_message": self.discord_first_message,
                 "progress": self.current_step,
                 "total_steps": self.total_steps,
-                "progress_bar_length": self.progress_bar_length
-            }
+                "progress_bar_length": self.progress_bar_length,
+            },
         }

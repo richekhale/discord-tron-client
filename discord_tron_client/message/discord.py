@@ -5,10 +5,26 @@ import logging, websocket, gzip, base64
 from io import BytesIO
 from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.classes.app_config import AppConfig
+
 hardware = HardwareInfo()
 config = AppConfig()
+
+
 class DiscordMessage(WebsocketMessage):
-    def __init__(self, websocket: websocket,  context, module_command: str = "send", mention: str = None, message: str = None, name: str = None, image: Image = None, image_url: str = None, image_url_list: list = None, audio_url: str = None, audio_data: str = None):
+    def __init__(
+        self,
+        websocket: websocket,
+        context,
+        module_command: str = "send",
+        mention: str = None,
+        message: str = None,
+        name: str = None,
+        image: Image = None,
+        image_url: str = None,
+        image_url_list: list = None,
+        audio_url: str = None,
+        audio_data: str = None,
+    ):
         self.websocket = websocket
         if isinstance(context, DiscordMessage):
             # Extract the context from the existing DiscordMessage
@@ -32,14 +48,20 @@ class DiscordMessage(WebsocketMessage):
             arguments["audio_url"] = audio_url
         if audio_data is not None:
             arguments["audio_data"] = audio_data
-        super().__init__(message_type="discord", module_name="message", module_command=module_command, data=context, arguments=arguments)
-        
+        super().__init__(
+            message_type="discord",
+            module_name="message",
+            module_command=module_command,
+            data=context,
+            arguments=arguments,
+        )
+
     def b64_image(self, image: Image):
         # Save image to buffer before encoding as base64
         buffered = BytesIO()
         image.save(buffered, format="PNG")
         # Base64 encode the compressed bytes
-        b64_image = base64.b64encode(buffered.getvalue()).decode('utf-8')
+        b64_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
         return b64_image
 
     @staticmethod
@@ -58,12 +80,19 @@ class DiscordMessage(WebsocketMessage):
         negative_prompt = user_config["negative_prompt"]
         positive_prompt = user_config["positive_prompt"]
         author_id = payload["discord_context"]["author"]["id"]
-        vmem = int(system_hw['video_memory_amount'])
-        return f"**<@{author_id}>'s Prompt**: {prompt}\n" \
-                f"**Seed**: `!seed {seed}`, **Guidance**: {user_config['guidance_scaling']}, **Steps**: `!steps {steps}`, **Strength (img2img)**: {strength}, **Temperature (txt2txt)**: {temperature}\n" \
-                f"**Model**: `!model {model_id}` **Scheduler**: `!scheduler {scheduler_name}`\n" \
-                f"**Resolution (txt2img)**: " + str(resolution["width"]) + "x" + str(resolution["height"]) + "\n" \
-                f"**{HardwareInfo.get_identifier()}**: {payload['gpu_power_consumption']}W power used via {system_hw['gpu_type']} ({vmem}G), on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
+        vmem = int(system_hw["video_memory_amount"])
+        return (
+            f"**<@{author_id}>'s Prompt**: {prompt}\n"
+            f"**Seed**: `!seed {seed}`, **Guidance**: {user_config['guidance_scaling']}, **Steps**: `!steps {steps}`, **Strength (img2img)**: {strength}, **Temperature (txt2txt)**: {temperature}\n"
+            f"**Model**: `!model {model_id}` **Scheduler**: `!scheduler {scheduler_name}`\n"
+            f"**Resolution (txt2img)**: "
+            + str(resolution["width"])
+            + "x"
+            + str(resolution["height"])
+            + "\n"
+            f"**{HardwareInfo.get_identifier()}**: {payload['gpu_power_consumption']}W power used via {system_hw['gpu_type']} ({vmem}G), on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
+        )
+
     @staticmethod
     def mention(payload):
         """Create a Discord mention string from a payload

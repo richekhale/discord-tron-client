@@ -53,6 +53,7 @@ generation_config = GenerationConfig(
 )
 print(f"temperature; {generation_config.temperature}")
 
+
 def format_system_prompt(prompt, eos_token="</s>"):
     return "{}{}{}{}".format("<|prompter|>", prompt, eos_token, "<|assistant|>")
 

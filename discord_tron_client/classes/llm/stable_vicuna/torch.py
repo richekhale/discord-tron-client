@@ -5,6 +5,7 @@ import os, sys, json, logging, time
 
 config = AppConfig()
 
+
 class StableVicunaTorch:
     def __init__(self):
         self.model = config.stablevicuna_model_default()
@@ -18,19 +19,52 @@ class StableVicunaTorch:
         self.tokenizer, self.vicuna, self.max_context_length = predict.load(self.model)
 
     def details(self):
-        return f'StableVicuna running the {self.model} parameter model via 🤗 Diffusers'
+        return f"StableVicuna running the {self.model} parameter model via 🤗 Diffusers"
 
     def get_usage(self):
         return self.usage or None
 
-    def _predict(self, user_config, prompt, history = None, seed = 1337, max_tokens = 512, temperature = 0.8, repeat_penalty = 1.1, top_p = 0.95, top_k=40):
-        return predict.generate(tokenizer=self.tokenizer, model=self.vicuna, user_config=user_config, user_prompt=prompt, max_tokens=max_tokens, temperature=temperature, top_p=top_p, top_k=top_k, seed=seed)
+    def _predict(
+        self,
+        user_config,
+        prompt,
+        history=None,
+        seed=1337,
+        max_tokens=512,
+        temperature=0.8,
+        repeat_penalty=1.1,
+        top_p=0.95,
+        top_k=40,
+    ):
+        return predict.generate(
+            tokenizer=self.tokenizer,
+            model=self.vicuna,
+            user_config=user_config,
+            user_prompt=prompt,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            top_k=top_k,
+            seed=seed,
+        )
 
-    def predict(self, prompt, user_config, history, max_tokens = 4096, temperature = 1.0, repeat_penalty = 1.1, top_p = 0.95, top_k=40):
+    def predict(
+        self,
+        prompt,
+        user_config,
+        history,
+        max_tokens=4096,
+        temperature=1.0,
+        repeat_penalty=1.1,
+        top_p=0.95,
+        top_k=40,
+    ):
         logging.debug(f"Begin StableVicuna prediction routine")
         logging.debug(f"Received user_config: {user_config}")
         logging.debug(f"Received history: {history}")
-        logging.debug(f"Our received parameters: max_tokens {max_tokens} top_p {top_p} top_k {top_k} repeat_penalty {repeat_penalty} temperature {temperature}")
+        logging.debug(
+            f"Our received parameters: max_tokens {max_tokens} top_p {top_p} top_k {top_k} repeat_penalty {repeat_penalty} temperature {temperature}"
+        )
         time_begin = time.time()
         # User settings overrides.
         seed = None
@@ -45,9 +79,21 @@ class StableVicunaTorch:
             user_max_tokens = user_config.get("max_tokens", max_tokens)
             if max_tokens >= user_max_tokens:
                 max_tokens = user_max_tokens
-        logging.debug(f"Our post-override parameters: max_tokens {max_tokens} top_p {top_p} top_k {top_k} repeat_penalty {repeat_penalty} temperature {temperature}")
+        logging.debug(
+            f"Our post-override parameters: max_tokens {max_tokens} top_p {top_p} top_k {top_k} repeat_penalty {repeat_penalty} temperature {temperature}"
+        )
         logging.debug("Beginning StableVicuna prediction..")
-        llm_result, token_count = self._predict(prompt=prompt, user_config=user_config, history=history, seed=seed, max_tokens=max_tokens, temperature=temperature, repeat_penalty=repeat_penalty, top_p=top_p, top_k=top_k)
+        llm_result, token_count = self._predict(
+            prompt=prompt,
+            user_config=user_config,
+            history=history,
+            seed=seed,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            repeat_penalty=repeat_penalty,
+            top_p=top_p,
+            top_k=top_k,
+        )
         time_end = time.time()
         time_duration = time_end - time_begin
         logging.debug(f"Completed prediction in {time_duration} seconds: {llm_result}")
@@ -56,7 +102,7 @@ class StableVicunaTorch:
         self.usage = {"time_duration": time_duration, "total_token_count": token_count}
 
         return llm_result
-    
+
     def set_seed(self, time_begin, seed):
         # If the user has not specified a seed, we will use the current time.
         if seed is None or seed == 0:
@@ -66,6 +112,7 @@ class StableVicunaTorch:
             # -1 is a special condition for randomizing the seed more than just using the timestamp.
             logging.debug("Ultra-seed randomizer engaged!")
             import random
+
             seed = random.randint(0, 999999999)
         else:
             logging.debug("A pre-selected seed was provided.")

@@ -2,12 +2,14 @@ from discord_tron_client.classes.app_config import AppConfig
 from discord_tron_client.message.discord import DiscordMessage
 from discord_tron_client.classes.debug import clean_traceback
 import logging, asyncio
+
 config = AppConfig()
+
 
 class LlamaRunner:
     def __init__(self, llama_driver):
         self.driver = llama_driver
-        
+
     def predict(self, prompt, user_config):
         try:
             if config.is_llama_enabled():
@@ -15,6 +17,7 @@ class LlamaRunner:
         except Exception as e:
             logging.error(f"Could not load Llama driver: {e}")
         return self.driver.predict(prompt, user_config)
+
     def usage(self):
         driver_usage = self.driver.get_usage()
         if driver_usage is None:
@@ -27,14 +30,19 @@ class LlamaRunner:
         if "completion_tokens" in driver_usage:
             completion_tokens = driver_usage["completion_tokens"]
         driver_details = self.driver.details() or "Unknown Llama driver"
-        return f'`{int(time_duration)} seconds` with `{int(prompt_tokens)} prompt tokens` and `{int(completion_tokens)} completion tokens` via {driver_details}'
+        return f"`{int(time_duration)} seconds` with `{int(prompt_tokens)} prompt tokens` and `{int(completion_tokens)} completion tokens` via {driver_details}"
 
     async def predict_handler(self, payload, websocket):
         # We extract the features from the payload and pass them onto the actual generator
         user_config = payload["config"]
         prompt = payload["prompt"]
         logging.debug(f"LlamaRunner predict_handler received prompt {prompt}")
-        discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="Thinking!")
+        discord_msg = DiscordMessage(
+            websocket=websocket,
+            context=payload["discord_first_message"],
+            module_command="edit",
+            message="Thinking!",
+        )
         websocket = AppConfig.get_websocket()
         await websocket.send(discord_msg.to_json())
         try:
@@ -43,29 +51,63 @@ class LlamaRunner:
                 AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
                 self.predict,
                 prompt,
-                user_config
+                user_config,
             )
             logging.debug(f"LlamaRunner predict_handler received result {loop_return}")
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send_large_message", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + '`' + prompt + '`' + loop_return)
+            discord_msg = DiscordMessage(
+                websocket=websocket,
+                context=payload["discord_first_message"],
+                module_command="send_large_message",
+                message=f'<@{payload["discord_context"]["author"]["id"]}>: '
+                + "`"
+                + prompt
+                + "`"
+                + loop_return,
+            )
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
             usage = self.usage()
             if usage is not None:
-                discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=f'<@{payload["discord_context"]["author"]["id"]}>: ' + 'Your prompt, `' + prompt + '`, used ' + f'{usage}')
+                discord_msg = DiscordMessage(
+                    websocket=websocket,
+                    context=payload["discord_first_message"],
+                    module_command="send",
+                    message=f'<@{payload["discord_context"]["author"]["id"]}>: '
+                    + "Your prompt, `"
+                    + prompt
+                    + "`, used "
+                    + f"{usage}",
+                )
                 websocket = AppConfig.get_websocket()
                 await websocket.send(discord_msg.to_json())
 
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="delete")
+            discord_msg = DiscordMessage(
+                websocket=websocket,
+                context=payload["discord_first_message"],
+                module_command="delete",
+            )
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_context"], module_command="delete")
+            discord_msg = DiscordMessage(
+                websocket=websocket,
+                context=payload["discord_context"],
+                module_command="delete",
+            )
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
 
         except Exception as e:
             import traceback
-            logging.error(f"Received an error in LlamaRunner.predict_handler: {e}, traceback: {clean_traceback(traceback.format_exc())}")
-            discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="edit", message="We pooped the bed!")
+
+            logging.error(
+                f"Received an error in LlamaRunner.predict_handler: {e}, traceback: {clean_traceback(traceback.format_exc())}"
+            )
+            discord_msg = DiscordMessage(
+                websocket=websocket,
+                context=payload["discord_first_message"],
+                module_command="edit",
+                message="We pooped the bed!",
+            )
             websocket = AppConfig.get_websocket()
             await websocket.send(discord_msg.to_json())
             raise e

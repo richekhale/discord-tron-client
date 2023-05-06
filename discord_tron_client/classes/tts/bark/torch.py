@@ -14,14 +14,15 @@ sample_text_prompt = """
      But I also have other interests such as playing tic tac toe.
 """
 
+
 class BarkTorch:
     def __init__(self):
         self.loaded = False
-        self.model = 'Bark'
+        self.model = "Bark"
         self.usage = None
 
     def details(self):
-        return f'PyTorch running the {self.model} audio generation model'
+        return f"PyTorch running the {self.model} audio generation model"
 
     def get_usage(self):
         return self.usage or None
@@ -43,11 +44,14 @@ class BarkTorch:
 
         audio = generate_audio(prompt, history_prompt=character_voice)
         return audio, None
+
     def generate(self, prompt, user_config):
         logging.debug(f"Begin Bark generate() routine")
         time_begin = time.time()
         # User settings overrides.
-        audio, _, semantic_x = self.generate_long(prompt=prompt, user_config=user_config)
+        audio, _, semantic_x = self.generate_long(
+            prompt=prompt, user_config=user_config
+        )
         time_end = time.time()
         time_duration = time_end - time_begin
         logging.debug(f"Completed generation in {time_duration} seconds: {audio}")
@@ -56,11 +60,11 @@ class BarkTorch:
         self.usage = {"time_duration": time_duration}
 
         return audio, SAMPLE_RATE, semantic_x
-    
+
     def split_text_prompt(self, text_prompt, maxword=30):
-        text_prompt = re.sub(r'\s{2,}', ' ', text_prompt)
-        segments = re.split(r'(?<=[,.])\s*', text_prompt)
-        segments = [re.sub(r'[^a-zA-Z0-9,. ]', '', segment) for segment in segments]
+        text_prompt = re.sub(r"\s{2,}", " ", text_prompt)
+        segments = re.split(r"(?<=[,.])\s*", text_prompt)
+        segments = [re.sub(r"[^a-zA-Z0-9,. ]", "", segment) for segment in segments]
 
         result = []
         buffer = ""
@@ -69,7 +73,7 @@ class BarkTorch:
 
             if len(buffer.split()) + len(words) > maxword:
                 while len(words) > maxword:
-                    result.append(' '.join(words[:maxword]) + '.')
+                    result.append(" ".join(words[:maxword]) + ".")
                     words = words[maxword:]
             if len(buffer.split()) + len(words) < 15:
                 buffer += " " + segment
@@ -80,17 +84,21 @@ class BarkTorch:
         if buffer:
             result.append(buffer.strip())
 
-        result = [segment.rstrip(',') + '.' if not segment.endswith('.') else segment for segment in result]
+        result = [
+            segment.rstrip(",") + "." if not segment.endswith(".") else segment
+            for segment in result
+        ]
 
         return result, len(result)
+
     def estimate_spoken_time(self, text, wpm=150, time_limit=14):
         # Remove text within square brackets
-        text_without_brackets = re.sub(r'\[.*?\]', '', text)
-        
+        text_without_brackets = re.sub(r"\[.*?\]", "", text)
+
         words = text_without_brackets.split()
         word_count = len(words)
         time_in_seconds = (word_count / wpm) * 60
-        
+
         if time_in_seconds > time_limit:
             return True, time_in_seconds
         else:
@@ -105,7 +113,9 @@ class BarkTorch:
         # Generate audio for each prompt
         audio_segments = []
         actors = user_config.get("tts_actors", None)
-        logging.debug(f"Generating long prompt with {len(prompts)} segments. using actors {actors}")
+        logging.debug(
+            f"Generating long prompt with {len(prompts)} segments. using actors {actors}"
+        )
         current_voice = None
         for prompt in prompts:
             line, voice = BarkTorch.process_line(prompt, actors)
@@ -133,9 +143,11 @@ class BarkTorch:
         return combined_audio
 
     @staticmethod
-    def  process_line(line, characters):
+    def process_line(line, characters):
         if characters is None:
-            logging.debug(f"No characters were given to process_line so we will just return the input line: {line}")
+            logging.debug(
+                f"No characters were given to process_line so we will just return the input line: {line}"
+            )
             return line, None
         logging.debug(f"We have the characters we need.")
         pattern = r"\{([^}]+)\}:?"
