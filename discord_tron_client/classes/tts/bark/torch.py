@@ -43,7 +43,6 @@ class BarkTorch:
 
         audio = generate_audio(prompt, history_prompt=character_voice)
         return audio, None
-
     def generate(self, prompt, user_config):
         logging.debug(f"Begin Bark generate() routine")
         time_begin = time.time()

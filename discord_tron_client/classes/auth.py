@@ -29,29 +29,29 @@ class Auth:
 
     # Before the token expires, we can get a new one normally.
     def get_access_token(self):
-        url = self.base_url + "/authorize"
-        from discord_tron_client.classes.app_config import AppConfig
-        config = AppConfig()
-        api_key = config.get_master_api_key()
-        auth_ticket = config.get_auth_ticket()
-        if not auth_ticket:
-            raise Exception("No auth ticket found?")
-        payload = { "api_key": api_key, "client_id": auth_ticket["client_id"] }
-        logging.debug(f"get_access_token payload: {payload}")
-
-        import requests
         with auth_semaphore:
+            url = self.base_url + "/authorize"
+            from discord_tron_client.classes.app_config import AppConfig
+            config = AppConfig()
+            api_key = config.get_master_api_key()
+            auth_ticket = config.get_auth_ticket()
+            if not auth_ticket:
+                raise Exception("No auth ticket found?")
+            payload = { "api_key": api_key, "client_id": auth_ticket["client_id"] }
+            logging.debug(f"get_access_token payload: {payload}")
+
+            import requests
             response = requests.post(url, json=payload, verify=self.config.verify_master_ssl())
-        print(f"Response: {response.text}")
-        if response.status_code == 200:
-            new_ticket = response.json()['access_token']
-            self.write_auth_ticket(response.json()["access_token"])
-            self.access_token = new_ticket["access_token"]
-            self.expires_in = new_ticket["expires_in"]
-            self.token_received_at = new_ticket["issued_at"]
-            return response.json()
-        else:
-            raise Exception("Error refreshing token: {}".format(response.text))
+            print(f"Response: {response.text}")
+            if response.status_code == 200:
+                new_ticket = response.json()['access_token']
+                self.write_auth_ticket(response.json()["access_token"])
+                self.access_token = new_ticket["access_token"]
+                self.expires_in = new_ticket["expires_in"]
+                self.token_received_at = new_ticket["issued_at"]
+                return response.json()
+            else:
+                raise Exception("Error refreshing token: {}".format(response.text))
 
     def write_auth_ticket(self, response):
         import json
