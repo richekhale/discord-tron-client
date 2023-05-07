@@ -90,6 +90,11 @@ class DiffusionPipelineManager:
             )
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
+        if hasattr(pipeline, "enable_model_cpu_offload"):
+            try:
+                pipeline.enable_model_cpu_offload()
+            except Exception as e:
+                logging.error(f"Could not enable CPU offload on the model: {e}")
         return pipeline
 
     def get_pipe(

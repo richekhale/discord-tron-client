@@ -55,6 +55,7 @@ class HardwareInfo:
         }
         if self.video_memory_amount != "Unknown" and int(self.video_memory_amount) >= 8:
             capabilities["gpu"] = True
+            capabilities["variation"] = True
         if int(self.memory_amount) >= 16:
             capabilities["memory"] = True
         if int(self.get_cpu_count()) >= 16:

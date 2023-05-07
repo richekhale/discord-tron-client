@@ -1,6 +1,7 @@
 import logging
 import sys
 import torch
+from torch.cuda import OutOfMemoryError
 import traceback
 import time
 import asyncio
@@ -291,6 +292,10 @@ class PipelineRunner:
                 raise Exception(
                     "Invalid combination of parameters for image generation"
                 )
+        except OutOfMemoryError as e:
+            logging.warn(f"Out of memory error: {e}")
+            self.pipeline_manager.delete_pipes()
+            raise Exception("The GPU ran out of memory when generating your awesome image. Please try again with a lower size..")
         except Exception as e:
             logging.error(
                 f"Error while generating image: {e}\n{traceback.format_exc()}"
