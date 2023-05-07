@@ -3,6 +3,7 @@ from diffusers import (
     StableDiffusionImageVariationPipeline,
     StableDiffusionControlNetPipeline, ControlNetModel,
     StableDiffusionUpscalePipeline,
+    UniPCMultistepScheduler
 )
 from diffusers import DiffusionPipeline as Pipeline
 from accelerate.utils import set_seed
@@ -138,39 +139,30 @@ class DiffusionPipelineManager:
         if model_id not in self.pipelines:
             logging.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type)
-            if pipe_type in ["variation", "prompt_variation"]:
+            if pipe_type in ["upscaler", "text2img", "prompt_variation"]:
                 self.set_scheduler(
                     pipe=self.pipelines[model_id],
                     user_config=None,
                     scheduler_config=scheduler_config,
                 )
-                if hasattr(self.pipelines[model_id], "enable_model_cpu_offload") and hardware.should_offload():
-                    try:
-                        self.pipelines[model_id].enable_model_cpu_offload()
-                        move_cuda = False
-                    except Exception as e:
-                        logging.error(f"Could not enable CPU offload on the model: {e}")
-                        move_cuda = True
-                self.pipelines[model_id].enable_xformers_memory_efficient_attention(
-                    True
-                )
-                self.pipelines[model_id].set_use_memory_efficient_attention_xformers(
-                    True
-                )
-            if pipe_type in ["upscaler", "text2img"]:
-                # Set the use of xformers library so that we can efficiently generate and upscale images.
-                # @see https://huggingface.co/stabilityai/stable-diffusion-x4-upscaler/discussions/2
-                self.set_scheduler(
-                    pipe=self.pipelines[model_id],
-                    user_config=None,
-                    scheduler_config=scheduler_config,
-                )
-                self.pipelines[model_id].enable_xformers_memory_efficient_attention(
-                    True
-                )
-                self.pipelines[model_id].set_use_memory_efficient_attention_xformers(
-                    True
-                )
+            elif pipe_type == 'variation':
+                # I think this needs a specific scheduler set.
+                self.pipelines[model_id].scheduler = UniPCMultistepScheduler.from_config(self.pipelines[model_id].scheduler.config)
+            # Additional offload settings that we apply to all pipelines.
+            if hasattr(self.pipelines[model_id], "enable_model_cpu_offload") and hardware.should_offload():
+                try:
+                    self.pipelines[model_id].enable_model_cpu_offload()
+                    move_cuda = False
+                except Exception as e:
+                    logging.error(f"Could not enable CPU offload on the model: {e}")
+                    move_cuda = True
+            self.pipelines[model_id].enable_xformers_memory_efficient_attention(
+                True
+            )
+            self.pipelines[model_id].set_use_memory_efficient_attention_xformers(
+                True
+            )
+
         # This must happen here, or mem savings are minimal.
         if move_cuda is None or move_cuda is True:
             logging.debug(f"Moving to CUDA.")
