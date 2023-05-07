@@ -68,7 +68,11 @@ class ImageTiler:
 
     def _stitch_tiles(self, tiles, debug_dir=None):
         w, h = self.image.size
-        stitched_image = Image.new("RGB", (w, h))
+        tile_count_x = (w + self.tile_size - self.overlap - 1) // (self.tile_size - self.overlap)
+        tile_count_y = (h + self.tile_size - self.overlap - 1) // (self.tile_size - self.overlap)
+        total_w = (self.tile_size - self.overlap) * (tile_count_x - 1) + self.tile_size
+        total_h = (self.tile_size - self.overlap) * (tile_count_y - 1) + self.tile_size
+        stitched_image = Image.new("RGB", (total_w, total_h))
 
         if debug_dir:
             if not os.path.exists(debug_dir):
@@ -102,7 +106,6 @@ class ImageTiler:
                 tile_idx += 1
 
         return stitched_image
-
     async def process_image(self, user_config, scheduler_config, model_id, prompt, side_x, side_y, negative_prompt, steps, debug_dir=None):
         tiles = self._split_image()
         processed_tiles = []
