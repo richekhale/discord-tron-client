@@ -268,7 +268,7 @@ class PipelineRunner:
                     # )
                 image = self._resize_for_condition_image(input_image=image, resolution=2112)
                 new_image = pipe(
-                    prompt=user_config["tile_prompt"],
+                    prompt=user_config["tile_positive"],
                     negative_prompt=user_config["tile_negative"],
                     image=image,
                     controlnet_conditioning_image=image,
