@@ -144,7 +144,7 @@ class DiffusionPipelineManager:
                     user_config=None,
                     scheduler_config=scheduler_config,
                 )
-                if hasattr(self.pipelines[model_id], "enable_model_cpu_offload"):
+                if hasattr(self.pipelines[model_id], "enable_model_cpu_offload") and hardware.should_offload():
                     try:
                         self.pipelines[model_id].enable_model_cpu_offload()
                         move_cuda = False
