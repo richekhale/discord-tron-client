@@ -73,7 +73,7 @@ class ImageTiler:
         total_w = (self.tile_size - self.overlap) * (tile_count_x - 1) + self.tile_size
         total_h = (self.tile_size - self.overlap) * (tile_count_y - 1) + self.tile_size
         stitched_image = Image.new("RGB", (total_w, total_h))
-
+        logging.debug(f"Stitching {len(tiles)} tiles into image of size {total_w}x{total_h}...")
         if debug_dir:
             if not os.path.exists(debug_dir):
                 os.makedirs(debug_dir)
@@ -127,4 +127,24 @@ class ImageTiler:
             processed_tile.save(os.path.join(debug_dir, f"processed_tile_{id}.png"))
             processed_tiles.append(processed_tile)
         result = self._stitch_tiles(processed_tiles, debug_dir)
+        return result
+    async def process_debug_images(self, user_config, scheduler_config, model_id, prompt, side_x, side_y, negative_prompt, steps, debug_dir):
+        if not os.path.exists(debug_dir):
+            raise ValueError(f"Debug directory {debug_dir} not found.")
+
+        tiles = []
+        for column in sorted(os.listdir(debug_dir)):
+            column_dir = os.path.join(debug_dir, column)
+            if os.path.isdir(column_dir):
+                for row in sorted(os.listdir(column_dir)):
+                    row_dir = os.path.join(column_dir, row)
+                    if os.path.isdir(row_dir):
+                        tile_path = os.path.join(row_dir, "image.png")
+                        if os.path.exists(tile_path):
+                            tile = Image.open(tile_path)
+                            tiles.append(tile)
+
+        result = self._stitch_tiles(tiles, debug_dir)
+        result.save(os.path.join(debug_dir, "stitched_result.png"))
+
         return result
