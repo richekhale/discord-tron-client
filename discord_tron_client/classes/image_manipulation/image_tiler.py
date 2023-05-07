@@ -1,5 +1,6 @@
+import cv2
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image
 
 class ImageTiler:
     def __init__(self, pil_image: Image, tile_size=1024, overlap=128, processing_function=None):
@@ -10,7 +11,7 @@ class ImageTiler:
 
     def _default_processing_function(self, tile):
         # Apply a simple Gaussian blur as the default processing function
-        return tile.filter(ImageFilter.GaussianBlur(5))
+        return cv2.GaussianBlur(tile, (5, 5), 0)
 
     def _split_image(self):
         w, h = self.image.size
@@ -69,3 +70,24 @@ class ImageTiler:
                 tile_idx += 1
 
         return stitched_image
+
+
+    async def process_image(self, user_config, scheduler_config, model_id, prompt, side_x, side_y, negative_prompt, steps):
+        tiles = self._split_image()
+        processed_tiles = []
+        for tile in tiles:
+            processed_tile = ImageTiler.pil_to_cv2(await self.processing_function(
+                                    user_config=user_config,
+                                    scheduler_config=scheduler_config,
+                                    model_id=model_id,
+                                    prompt=prompt,
+                                    side_x=side_x,
+                                    side_y=side_y,
+                                    negative_prompt=negative_prompt,
+                                    steps=steps,
+                                    image=ImageTiler.cv2_to_pil(tile),
+                                    promptless_variation=True
+                                    ))
+            processed_tiles.append(processed_tile)
+        result = self._stitch_tiles(processed_tiles)
+        return ImageTiler.cv2_to_pil(result)
