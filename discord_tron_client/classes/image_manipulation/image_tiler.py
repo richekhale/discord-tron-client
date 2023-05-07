@@ -3,7 +3,6 @@ from PIL import Image
 import logging, os
 
 class ImageTiler:
-class ImageTiler:
     def __init__(self, pil_image: Image, tile_size=64, overlap=8, processing_function=None):
         self.image = pil_image
         self.overlap = overlap
