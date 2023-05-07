@@ -59,7 +59,7 @@ async def generate_image(payload, websocket):
             image = Image.open(
                 io.BytesIO(requests.get(payload["image_data"], timeout=10).content)
             )
-            image = image.resize((resolution["width"], resolution["height"]))
+            image = image.resize((resolution["width"], resolution["height"]), resample=Image.LANCZOS)
             background = Image.new("RGBA", image.size, (255, 255, 255))
             alpha_composite = Image.alpha_composite(background, image)
             image = alpha_composite.convert("RGB")
@@ -138,6 +138,14 @@ async def generate_image(payload, websocket):
         import traceback
 
         try:
+            s = str(e)
+            if "out of memory" in s:
+                logging.error("The exception occurred because we ran out of memory. Clearing CUDA.")
+                import torch, gc
+                torch.cuda.empty_cache()
+                gc.collect()
+                pipeline_manager.delete_pipes()
+
             logging.error(
                 f"Error generating image: {e}\n\nStack trace:\n{traceback.format_exc()}"
             )
@@ -152,7 +160,7 @@ async def generate_image(payload, websocket):
                 websocket=websocket,
                 context=payload["discord_first_message"],
                 module_command="edit",
-                message=f"It seems we had an error while generating this image!\n```{e}\n{clean_traceback(traceback.format_exc())}\n```",
+                message=f"It seems we had an error while generating this image!\n```{e}\n```",
             )
             await websocket.send(discord_msg.to_json())
             discord_msg = DiscordMessage(
@@ -162,5 +170,5 @@ async def generate_image(payload, websocket):
             )
             await websocket.send(discord_msg.to_json())
             raise e
-        except:
+        except Exception as e_squash:
             logging.error(f"Error squashed: {e}, traceback: {traceback.format_exc()}")

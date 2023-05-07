@@ -60,7 +60,7 @@ class PipelineRunner:
         scheduler_config: dict,
         resolution,
         model_id: int,
-        img2img: bool = False,
+        variation: bool = False,
         promptless_variation: bool = False,
         upscaler: bool = False,
     ):
@@ -72,7 +72,7 @@ class PipelineRunner:
             scheduler_config,
             resolution,
             model_id,
-            img2img,
+            variation,
             promptless_variation,
             upscaler,
         )
@@ -84,24 +84,23 @@ class PipelineRunner:
         scheduler_config: dict,
         resolution: dict,
         model_id: int,
-        img2img: bool = False,
+        variation: bool = False,
         promptless_variation: bool = False,
         upscaler: bool = False,
     ):
         logging.info(f"Retrieving pipe for model {model_id}")
-        if not promptless_variation:
-            pipe = self.pipeline_manager.get_pipe(
-                user_config,
-                scheduler_config,
-                resolution,
-                model_id,
-                img2img,
-                promptless_variation,
-                variation=False,
-                upscaler=upscaler,
-            )
-        else:
-            pipe = self.pipeline_manager.get_variation_pipe(model_id)
+        # if not promptless_variation:
+        pipe = self.pipeline_manager.get_pipe(
+            user_config,
+            scheduler_config,
+            resolution,
+            model_id,
+            prompt_variation=variation,
+            promptless_variation=promptless_variation,
+            upscaler=upscaler,
+        )
+        # else:
+        #     pipe = self.pipeline_manager.get_variation_pipe(model_id)
         logging.info("Copied pipe to the local context")
         return pipe
 
@@ -267,13 +266,17 @@ class PipelineRunner:
                     side_x, side_y = ResolutionManager.nearest_generation_resolution(
                         side_x, side_y
                     )
+                image = self._resize_for_condition_image(input_image=image, resolution=2112)
                 new_image = pipe(
+                    prompt=user_config.get("tile_prompt", "best quality"),
+                    negative_prompt=user_config.get("tile_negative", "blur, lowres, bad anatomy, bad hands, cropped, worst quality"),
                     image=image,
-                    height=side_y,
-                    width=side_x,
-                    num_inference_steps=int(float(steps)),
-                    guidance_scale=guidance_scale,
+                    controlnet_conditioning_image=image,
+                    width=image.size[0],
+                    height=image.size[1],
+                    strength=1.0,
                     generator=generator,
+                    num_inference_steps=int(float(steps)),
                 ).images[0]
             elif upscaler:
                 new_image = pipe(
@@ -307,8 +310,8 @@ class PipelineRunner:
         side_y: int,
         steps: int,
         negative_prompt: str = "",
-        img2img: bool = False,
         image: Image = None,
+        variation: bool = False,
         promptless_variation: bool = False,
         upscaler: bool = False,
     ):
@@ -318,7 +321,7 @@ class PipelineRunner:
             scheduler_config,
             resolution,
             model_id,
-            img2img,
+            variation,
             promptless_variation,
             upscaler,
         )
@@ -347,10 +350,12 @@ class PipelineRunner:
         if isinstance(new_image, list):
             for i in range(len(new_image)):
                 new_image[i] = new_image[i].resize(
-                    (int(side_x), int(side_y)), Image.ANTIALIAS
+                    (int(side_x), int(side_y)), resample=Image.LANCZOS
                 )
         if hasattr(new_image, "resize"):
-            new_image = new_image.resize((int(side_x), int(side_y)), Image.ANTIALIAS)
+            new_image = new_image.resize(
+                (int(side_x), int(side_y)), resample=Image.LANCZOS
+            )
 
         self.pipeline_manager.clear_cuda_cache()
 
@@ -380,3 +385,14 @@ class PipelineRunner:
 
     def _get_maximum_generation_res(self, side_x, side_y):
         return ResolutionManager.nearest_generation_resolution(side_x, side_y)
+
+    def _resize_for_condition_image(self, input_image: Image, resolution: int):
+        input_image = input_image.convert("RGB")
+        W, H = input_image.size
+        k = float(resolution) / min(H, W)
+        H *= k
+        W *= k
+        H = int(round(H / 64.0)) * 64
+        W = int(round(W / 64.0)) * 64
+        img = input_image.resize((W, H), resample=Image.LANCZOS)
+        return img

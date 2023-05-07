@@ -1,7 +1,7 @@
 from diffusers import (
     StableDiffusionPipeline,
     StableDiffusionImageVariationPipeline,
-    StableDiffusionImg2ImgPipeline,
+    StableDiffusionControlNetPipeline, ControlNetModel,
     StableDiffusionUpscalePipeline,
 )
 from diffusers import DiffusionPipeline as Pipeline
@@ -9,6 +9,7 @@ from accelerate.utils import set_seed
 from typing import Dict
 from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.classes.app_config import AppConfig
+from PIL import Image
 import torch, gc, logging, diffusers
 hardware = HardwareInfo()
 config = AppConfig()
@@ -16,10 +17,9 @@ config = AppConfig()
 
 class DiffusionPipelineManager:
     PIPELINE_CLASSES = {
-        "img2img": Pipeline,
         "text2img": Pipeline,
-        "prompt_variation": StableDiffusionImg2ImgPipeline,
-        "variation": StableDiffusionImageVariationPipeline,
+        "prompt_variation": Pipeline,
+        "variation": StableDiffusionControlNetPipeline,
         "upscaler": StableDiffusionUpscalePipeline,
     }
     SCHEDULER_MAPPINGS = {
@@ -40,7 +40,6 @@ class DiffusionPipelineManager:
         self.torch_dtype = torch.float16
         self.is_memory_constrained = False
         self.model_id = None
-        self.img2img = False
         if hw_limits["gpu"] >= 16 and config.get_precision_bits() == 32:
             self.torch_dtype = torch.float32
         if hw_limits["gpu"] <= 16:
@@ -65,7 +64,18 @@ class DiffusionPipelineManager:
 
     def create_pipeline(self, model_id: str, pipe_type: str) -> Pipeline:
         pipeline_class = self.PIPELINE_CLASSES[pipe_type]
-        if pipe_type in ["img2img", "text2img"]:
+        if pipe_type in ["variation"]:
+            # Variation uses ControlNet stuff.
+            logging.debug(f"Creating a ControlNet model for {model_id}")
+            controlnet = ControlNetModel.from_pretrained("lllyasviel/control_v11f1e_sd15_tile", torch_dtype=self.torch_dtype)
+            logging.debug(f"Passing the ControlNet into a StableDiffusionControlNetPipeline for {model_id}")
+            pipeline = pipeline_class.from_pretrained(
+                model_id,
+                torch_dtype=self.torch_dtype,
+                custom_pipeline="stable_diffusion_controlnet_img2img",
+                controlnet=controlnet,
+            )
+        elif pipe_type in ["prompt_variation", "text2img"]:
             # Use the long prompt weighting pipeline.
             logging.debug(f"Creating a LPW pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
@@ -88,9 +98,8 @@ class DiffusionPipelineManager:
         scheduler_config: dict,
         resolution: dict,
         model_id: str,
-        img2img: bool = False,
         prompt_variation: bool = False,
-        variation: bool = False,
+        promptless_variation: bool = False,
         upscaler: bool = False,
     ) -> Pipeline:
         self.delete_pipes(keep_model=model_id)
@@ -99,12 +108,10 @@ class DiffusionPipelineManager:
             self.torch_dtype = torch.float16
 
         pipe_type = (
-            "img2img"
-            if img2img
-            else "prompt_variation"
+            "prompt_variation"
             if prompt_variation
             else "variation"
-            if variation
+            if promptless_variation
             else "upscaler"
             if upscaler
             else "text2img"
@@ -130,14 +137,7 @@ class DiffusionPipelineManager:
         if model_id not in self.pipelines:
             logging.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type)
-            if pipe_type in ["variation"]:
-                # The lambda diffusers kind of suck ass.
-                self.set_scheduler(
-                    pipe=self.pipelines[model_id],
-                    user_config=None,
-                    scheduler_config=scheduler_config,
-                )
-            if pipe_type in ["prompt_variation", "img2img"]:
+            if pipe_type in ["variation", "prompt_variation"]:
                 self.set_scheduler(
                     pipe=self.pipelines[model_id],
                     user_config=None,
@@ -172,29 +172,6 @@ class DiffusionPipelineManager:
             self.pipelines[model_id].vae.enable_tiling()
         else:
             self.pipelines[model_id].vae.disable_tiling()
-        return self.pipelines[model_id]
-
-    def get_variation_pipe(self, model_id):
-        # Make way for the variation queen.
-        logging.info("Clearing other poops.")
-        self.delete_pipes(keep_model=model_id)
-        logging.info("Generating a new img2img pipe...")
-        self.pipelines[
-            model_id
-        ] = StableDiffusionImageVariationPipeline.from_pretrained(
-            pretrained_model_name_or_path=model_id,
-            torch_dtype=self.torch_dtype,
-            revision="v2.0",
-        )
-        from xformers.ops import MemoryEfficientAttentionFlashAttentionOp
-
-        self.pipelines[model_id].enable_xformers_memory_efficient_attention()
-        self.pipelines[model_id].safety_checker = lambda images, clip_input: (
-            images,
-            False,
-        )
-        self.pipelines[model_id].to(self.device)
-        logging.info("Return the pipe...")
         return self.pipelines[model_id]
 
     def delete_pipes(self, keep_model: str = None):

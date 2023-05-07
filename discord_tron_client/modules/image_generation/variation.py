@@ -22,8 +22,8 @@ async def promptless_variation(payload, websocket):
     user_config = payload["config"]
     scheduler_config = payload["scheduler_config"]
     prompt = payload["image_prompt"]
-    # model_id = user_config["model"]
-    model_id = "lambdalabs/sd-image-variations-diffusers"
+    model_id = user_config["model"]
+    # model_id = "lambdalabs/sd-image-variations-diffusers"
     resolution = user_config["resolution"]
     negative_prompt = user_config["negative_prompt"]
     steps = user_config["steps"]
@@ -55,7 +55,7 @@ async def promptless_variation(payload, websocket):
         image = Image.open(
             io.BytesIO(requests.get(payload["image_data"], timeout=10).content)
         )
-        image = image.resize((resolution["width"], resolution["height"]))
+        image = image.resize((resolution["width"], resolution["height"]), resample=Image.LANCZOS)
         discord_msg = DiscordMessage(
             websocket=websocket,
             context=payload["discord_context"],
@@ -159,7 +159,7 @@ async def prompt_variation(payload, websocket):
         image = Image.open(
             io.BytesIO(requests.get(payload["image_data"], timeout=10).content)
         )
-        image = image.resize((resolution["width"], resolution["height"]))
+        image = image.resize((resolution["width"], resolution["height"]), resample=Image.LANCZOS)
         try:
             background = Image.new("RGBA", image.size, (255, 255, 255))
             alpha_composite = Image.alpha_composite(background, image)
@@ -183,7 +183,7 @@ async def prompt_variation(payload, websocket):
             negative_prompt=negative_prompt,
             steps=steps,
             image=image,
-            img2img=True,
+            prompt_variation=True,
         )
         payload["seed"] = pipeline_runner.seed
         payload["gpu_power_consumption"] = pipeline_runner.gpu_power_consumption
