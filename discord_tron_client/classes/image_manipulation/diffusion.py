@@ -147,7 +147,9 @@ class DiffusionPipelineManager:
                 )
             elif pipe_type == 'variation':
                 # I think this needs a specific scheduler set.
+                logging.debug(f"Before setting scheduler: {self.pipelines[model_id].scheduler}")
                 self.pipelines[model_id].scheduler = UniPCMultistepScheduler.from_config(self.pipelines[model_id].scheduler.config)
+                logging.debug(f"After setting scheduler: {self.pipelines[model_id].scheduler}")
             # Additional offload settings that we apply to all pipelines.
             if hasattr(self.pipelines[model_id], "enable_model_cpu_offload") and hardware.should_offload():
                 try:
