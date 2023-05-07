@@ -61,4 +61,11 @@ class ImageTiler:
                     stitched_image.paste(blend, (x, y))
 
                 if y > 0:
-                    top_tile = stitched_image.crop((x, y-self.overlap, x
+                    top_tile = stitched_image.crop((x, y-self.overlap, x+tile_w, y))
+                    blend = self._blend_seams(top_tile, tile, vertical=False)
+                    stitched_image.paste(blend, (x, y))
+
+                stitched_image.paste(tile, (x, y))
+                tile_idx += 1
+
+        return stitched_image
