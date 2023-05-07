@@ -280,8 +280,6 @@ class PipelineRunner:
                 ).images[0]
             elif upscaler:
                 new_image = pipe(
-                    prompt=positive_prompt,
-                    negative_prompt=negative_prompt,
                     prompt_embeds=prompt_embed,
                     negative_prompt_embeds=negative_embed,
                     image=image,
