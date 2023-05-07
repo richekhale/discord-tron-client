@@ -1,6 +1,6 @@
 import numpy as np
 from PIL import Image
-import logging
+import logging, os
 
 class ImageTiler:
     def __init__(self, pil_image: Image, tile_size=None, overlap=8, processing_function=None):
@@ -66,15 +66,27 @@ class ImageTiler:
 
         return Image.fromarray(blended)
 
-    def _stitch_tiles(self, tiles):
+    def _stitch_tiles(self, debug_dir=None):
         w, h = self.image.size
         stitched_image = Image.new("RGB", (w, h))
+
+        if debug_dir:
+            if not os.path.exists(debug_dir):
+                os.makedirs(debug_dir)
 
         tile_idx = 0
         for y in range(0, h, self.tile_size - self.overlap):
             for x in range(0, w, self.tile_size - self.overlap):
                 tile = tiles[tile_idx]
                 tile_w, tile_h = tile.size
+
+                if debug_dir:
+                    column_dir = os.path.join(debug_dir, f"{x // (self.tile_size - self.overlap)}")
+                    row_dir = os.path.join(column_dir, f"{y // (self.tile_size - self.overlap)}")
+                    if not os.path.exists(row_dir):
+                        os.makedirs(row_dir)
+                    tile_path = os.path.join(row_dir, "image.png")
+                    tile.save(tile_path)
 
                 if x > 0:
                     left_tile = stitched_image.crop((x-self.overlap, y, x, y+tile_h))
@@ -90,7 +102,6 @@ class ImageTiler:
                 tile_idx += 1
 
         return stitched_image
-
 
     async def process_image(self, user_config, scheduler_config, model_id, prompt, side_x, side_y, negative_prompt, steps):
         tiles = self._split_image()

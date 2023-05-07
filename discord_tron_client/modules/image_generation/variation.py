@@ -73,6 +73,7 @@ async def promptless_variation(payload, websocket):
             side_y=resolution["height"],
             negative_prompt=negative_prompt,
             steps=steps,
+            debug_dir="/tmp/img_debug"
         )
         payload["seed"] = pipeline_runner.seed
         payload["gpu_power_consumption"] = pipeline_runner.gpu_power_consumption
