@@ -315,7 +315,7 @@ class PipelineRunner:
         steps: int,
         negative_prompt: str = "",
         image: Image = None,
-        variation: bool = False,
+        prompt_variation: bool = False,
         promptless_variation: bool = False,
         upscaler: bool = False,
     ):
@@ -325,7 +325,7 @@ class PipelineRunner:
             scheduler_config,
             resolution,
             model_id,
-            variation,
+            prompt_variation,
             promptless_variation,
             upscaler,
         )
