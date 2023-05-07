@@ -82,7 +82,7 @@ class ImageTiler:
         tiles = self._split_image()
         processed_tiles = []
         for tile in tiles:
-            processed_tile = await self.processing_function(
+            processed_tile = ImageTiler.pil_to_cv2(await self.processing_function(
                                     user_config=user_config,
                                     scheduler_config=scheduler_config,
                                     model_id=model_id,
@@ -91,9 +91,9 @@ class ImageTiler:
                                     side_y=side_y,
                                     negative_prompt=negative_prompt,
                                     steps=steps,
-                                    image=tile,
+                                    image=ImageTiler.cv2_to_pil(tile),
                                     promptless_variation=True
-                                    )
+                                    ))
             processed_tiles.append(processed_tile)
         result = self._stitch_tiles(processed_tiles)
         return ImageTiler.cv2_to_pil(result)
