@@ -121,7 +121,7 @@ class ImageTiler:
                                     image=tile,
                                     promptless_variation=True
                                     )
-            processed_tile.save(os.join(debug_dir, f"processed_tile_{id}.png"))
+            processed_tile.save(os.path.join(debug_dir, f"processed_tile_{id}.png"))
             processed_tiles.append(processed_tile)
         result = self._stitch_tiles(processed_tiles, debug_dir)
         return result
