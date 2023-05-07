@@ -7,6 +7,7 @@ import time
 import asyncio
 from tqdm import tqdm
 from discord_tron_client.classes.app_config import AppConfig
+from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.classes.image_manipulation.resolution import ResolutionManager
 from discord_tron_client.classes.image_manipulation.prompt_manipulation import (
     PromptManipulation,
@@ -16,6 +17,7 @@ from discord_tron_client.classes.discord_progress_bar import DiscordProgressBar
 from discord_tron_client.message.discord import DiscordMessage
 from PIL import Image
 
+hardware = HardwareInfo()
 
 class PipelineRunner:
     def __init__(
