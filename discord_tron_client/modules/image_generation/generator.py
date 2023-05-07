@@ -60,9 +60,13 @@ async def generate_image(payload, websocket):
                 io.BytesIO(requests.get(payload["image_data"], timeout=10).content)
             )
             image = image.resize((resolution["width"], resolution["height"]), resample=Image.LANCZOS)
-            background = Image.new("RGBA", image.size, (255, 255, 255))
-            alpha_composite = Image.alpha_composite(background, image)
-            image = alpha_composite.convert("RGB")
+            try:
+                background = Image.new("RGBA", image.size, (255, 255, 255))
+                alpha_composite = Image.alpha_composite(background, image)
+                image = alpha_composite.convert("RGB")
+            except Exception as e:
+                logging.error(f"Error compositing image: {e}")
+                alpha_composite = image
         discord_msg = DiscordMessage(
             websocket=websocket,
             context=payload["discord_context"],
