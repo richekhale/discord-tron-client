@@ -90,7 +90,6 @@ class PipelineRunner:
         upscaler: bool = False,
     ):
         logging.info(f"Retrieving pipe for model {model_id}")
-        # if not promptless_variation:
         pipe = self.pipeline_manager.get_pipe(
             user_config,
             scheduler_config,
@@ -100,8 +99,6 @@ class PipelineRunner:
             promptless_variation=promptless_variation,
             upscaler=upscaler,
         )
-        # else:
-        #     pipe = self.pipeline_manager.get_variation_pipe(model_id)
         logging.info("Copied pipe to the local context")
         return pipe
 
@@ -352,12 +349,12 @@ class PipelineRunner:
         side_x = resolution["width"]
         side_y = resolution["height"]
         logging.info(f"Rescaled resolution: {side_x}x{side_y}")
-        if isinstance(new_image, list):
+        if isinstance(new_image, list) and not promptless_variation:
             for i in range(len(new_image)):
                 new_image[i] = new_image[i].resize(
                     (int(side_x), int(side_y)), resample=Image.LANCZOS
                 )
-        if hasattr(new_image, "resize"):
+        if hasattr(new_image, "resize") and not promptless_variation:
             new_image = new_image.resize(
                 (int(side_x), int(side_y)), resample=Image.LANCZOS
             )
