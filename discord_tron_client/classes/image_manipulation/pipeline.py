@@ -274,7 +274,7 @@ class PipelineRunner:
                     controlnet_conditioning_image=image,
                     width=image.size[0],
                     height=image.size[1],
-                    strength=1.0,
+                    strength=user_config["strength"],
                     generator=generator,
                     num_inference_steps=int(float(steps)),
                 ).images[0]
