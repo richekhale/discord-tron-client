@@ -20,7 +20,7 @@ class DiffusionPipelineManager:
     PIPELINE_CLASSES = {
         "text2img": Pipeline,
         "prompt_variation": Pipeline,
-        "variation": StableDiffusionControlNetPipeline,
+        "variation": StableDiffusionPipeline,
         "upscaler": StableDiffusionUpscalePipeline,
     }
     SCHEDULER_MAPPINGS = {
