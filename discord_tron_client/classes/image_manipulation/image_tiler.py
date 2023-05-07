@@ -106,7 +106,9 @@ class ImageTiler:
     async def process_image(self, user_config, scheduler_config, model_id, prompt, side_x, side_y, negative_prompt, steps, debug_dir=None):
         tiles = self._split_image()
         processed_tiles = []
+        id = 0
         for tile in tiles:
+            id += 1
             processed_tile = await self.processing_function(
                                     user_config=user_config,
                                     scheduler_config=scheduler_config,
@@ -119,6 +121,7 @@ class ImageTiler:
                                     image=tile,
                                     promptless_variation=True
                                     )
+            processed_tile.save(os.join(debug_dir, f"processed_tile_{id}.png"))
             processed_tiles.append(processed_tile)
         result = self._stitch_tiles(processed_tiles, debug_dir)
         return result
