@@ -90,11 +90,6 @@ class DiffusionPipelineManager:
             )
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
-        if hasattr(pipeline, "enable_model_cpu_offload"):
-            try:
-                pipeline.enable_model_cpu_offload()
-            except Exception as e:
-                logging.error(f"Could not enable CPU offload on the model: {e}")
         return pipeline
 
     def get_pipe(
@@ -139,6 +134,7 @@ class DiffusionPipelineManager:
             )
             self.clear_pipeline(model_id)
 
+        move_cuda = True
         if model_id not in self.pipelines:
             logging.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type)
@@ -148,6 +144,13 @@ class DiffusionPipelineManager:
                     user_config=None,
                     scheduler_config=scheduler_config,
                 )
+                if hasattr(self.pipelines[model_id], "enable_model_cpu_offload"):
+                    try:
+                        self.pipelines[model_id].enable_model_cpu_offload()
+                        move_cuda = False
+                    except Exception as e:
+                        logging.error(f"Could not enable CPU offload on the model: {e}")
+                        move_cuda = True
                 self.pipelines[model_id].enable_xformers_memory_efficient_attention(
                     True
                 )
@@ -169,7 +172,9 @@ class DiffusionPipelineManager:
                     True
                 )
         # This must happen here, or mem savings are minimal.
-        self.pipelines[model_id].to(self.device)
+        if move_cuda is None or move_cuda is True:
+            logging.debug(f"Moving to CUDA.")
+            self.pipelines[model_id].to(self.device)
         self.last_pipe_type[model_id] = pipe_type
         self.last_pipe_scheduler[model_id] = scheduler_config["name"]
         enable_tiling = user_config.get("enable_tiling", True)
