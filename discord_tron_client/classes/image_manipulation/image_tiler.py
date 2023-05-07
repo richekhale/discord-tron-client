@@ -8,6 +8,7 @@ class ImageTiler:
         self.overlap = overlap
         self.processing_function = processing_function if processing_function else self._default_processing_function
         self.tile_size = tile_size
+        self.new_tile_size = 1024 # Hardcoded to 1024x1024 tiles
 
     def _default_processing_function(self, tile):
         logging.warning(f"No processing function provided for ImageTiler! Returning tile as-is.")
@@ -46,15 +47,15 @@ class ImageTiler:
         w, h = self.image.size
         tile_count_x = w // self.tile_size
         tile_count_y = h // self.tile_size
-        total_w = self.tile_size * tile_count_x
-        total_h = self.tile_size * tile_count_y
+        total_w = self.new_tile_size * tile_count_x
+        total_h = self.new_tile_size * tile_count_y
         stitched_image = Image.new("RGB", (total_w, total_h))
         logging.debug(f"Stitching {len(tiles)} tiles into image of size {total_w}x{total_h}...")
         logging.debug(f'Image has {tile_count_x} columns and {tile_count_y} rows.')
 
         tile_idx = 0
-        for y in range(0, h, self.tile_size):
-            for x in range(0, w, self.tile_size):
+        for y in range(0, h, self.new_tile_size):
+            for x in range(0, w, self.new_tile_size):
                 tile = tiles[tile_idx]
                 tile_w, tile_h = tile.size
 
