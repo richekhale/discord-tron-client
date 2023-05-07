@@ -59,7 +59,7 @@ class ImageTiler:
         for y in range(0, total_h, self.new_tile_size):
             for x in range(0, total_w, self.new_tile_size):
                 logging.debug(f'Stitching tile idx {tile_idx}')
-                if tile_idx not in tiles:
+                if tile_idx > len(tiles):
                     logging.debug(f'Tile idx {tile_idx} not found in tiles list! exiting loop...')
                     break
                 tile = tiles[tile_idx]
