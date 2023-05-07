@@ -153,7 +153,7 @@ class DiffusionPipelineManager:
             if hasattr(self.pipelines[model_id], "enable_model_cpu_offload") and hardware.should_offload():
                 try:
                     self.pipelines[model_id].enable_model_cpu_offload()
-                    move_cuda = False
+                    # move_cuda = False
                 except Exception as e:
                     logging.error(f"Could not enable CPU offload on the model: {e}")
                     move_cuda = True
