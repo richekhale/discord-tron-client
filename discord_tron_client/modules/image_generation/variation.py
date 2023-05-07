@@ -55,7 +55,7 @@ async def promptless_variation(payload, websocket):
         image = Image.open(
             io.BytesIO(requests.get(payload["image_data"], timeout=10).content)
         )
-        image = image.resize((resolution["width"], resolution["height"]), resample=Image.LANCZOS)
+        # image = image.resize((resolution["width"], resolution["height"]), resample=Image.LANCZOS)
         discord_msg = DiscordMessage(
             websocket=websocket,
             context=payload["discord_context"],
