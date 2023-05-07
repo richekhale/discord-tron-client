@@ -1,4 +1,3 @@
-import numpy as np
 from PIL import Image
 import logging, os
 
@@ -8,7 +7,7 @@ class ImageTiler:
         self.overlap = overlap
         self.processing_function = processing_function if processing_function else self._default_processing_function
         self.tile_size = tile_size
-        self.new_tile_size = 1024 # Hardcoded to 1024x1024 tiles
+        self.new_tile_size = 128 # Hardcoded to 128x128 tiles
 
     def _default_processing_function(self, tile):
         logging.warning(f"No processing function provided for ImageTiler! Returning tile as-is.")
