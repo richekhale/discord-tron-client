@@ -266,7 +266,7 @@ class PipelineRunner:
                     # side_x, side_y = ResolutionManager.nearest_generation_resolution(
                     #     side_x, side_y
                     # )
-                image = self._resize_for_condition_image(input_image=image, resolution=2112)
+                image = self._resize_for_condition_image(input_image=image, resolution=1024)
                 new_image = pipe(
                     prompt=user_config["tile_positive"],
                     negative_prompt=user_config["tile_negative"],

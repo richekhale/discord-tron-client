@@ -6,7 +6,6 @@ from diffusers import (
     UniPCMultistepScheduler
 )
 from diffusers import DiffusionPipeline as Pipeline
-from accelerate.utils import set_seed
 from typing import Dict
 from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.classes.app_config import AppConfig
