@@ -45,8 +45,10 @@ class ImageTiler:
 
     def _stitch_tiles(self, tiles, debug_dir=None):
         w, h = self.image.size
-        tile_count_x = w // self.tile_size
-        tile_count_y = h // self.tile_size
+        resized_image = self._resize_image()
+        resized_w, resized_h = resized_image.size
+        tile_count_x = (resized_w - self.tile_size) // (self.tile_size - self.overlap) + 1
+        tile_count_y = (resized_h - self.tile_size) // (self.tile_size - self.overlap) + 1
         total_w = self.new_tile_size * tile_count_x
         total_h = self.new_tile_size * tile_count_y
         stitched_image = Image.new("RGB", (total_w, total_h))
@@ -54,8 +56,8 @@ class ImageTiler:
         logging.debug(f'Image has {tile_count_x} columns and {tile_count_y} rows.')
 
         tile_idx = 0
-        for y in range(0, h, self.new_tile_size):
-            for x in range(0, w, self.new_tile_size):
+        for y in range(0, total_h, self.new_tile_size):
+            for x in range(0, total_w, self.new_tile_size):
                 tile = tiles[tile_idx]
                 tile_w, tile_h = tile.size
 
