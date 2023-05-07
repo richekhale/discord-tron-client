@@ -281,10 +281,11 @@ class PipelineRunner:
             elif upscaler:
                 new_image = pipe(
                     prompt_embeds=prompt_embed,
+                    num_images_per_prompt=4,
                     negative_prompt_embeds=negative_embed,
                     image=image,
                     num_inference_steps=int(float(steps)),
-                ).images[0]
+                ).images
             else:
                 raise Exception(
                     "Invalid combination of parameters for image generation"
