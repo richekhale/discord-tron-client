@@ -14,7 +14,11 @@ class ImageTiler:
         cv2_image = np.array(pil_image)
         cv2_image = cv2.cvtColor(cv2_image, cv2.COLOR_RGB2BGR)
         return cv2_image
-
+    @staticmethod
+    def cv2_to_pil(cv2_image):
+        cv2_image = cv2.cvtColor(cv2_image, cv2.COLOR_BGR2RGB)
+        pil_image = Image.fromarray(cv2_image)
+        return pil_image
     def _default_processing_function(self, tile):
         # Apply a simple Gaussian blur as the default processing function
         return cv2.GaussianBlur(tile, (5, 5), 0)
@@ -90,4 +94,4 @@ class ImageTiler:
                                     promptless_variation=True
                                     ) for tile in tiles]
         result = self._stitch_tiles(processed_tiles)
-        return result
+        return ImageTiler.cv2_to_pil(result)
