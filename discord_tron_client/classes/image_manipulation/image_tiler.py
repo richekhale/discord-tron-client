@@ -68,7 +68,7 @@ class ImageTiler:
 
     def _stitch_tiles(self, tiles, debug_dir=None):
         w, h = self.image.size
-        stitched_tile_size = tiles[0].size
+        stitched_tile_size = tiles[0].size[0]
         tile_count_x = (w + stitched_tile_size - self.overlap - 1) // (stitched_tile_size - self.overlap)
         tile_count_y = (h + stitched_tile_size - self.overlap - 1) // (stitched_tile_size - self.overlap)
         total_w = (stitched_tile_size - self.overlap) * (tile_count_x - 1) + stitched_tile_size
