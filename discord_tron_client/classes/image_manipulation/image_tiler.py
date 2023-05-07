@@ -58,6 +58,7 @@ class ImageTiler:
         tile_idx = 0
         for y in range(0, total_h, self.new_tile_size):
             for x in range(0, total_w, self.new_tile_size):
+                logging.debug(f'Stitching tile idx {tile_idx}')
                 tile = tiles[tile_idx]
                 tile_w, tile_h = tile.size
 
