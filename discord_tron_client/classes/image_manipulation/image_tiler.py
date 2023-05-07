@@ -3,24 +3,42 @@ from PIL import Image
 import logging, os
 
 class ImageTiler:
-    def __init__(self, pil_image: Image, processing_function=None):
+class ImageTiler:
+    def __init__(self, pil_image: Image, tile_size=64, overlap=8, processing_function=None):
         self.image = pil_image
+        self.overlap = overlap
         self.processing_function = processing_function if processing_function else self._default_processing_function
-        self.tile_size = 64
+        self.tile_size = tile_size
 
     def _default_processing_function(self, tile):
         logging.warning(f"No processing function provided for ImageTiler! Returning tile as-is.")
         return tile
 
-    def _split_image(self):
+    def _resize_image(self):
         w, h = self.image.size
+        new_w = ((w + self.tile_size - self.overlap - 1) // (self.tile_size - self.overlap)) * (self.tile_size - self.overlap) + self.tile_size
+        new_h = ((h + self.tile_size - self.overlap - 1) // (self.tile_size - self.overlap)) * (self.tile_size - self.overlap) + self.tile_size
+        return self.image.resize((new_w, new_h), Image.ANTIALIAS)
+
+    def _split_image(self):
+        resized_image = self._resize_image()
+        w, h = resized_image.size
         logging.debug(f"Splitting image into tiles of size {self.tile_size}x{self.tile_size}...")
         tiles = []
-        for y in range(0, h, self.tile_size):
+        for y in range(0, h, (self.tile_size - self.overlap) or 1):
             logging.debug(f'Processing row {y}... ({y/h*100:.2f}%)')
-            for x in range(0, w, self.tile_size):
+            maxcount = max(self.tile_size - self.overlap, 1)
+            for x in range(0, w, maxcount):
                 logging.debug(f'Processing tile {x}... ({x/w*100:.2f}%)')
-                tile = self.image.crop((x, y, x+self.tile_size, y+self.tile_size))
+                tile = resized_image.crop((x, y, x+self.tile_size, y+self.tile_size))
+                tile_w, tile_h = tile.size
+                if tile_h % 64 != 0:
+                    logging.debug(f'Crop height {tile_h} is not a multiple of 64! Cropping...')
+                    tile_h = (tile_h // 64) * 64
+                if tile_w % 64 != 0:
+                    logging.debug(f'Crop width {tile_w} is not a multiple of 64! Cropping...')
+                    tile_w = (tile_w // 64) * 64
+                tile = tile.crop((0, 0, tile_w, tile_h))
                 logging.debug(f'Cropped image to {tile.size}. Appending to list.')
                 tiles.append(tile)
         return tiles
