@@ -66,7 +66,7 @@ class ImageTiler:
 
         return Image.fromarray(blended)
 
-    def _stitch_tiles(self, debug_dir=None):
+    def _stitch_tiles(self, tiles, debug_dir=None):
         w, h = self.image.size
         stitched_image = Image.new("RGB", (w, h))
 
