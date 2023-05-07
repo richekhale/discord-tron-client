@@ -80,8 +80,9 @@ class ImageTiler:
 
     async def process_image(self, user_config, scheduler_config, model_id, prompt, side_x, side_y, negative_prompt, steps):
         tiles = self._split_image()
-        processed_tiles = [
-            await self.processing_function(
+        processed_tiles = []
+        for tile in tiles:
+            processed_tile = await self.processing_function(
                                     user_config=user_config,
                                     scheduler_config=scheduler_config,
                                     model_id=model_id,
@@ -92,6 +93,7 @@ class ImageTiler:
                                     steps=steps,
                                     image=tile,
                                     promptless_variation=True
-                                    ) for tile in tiles]
+                                    )
+            processed_tiles.append(processed_tile)
         result = self._stitch_tiles(processed_tiles)
         return ImageTiler.cv2_to_pil(result)
