@@ -128,7 +128,7 @@ class ImageTiler:
             processed_tiles.append(processed_tile)
         result = self._stitch_tiles(processed_tiles, debug_dir)
         return result
-    async def process_debug_images(self, user_config, scheduler_config, model_id, prompt, side_x, side_y, negative_prompt, steps, debug_dir):
+    async def process_debug_images(self, debug_dir):
         if not os.path.exists(debug_dir):
             raise ValueError(f"Debug directory {debug_dir} not found.")
 
