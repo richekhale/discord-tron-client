@@ -47,8 +47,8 @@ class ImageTiler:
         w, h = self.image.size
         resized_image = self._resize_image()
         resized_w, resized_h = resized_image.size
-        tile_count_x = (resized_w - self.tile_size) // (self.tile_size - self.overlap) + 1
-        tile_count_y = (resized_h - self.tile_size) // (self.tile_size - self.overlap) + 1
+        tile_count_x = (resized_w - self.tile_size) // (self.tile_size - self.overlap)
+        tile_count_y = (resized_h - self.tile_size) // (self.tile_size - self.overlap)
         total_w = self.new_tile_size * tile_count_x
         total_h = self.new_tile_size * tile_count_y
         stitched_image = Image.new("RGB", (total_w, total_h))
