@@ -68,10 +68,11 @@ class ImageTiler:
 
     def _stitch_tiles(self, tiles, debug_dir=None):
         w, h = self.image.size
-        tile_count_x = (w + self.tile_size - self.overlap - 1) // (self.tile_size - self.overlap)
-        tile_count_y = (h + self.tile_size - self.overlap - 1) // (self.tile_size - self.overlap)
-        total_w = (self.tile_size - self.overlap) * (tile_count_x - 1) + self.tile_size
-        total_h = (self.tile_size - self.overlap) * (tile_count_y - 1) + self.tile_size
+        stitched_tile_size = tiles[0].size
+        tile_count_x = (w + stitched_tile_size - self.overlap - 1) // (stitched_tile_size - self.overlap)
+        tile_count_y = (h + stitched_tile_size - self.overlap - 1) // (stitched_tile_size - self.overlap)
+        total_w = (stitched_tile_size - self.overlap) * (tile_count_x - 1) + stitched_tile_size
+        total_h = (stitched_tile_size - self.overlap) * (tile_count_y - 1) + stitched_tile_size
         stitched_image = Image.new("RGB", (total_w, total_h))
         logging.debug(f"Stitching {len(tiles)} tiles into image of size {total_w}x{total_h}...")
         if debug_dir:
@@ -79,14 +80,14 @@ class ImageTiler:
                 os.makedirs(debug_dir)
 
         tile_idx = 0
-        for y in range(0, h, self.tile_size - self.overlap):
-            for x in range(0, w, self.tile_size - self.overlap):
+        for y in range(0, h, stitched_tile_size - self.overlap):
+            for x in range(0, w, stitched_tile_size - self.overlap):
                 tile = tiles[tile_idx]
                 tile_w, tile_h = tile.size
 
                 if debug_dir:
-                    column_dir = os.path.join(debug_dir, f"{x // (self.tile_size - self.overlap)}")
-                    row_dir = os.path.join(column_dir, f"{y // (self.tile_size - self.overlap)}")
+                    column_dir = os.path.join(debug_dir, f"{x // (stitched_tile_size - self.overlap)}")
+                    row_dir = os.path.join(column_dir, f"{y // (stitched_tile_size - self.overlap)}")
                     if not os.path.exists(row_dir):
                         os.makedirs(row_dir)
                     tile_path = os.path.join(row_dir, "image.png")
