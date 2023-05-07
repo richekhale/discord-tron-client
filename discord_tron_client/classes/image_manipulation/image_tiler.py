@@ -103,7 +103,7 @@ class ImageTiler:
 
         return stitched_image
 
-    async def process_image(self, user_config, scheduler_config, model_id, prompt, side_x, side_y, negative_prompt, steps):
+    async def process_image(self, user_config, scheduler_config, model_id, prompt, side_x, side_y, negative_prompt, steps, debug_dir=None):
         tiles = self._split_image()
         processed_tiles = []
         for tile in tiles:
@@ -120,5 +120,5 @@ class ImageTiler:
                                     promptless_variation=True
                                     )
             processed_tiles.append(processed_tile)
-        result = self._stitch_tiles(processed_tiles)
+        result = self._stitch_tiles(processed_tiles, debug_dir)
         return result
