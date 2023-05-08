@@ -85,7 +85,7 @@ class DiffusionPipelineManager:
             pipeline = pipeline_class.from_pretrained(
                 model_id,
                 torch_dtype=self.torch_dtype,
-                custom_pipeline="lpw_stable_diffusion",
+                # custom_pipeline="lpw_stable_diffusion",
             )
             vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=torch.float16)
             pipeline.vae = vae
