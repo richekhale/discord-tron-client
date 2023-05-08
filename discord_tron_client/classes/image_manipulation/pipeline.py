@@ -212,6 +212,7 @@ class PipelineRunner:
                 if not alt_weight_algorithm:
                     # Default "long prompt weighting" pipeline
                     new_image = pipe(
+                        use_karras_sigmas=True,
                         prompt=positive_prompt,
                         num_images_per_prompt=4,
                         height=side_y,
@@ -224,6 +225,7 @@ class PipelineRunner:
                 else:
                     # Use the Compel library's prompt weights as input instead.
                     new_image = pipe(
+                        use_karras_sigmas=True,
                         positive_embeds=prompt_embed,
                         num_images_per_prompt=4,
                         height=side_y,
