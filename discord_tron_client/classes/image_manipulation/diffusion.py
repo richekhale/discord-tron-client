@@ -33,6 +33,7 @@ class DiffusionPipelineManager:
         "EulerDiscreteScheduler": diffusers.EulerDiscreteScheduler,
         "KDPM2DiscreteScheduler": diffusers.KDPM2DiscreteScheduler,
         "IPNDMScheduler": diffusers.IPNDMScheduler,
+        "KarrasVeScheduler": diffusers.KarrasVeScheduler
     }
 
     def __init__(self):
