@@ -146,12 +146,14 @@ class DiffusionPipelineManager:
         if model_id not in self.pipelines:
             logging.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type)
-            if pipe_type in ["upscaler", "text2img", "prompt_variation"]:
+            if pipe_type in ["upscaler", "prompt_variation"]:
                 self.set_scheduler(
                     pipe=self.pipelines[model_id],
                     user_config=None,
                     scheduler_config=scheduler_config,
                 )
+            elif pipe_type == 'text2img':
+                self.pipelines[model_id].set_scheduler('sample_dpmpp_2m')
             elif pipe_type == 'variation':
                 # I think this needs a specific scheduler set.
                 logging.debug(f"Before setting scheduler: {self.pipelines[model_id].scheduler}")
