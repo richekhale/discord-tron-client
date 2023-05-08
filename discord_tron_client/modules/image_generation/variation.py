@@ -63,8 +63,7 @@ async def promptless_variation(payload, websocket):
             module_command="delete",
         )
         await websocket.send(discord_msg.to_json())
-        tiler = ImageTiler(pil_image=image, processing_function=pipeline_runner.generate_image)
-        result = await tiler.process_image(
+        result = await pipeline_runner.generate_image(
             user_config=user_config,
             scheduler_config=scheduler_config,
             model_id=model_id,
@@ -73,7 +72,8 @@ async def promptless_variation(payload, websocket):
             side_y=resolution["height"],
             negative_prompt=negative_prompt,
             steps=steps,
-            debug_dir="/tmp/img_debug"
+            image=image,
+            promptless_variation=True,
         )
         payload["seed"] = pipeline_runner.seed
         payload["gpu_power_consumption"] = pipeline_runner.gpu_power_consumption

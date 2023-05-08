@@ -10,8 +10,9 @@ class ResolutionManager:
     resolutions = [
         # 1:1 aspect ratio
         {"width": 128, "height": 128, "speed_factor": 100},
-        {"width": 256, "height": 256, "speed_factor": 88},
-        {"width": 512, "height": 512, "speed_factor": 30},
+        {"width": 256, "height": 256, "speed_factor": 100},
+        {"width": 512, "height": 512, "speed_factor": 100},
+        {"width": 768, "height": 768, "speed_factor": 30},
         {"width": 1024, "height": 1024, "speed_factor": 30, "default_max": True},
         {"width": 2048, "height": 2048, "speed_factor": 30},
         {"width": 4096, "height": 4096, "speed_factor": 30},
