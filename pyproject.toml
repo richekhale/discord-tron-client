@@ -42,6 +42,7 @@ torchvision = "0.15.1"
 torchmetrics = "^0.11.4"
 opencv-contrib-python = "^4.7.0.72"
 controlnet-aux = "^0.0.3"
+k-diffusion = "^0.0.14"
 
 [[tool.poetry.source]]
 name = "torch"

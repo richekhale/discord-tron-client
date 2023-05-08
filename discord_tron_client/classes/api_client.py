@@ -44,6 +44,7 @@ class ApiClient:
         attempt = 0
         while attempt < 15:
             try:
+                logging.error(f'Sending POST request to {endpoint} with files {files} and headers {self.headers} using params {params}')
                 if params is None:
                     params = {}
                 if send_auth:

@@ -3,6 +3,7 @@ from diffusers import (
     StableDiffusionImageVariationPipeline,
     StableDiffusionControlNetPipeline, ControlNetModel,
     StableDiffusionUpscalePipeline,
+    StableDiffusionKDiffusionPipeline,
     AutoencoderKL,
     UniPCMultistepScheduler
 )
@@ -18,7 +19,8 @@ config = AppConfig()
 
 class DiffusionPipelineManager:
     PIPELINE_CLASSES = {
-        "text2img": Pipeline,
+        # "text2img": Pipeline,
+        "text2img": StableDiffusionKDiffusionPipeline,
         "prompt_variation": Pipeline,
         "variation": StableDiffusionPipeline,
         "upscaler": StableDiffusionUpscalePipeline,
