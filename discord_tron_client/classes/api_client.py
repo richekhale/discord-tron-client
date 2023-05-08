@@ -1,4 +1,4 @@
-import logging, json, requests, sys, os, io
+import logging, json, requests, sys, os, io, time
 from discord_tron_client.classes.auth import Auth
 from discord_tron_client.classes.app_config import AppConfig
 from PIL import Image
@@ -71,11 +71,17 @@ class ApiClient:
                         "Error in ApiClient.post when checking error: " + str(e2)
                     )
                 attempt += 1
-        raise Exception("Upload failed after 15 attempts.")
+                sleep_time = 2 ** attempt
+                logging.error(
+                    f"Error in ApiClient.post. Sleeping for {sleep_time} seconds."
+                )
+                time.sleep(sleep_time)
+                if attempt >= 15:
+                    raise Exception(f"Upload failed after 15 attempts: {e}")
 
     def send_file(self, endpoint: str, file_path: str):
         with open(file_path, "rb") as f:
-            response = requests.post(endpoint, files={"file": f})
+            response = self.post(endpoint, files={"file": f})
         return response
 
     async def send_audio(
