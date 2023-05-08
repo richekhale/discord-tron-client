@@ -3,6 +3,7 @@ from diffusers import (
     StableDiffusionImageVariationPipeline,
     StableDiffusionControlNetPipeline, ControlNetModel,
     StableDiffusionUpscalePipeline,
+    AutoencoderKL,
     UniPCMultistepScheduler
 )
 from diffusers import DiffusionPipeline as Pipeline
@@ -83,11 +84,15 @@ class DiffusionPipelineManager:
                 torch_dtype=self.torch_dtype,
                 custom_pipeline="lpw_stable_diffusion",
             )
+            vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=torch.float16)
+            pipeline.vae = vae
         else:
             logging.debug(f"Using standard pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
                 model_id, torch_dtype=self.torch_dtype
             )
+            vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=torch.float16)
+            pipeline.vae = vae
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
         return pipeline
