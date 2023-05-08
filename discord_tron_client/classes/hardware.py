@@ -42,7 +42,6 @@ class HardwareInfo:
         return HardwareInfo.identifier
 
     def should_offload(self):
-        return False
         return self.get_video_memory_info() == 'Unknown' or self.video_memory_amount < 64
 
     def get_system_capabilities(self):
