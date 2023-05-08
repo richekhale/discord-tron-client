@@ -56,7 +56,7 @@ async def promptless_variation(payload, websocket):
             io.BytesIO(requests.get(payload["image_data"], timeout=10).content)
         )
         from discord_tron_client.classes.image_manipulation.image_tiler import ImageTiler
-        # image = image.resize((resolution["width"], resolution["height"]), resample=Image.LANCZOS)
+        image = image.resize((resolution["width"], resolution["height"]), resample=Image.LANCZOS)
         discord_msg = DiscordMessage(
             websocket=websocket,
             context=payload["discord_context"],
