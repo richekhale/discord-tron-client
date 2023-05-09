@@ -41,8 +41,6 @@ class ApiClient:
         files: dict = None,
         send_auth: bool = True,
     ):
-        attempt = 0
-        while attempt < 15:
             try:
                 logging.error(f'Sending POST request to {endpoint} with files {files} and headers {self.headers} using params {params}')
                 if params is None:
@@ -67,18 +65,13 @@ class ApiClient:
                             "Error is authentication related. Refreshing auth."
                         )
                         self.update_auth()
+                    raise e
                 except Exception as e2:
                     logging.error(
                         "Error in ApiClient.post when checking error: " + str(e2)
                     )
-                attempt += 1
-                sleep_time = 2 ** attempt
-                logging.error(
-                    f"Error in ApiClient.post. Sleeping for {sleep_time} seconds."
-                )
-                time.sleep(sleep_time)
-                if attempt >= 15:
-                    raise Exception(f"Upload failed after 15 attempts: {e}")
+                    raise e2
+
 
     def send_file(self, endpoint: str, file_path: str):
         with open(file_path, "rb") as f:
@@ -105,20 +98,36 @@ class ApiClient:
     async def send_pil_image(self, endpoint: str, image: Image, send_auth: bool = True):
         buffer = io.BytesIO()
         image.save(buffer, format="PNG")
-        buffer.seek(0)
-        import asyncio
-
-        loop = asyncio.get_event_loop()
-        response = await loop.run_in_executor(
-            AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
-            self.post,
-            endpoint,
-            None,
-            {"image": buffer},
-            send_auth,
-        )
-        return response
-
+        attempt = 0
+        while attempt < 15:
+            try:
+                buffer.seek(0)
+                import asyncio
+                loop = asyncio.get_event_loop()
+                response = await loop.run_in_executor(
+                    AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
+                    self.post,
+                    endpoint,
+                    None,
+                    {"image": buffer},
+                    send_auth,
+                )
+            except Exception as e:
+                logging.error(f'Could not upload image. Error: {response["error"]}')
+                if "error_class" in response:
+                    logging.error(f'Image upload error class: {response["error_class"]}')
+                    if response['error_class'] == 'UnidentifiedImageError':
+                        logging.error(f'The remote system could not parse our image. Can we? {buffer}')
+                        raise e
+                attempt += 1
+                sleep_time = 2 ** attempt
+                logging.error(
+                    f"Error in ApiClient.post. Sleeping for {sleep_time} seconds."
+                )
+                time.sleep(sleep_time)
+                if attempt >= 15:
+                    raise Exception(f"Upload failed after 15 attempts")
+            return response
     def send_buffer(self, endpoint: str, buffer: io.BytesIO):
         response = self.post(endpoint, files={"file": buffer})
         return response
