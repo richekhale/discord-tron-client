@@ -14,9 +14,7 @@ import requests
 from PIL import Image
 import torch
 import re
-from huggingface_hub import login
 
-login()
 device = "cuda:0"
 if_I = IFStageI("IF-I-XL-v1.0", device=device)
 if_II = IFStageII("IF-II-L-v1.0", device=device)

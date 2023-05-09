@@ -209,32 +209,18 @@ class PipelineRunner:
         try:
             alt_weight_algorithm = user_config.get("alt_weight_algorithm", False)
             if not promptless_variation and image is None:
-                if not alt_weight_algorithm:
-                    # Default "long prompt weighting" pipeline
-                    new_image = pipe(
-                        use_karras_sigmas=True,
-                        prompt=positive_prompt,
-                        num_images_per_prompt=4,
-                        height=side_y,
-                        width=side_x,
-                        num_inference_steps=int(float(steps)),
-                        negative_prompt=negative_prompt,
-                        guidance_scale=guidance_scale,
-                        generator=generator,
-                    ).images
-                else:
-                    # Use the Compel library's prompt weights as input instead.
-                    new_image = pipe(
-                        use_karras_sigmas=True,
-                        positive_embeds=prompt_embed,
-                        num_images_per_prompt=4,
-                        height=side_y,
-                        width=side_x,
-                        num_inference_steps=int(float(steps)),
-                        negative_embeds=negative_embed,
-                        guidance_scale=guidance_scale,
-                        generator=generator,
-                    ).images
+                # Use the Compel library's prompt weights as input instead of LPW pipelines.
+                new_image = pipe(
+                    use_karras_sigmas=True,
+                    positive_embeds=prompt_embed,
+                    num_images_per_prompt=4,
+                    height=side_y,
+                    width=side_x,
+                    num_inference_steps=int(float(steps)),
+                    negative_embeds=negative_embed,
+                    guidance_scale=guidance_scale,
+                    generator=generator,
+                ).images
             elif not upscaler and not promptless_variation and image is not None:
                 if not alt_weight_algorithm:
                     new_image = pipe.img2img(
