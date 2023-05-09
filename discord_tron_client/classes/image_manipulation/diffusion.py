@@ -79,7 +79,7 @@ class DiffusionPipelineManager:
                 custom_pipeline="stable_diffusion_controlnet_img2img",
                 controlnet=controlnet,
             )
-        elif pipe_type in ["prompt_variation", "text2img"]:
+        elif pipe_type in ["prompt_variation"]:
             # Use the long prompt weighting pipeline.
             logging.debug(f"Creating a LPW pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
