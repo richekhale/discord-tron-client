@@ -212,12 +212,12 @@ class PipelineRunner:
                 # Use the Compel library's prompt weights as input instead of LPW pipelines.
                 new_image = pipe(
                     use_karras_sigmas=True,
-                    positive_embeds=prompt_embed,
+                    prompt_embeds=prompt_embed,
                     num_images_per_prompt=4,
                     height=side_y,
                     width=side_x,
                     num_inference_steps=int(float(steps)),
-                    negative_embeds=negative_embed,
+                    negative_prompt_embeds=negative_embed,
                     guidance_scale=guidance_scale,
                     generator=generator,
                 ).images
