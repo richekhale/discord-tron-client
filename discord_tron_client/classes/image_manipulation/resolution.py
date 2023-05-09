@@ -34,6 +34,13 @@ class ResolutionManager:
         # 16:9 aspect ratio
         {"width": 256, "height": 144, "speed_factor": 40},
         {"width": 512, "height": 288, "speed_factor": 40},
+
+        { "width": 480, "height": 640, "speed_factor": 100 },
+        { "width": 768, "height": 1024, "speed_factor": 100 },
+        { "width": 960, "height": 1280, "speed_factor": 100 },
+        { "width": 1152, "height": 1536, "speed_factor": 100 },
+        { "width": 1440, "height": 1920, "speed_factor": 100 },
+
         {"width": 1024, "height": 576, "speed_factor": 40},
         {"width": 1280, "height": 720, "speed_factor": 30},
         {"width": 1440, "height": 810, "speed_factor": 20},
