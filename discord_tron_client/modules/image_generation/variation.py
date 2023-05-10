@@ -38,6 +38,7 @@ async def promptless_variation(payload, websocket):
     if model_id in controlnet_models_broken:
         controlnet_warning = f" Your model {model_id} was not in our compatibility list for ControlNet. It has been swapped to `{default_controlnet_model}`!\n" \
                                 f"The following models are currently not supported for ControlNet: {', '.join(controlnet_models_broken)}"
+        model_id = default_controlnet_model
     discord_msg = DiscordMessage(
         websocket=websocket,
         context=payload["discord_first_message"],
