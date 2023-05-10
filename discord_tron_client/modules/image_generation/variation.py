@@ -28,11 +28,21 @@ async def promptless_variation(payload, websocket):
     negative_prompt = user_config["negative_prompt"]
     steps = user_config["steps"]
     positive_prompt = user_config["positive_prompt"]
+    controlnet_models_broken = [
+        'stabilityai/stable-diffusion-2',
+        'stabilityai/stable-diffusion-2-1',
+        'Junglerally/Digital-Diffusion',
+    ]
+    controlnet_warning = ""
+    default_controlnet_model = "theintuitiveye/HARDblend"
+    if model_id in controlnet_models_broken:
+        controlnet_warning = f" Your model {model_id} was not in our compatibility list for ControlNet. It has been swapped to `{default_controlnet_model}`!\n" \
+                                f"The following models are currently not supported for ControlNet: {', '.join(controlnet_models_broken)}"
     discord_msg = DiscordMessage(
         websocket=websocket,
         context=payload["discord_first_message"],
         module_command="edit",
-        message="Beginning work on your 🍕 💩 image variation!",
+        message=f"Beginning work on your 🍕 💩 image variation!{controlnet_warning}",
     )
     try:
         websocket = AppConfig.get_websocket()
@@ -55,8 +65,13 @@ async def promptless_variation(payload, websocket):
         image = Image.open(
             io.BytesIO(requests.get(payload["image_data"], timeout=10).content)
         )
-        from discord_tron_client.classes.image_manipulation.image_tiler import ImageTiler
-        image = image.resize((resolution["width"], resolution["height"]), resample=Image.LANCZOS)
+        from discord_tron_client.classes.image_manipulation.image_tiler import (
+            ImageTiler,
+        )
+
+        image = image.resize(
+            (resolution["width"], resolution["height"]), resample=Image.LANCZOS
+        )
         discord_msg = DiscordMessage(
             websocket=websocket,
             context=payload["discord_context"],
@@ -160,7 +175,9 @@ async def prompt_variation(payload, websocket):
         image = Image.open(
             io.BytesIO(requests.get(payload["image_data"], timeout=10).content)
         )
-        image = image.resize((resolution["width"], resolution["height"]), resample=Image.LANCZOS)
+        image = image.resize(
+            (resolution["width"], resolution["height"]), resample=Image.LANCZOS
+        )
         try:
             background = Image.new("RGBA", image.size, (255, 255, 255))
             alpha_composite = Image.alpha_composite(background, image)
