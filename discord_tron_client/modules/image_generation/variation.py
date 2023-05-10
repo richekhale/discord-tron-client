@@ -32,11 +32,12 @@ async def promptless_variation(payload, websocket):
         'stabilityai/stable-diffusion-2',
         'stabilityai/stable-diffusion-2-1',
         'junglerally/digital-diffusion',
+        'ptx0/artius_v21',
     ]
     controlnet_warning = ""
     default_controlnet_model = "theintuitiveye/HARDblend"
     if model_id.lower() in controlnet_models_broken:
-        controlnet_warning = f" Your model {model_id} was not in our compatibility list for ControlNet. It has been swapped to `{default_controlnet_model}`!\n" \
+        controlnet_warning = f" Your model `{model_id}` was not in our compatibility list for ControlNet. It has been swapped to `{default_controlnet_model}`!\n" \
                                 f"The following models are currently not supported for ControlNet: {', '.join(controlnet_models_broken)}"
         model_id = default_controlnet_model
     discord_msg = DiscordMessage(
