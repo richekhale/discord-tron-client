@@ -21,7 +21,7 @@ class StableVicunaTorch:
         self.tokenizer, self.vicuna, self.max_context_length = predict.load(self.model)
 
     def details(self):
-        return f"StableVicuna running the {self.model} parameter model via 🤗 Diffusers"
+        return f"LLM running the {self.model} model via 🤗 Diffusers"
 
     def get_usage(self):
         return self.usage or None
