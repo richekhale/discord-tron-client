@@ -113,12 +113,6 @@ class ApiClient:
                     send_auth,
                 )
             except Exception as e:
-                logging.error(f'Could not upload image. Error: {response["error"]}')
-                if "error_class" in response:
-                    logging.error(f'Image upload error class: {response["error_class"]}')
-                    if response['error_class'] == 'UnidentifiedImageError':
-                        logging.error(f'The remote system could not parse our image. Can we? {buffer}')
-                        raise e
                 attempt += 1
                 sleep_time = 2 ** attempt
                 logging.error(
