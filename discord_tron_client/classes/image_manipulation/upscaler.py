@@ -165,39 +165,39 @@ class ImageUpscaler:
         return Image.new("RGB", (total_width, total_height))
 
 
-def _paste_tiles(self, merged_image, ups_tiles, side):
-    current_width = 0
-    current_height = 0
-    maximum_width = self.cols * side
+    def _paste_tiles(self, merged_image, ups_tiles, side):
+        current_width = 0
+        current_height = 0
+        maximum_width = self.cols * side
 
-    for idx, ups_tile in enumerate(ups_tiles):
-        if idx != 0:  # Don't blend for the first tile
-            box = (
-                max(0, current_width - self.padding),
-                max(0, current_height - self.padding),
-                min(merged_image.width, current_width + side + self.padding),
-                min(merged_image.height, current_height + side + self.padding),
-            )
-            prev_tile = merged_image.crop(box)
+        for idx, ups_tile in enumerate(ups_tiles):
+            if idx != 0:  # Don't blend for the first tile
+                box = (
+                    max(0, current_width - self.padding),
+                    max(0, current_height - self.padding),
+                    min(merged_image.width, current_width + side + self.padding),
+                    min(merged_image.height, current_height + side + self.padding),
+                )
+                prev_tile = merged_image.crop(box)
 
-            # Resize the current tile to match the size of the box
-            ups_tile_resized = ups_tile.resize((box[2] - box[0], box[3] - box[1]))
+                # Resize the current tile to match the size of the box
+                ups_tile_resized = ups_tile.resize((box[2] - box[0], box[3] - box[1]))
 
-            # Blend the images
-            ups_tile_blend = Image.blend(prev_tile, ups_tile_resized, self.blend_alpha)
+                # Blend the images
+                ups_tile_blend = Image.blend(prev_tile, ups_tile_resized, self.blend_alpha)
 
-            # Paste the blended tile onto the merged image
-            merged_image.paste(ups_tile_blend, box)
+                # Paste the blended tile onto the merged image
+                merged_image.paste(ups_tile_blend, box)
 
-        else:  # For the first tile, just paste it
-            merged_image.paste(ups_tile, (current_width, current_height))
+            else:  # For the first tile, just paste it
+                merged_image.paste(ups_tile, (current_width, current_height))
 
-        current_width += side
-        if current_width >= maximum_width:
-            current_width = 0
-            current_height += side
+            current_width += side
+            if current_width >= maximum_width:
+                current_width = 0
+                current_height += side
 
-    return merged_image
+        return merged_image
 
     @staticmethod
     def _crop_final_image(
