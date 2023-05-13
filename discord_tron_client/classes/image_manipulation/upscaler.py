@@ -100,7 +100,7 @@ class ImageResizer:
 
 
 class ImageUpscaler:
-    def __init__(self, pipeline, generator, rows=3, cols=3, padding=64, blend_alpha=0.0):
+    def __init__(self, pipeline, generator, rows=3, cols=3, padding=64, blend_alpha=0.5):
         self.pipeline = pipeline
         self.generator = generator
         self.rows = rows
