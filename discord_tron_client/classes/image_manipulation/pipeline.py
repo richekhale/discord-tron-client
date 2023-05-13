@@ -270,16 +270,13 @@ class PipelineRunner:
             elif upscaler:
                 rows = 3
                 cols = 3
-                new_image = upscaling_helper.upscale_image(
-                    pipeline=pipe,
-                    generator=generator,
+                UU = upscaling_helper.ImageUpscaler(pipeline=pipe, generator=generator, rows=rows, cols=cols)
+                new_image = UU.upscale(
                     prompt=positive_prompt,
                     image=image,
                     negative_prompt=negative_prompt,
                     guidance=guidance_scale,
                     steps=steps,
-                    rows=rows,
-                    cols=cols,
                 )
                 # new_image = pipe(
                 #     prompt_embeds=prompt_embed,
