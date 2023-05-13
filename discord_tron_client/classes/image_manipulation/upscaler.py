@@ -85,9 +85,8 @@ def upscale_image(
         logging.info("Upscaling tile " + str(i) + " of " + str(len(tiles)))
         conditioned_image = _resize_for_condition_image(input_image=x, resolution=1024)
         ups_tile = pipeline(
-            prompt="best quality " + prompt,
-            negative_prompt="blur, lowres, bad anatomy, bad hands, cropped, worst quality "
-            + negative_prompt,
+            prompt="best quality",
+            negative_prompt="blur, lowres, bad anatomy, bad hands, cropped, worst quality",
             image=conditioned_image,
             controlnet_conditioning_image=conditioned_image,
             width=conditioned_image.size[0],
