@@ -112,6 +112,7 @@ class ApiClient:
                     {"image": buffer},
                     send_auth,
                 )
+                return response
             except Exception as e:
                 attempt += 1
                 sleep_time = 2 ** attempt
@@ -121,7 +122,6 @@ class ApiClient:
                 time.sleep(sleep_time)
                 if attempt >= 15:
                     raise Exception(f"Upload failed after 15 attempts")
-            return response
     def send_buffer(self, endpoint: str, buffer: io.BytesIO):
         response = self.post(endpoint, files={"file": buffer})
         return response
