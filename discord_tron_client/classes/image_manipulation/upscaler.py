@@ -91,7 +91,7 @@ def upscale_image(
             controlnet_conditioning_image=conditioned_image,
             width=conditioned_image.size[0],
             height=conditioned_image.size[1],
-            strength=1.0,
+            strength=0.7,
             generator=generator,
             num_inference_steps=32,
         ).images[0]
