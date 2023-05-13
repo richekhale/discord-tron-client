@@ -89,6 +89,13 @@ class DiffusionPipelineManager:
             )
             vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=torch.float16)
             pipeline.vae = vae
+        elif pipe_type in ["upscaler"]:
+            # Use the long prompt weighting pipeline.
+            logging.debug(f"Creating a upscaler pipeline for {model_id} where we do not touch the VAE")
+            pipeline = pipeline_class.from_pretrained(
+                model_id,
+                torch_dtype=self.torch_dtype,
+            )
         elif pipe_type in ["text2img"]:
             # Use the long prompt weighting pipeline.
             logging.debug(f"Creating a LPW pipeline for {model_id}")
@@ -172,16 +179,16 @@ class DiffusionPipelineManager:
             if hasattr(self.pipelines[model_id], "enable_model_cpu_offload") and hardware.should_offload():
                 try:
                     self.pipelines[model_id].enable_model_cpu_offload()
-                    # move_cuda = False
+                    move_cuda = False
                 except Exception as e:
                     logging.error(f"Could not enable CPU offload on the model: {e}")
                     move_cuda = True
-            self.pipelines[model_id].enable_xformers_memory_efficient_attention(
-                True
-            )
-            self.pipelines[model_id].set_use_memory_efficient_attention_xformers(
-                True
-            )
+            # self.pipelines[model_id].enable_xformers_memory_efficient_attention(
+            #     True
+            # )
+            # self.pipelines[model_id].set_use_memory_efficient_attention_xformers(
+            #     True
+            # )
 
         # This must happen here, or mem savings are minimal.
         if move_cuda is None or move_cuda is True:

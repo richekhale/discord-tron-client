@@ -9,6 +9,7 @@ from tqdm import tqdm
 from discord_tron_client.classes.app_config import AppConfig
 from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.classes.image_manipulation.resolution import ResolutionManager
+from discord_tron_client.classes.image_manipulation import upscaler as upscaling_helper
 from discord_tron_client.classes.image_manipulation.prompt_manipulation import (
     PromptManipulation,
 )
@@ -18,6 +19,7 @@ from discord_tron_client.message.discord import DiscordMessage
 from PIL import Image
 
 hardware = HardwareInfo()
+
 
 class PipelineRunner:
     def __init__(
@@ -254,7 +256,9 @@ class PipelineRunner:
                     # side_x, side_y = ResolutionManager.nearest_generation_resolution(
                     #     side_x, side_y
                     # )
-                image = self._resize_for_condition_image(input_image=image, resolution=1024)
+                image = self._resize_for_condition_image(
+                    input_image=image, resolution=1024
+                )
                 new_image = pipe(
                     prompt=user_config["tile_positive"],
                     negative_prompt=user_config["tile_negative"],
@@ -267,13 +271,26 @@ class PipelineRunner:
                     num_inference_steps=int(float(steps)),
                 ).images[0]
             elif upscaler:
-                new_image = pipe(
-                    prompt_embeds=prompt_embed,
-                    num_images_per_prompt=4,
-                    negative_prompt_embeds=negative_embed,
+                rows = 3
+                cols = 3
+                new_image = upscaling_helper.upscale_image(
+                    pipeline=pipe,
+                    generator=generator,
+                    prompt=positive_prompt,
                     image=image,
-                    num_inference_steps=int(float(steps)),
-                ).images
+                    negative_prompt=negative_prompt,
+                    guidance=guidance_scale,
+                    steps=steps,
+                    rows=rows,
+                    cols=cols,
+                )
+                # new_image = pipe(
+                #     prompt_embeds=prompt_embed,
+                #     num_images_per_prompt=4,
+                #     negative_prompt_embeds=negative_embed,
+                #     image=image,
+                #     num_inference_steps=int(float(steps)),
+                # ).images
             else:
                 raise Exception(
                     "Invalid combination of parameters for image generation"
@@ -281,7 +298,9 @@ class PipelineRunner:
         except OutOfMemoryError as e:
             logging.warn(f"Out of memory error: {e}")
             self.pipeline_manager.delete_pipes()
-            raise Exception("The GPU ran out of memory when generating your awesome image. Please try again with a lower size..")
+            raise Exception(
+                "The GPU ran out of memory when generating your awesome image. Please try again with a lower size.."
+            )
         except Exception as e:
             logging.error(
                 f"Error while generating image: {e}\n{traceback.format_exc()}"
@@ -338,12 +357,12 @@ class PipelineRunner:
         side_x = resolution["width"]
         side_y = resolution["height"]
         logging.info(f"Rescaled resolution: {side_x}x{side_y}")
-        if isinstance(new_image, list) and not promptless_variation:
+        if isinstance(new_image, list) and not promptless_variation and not upscaler:
             for i in range(len(new_image)):
                 new_image[i] = new_image[i].resize(
                     (int(side_x), int(side_y)), resample=Image.LANCZOS
                 )
-        if hasattr(new_image, "resize") and not promptless_variation:
+        if hasattr(new_image, "resize") and not promptless_variation and not upscaler:
             new_image = new_image.resize(
                 (int(side_x), int(side_y)), resample=Image.LANCZOS
             )
