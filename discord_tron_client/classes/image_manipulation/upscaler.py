@@ -120,8 +120,6 @@ class ImageUpscaler:
                 input_image=tile, resolution=1024
             )
             ups_tile = self._get_upscaled_tile(conditioned_image)
-            torch.cuda.empty_cache()
-            gc.collect()
             ups_tiles.append(ups_tile)
         return [self._merge_tiles(
             tiles, ups_tiles, max_dimension, original_width, original_height
