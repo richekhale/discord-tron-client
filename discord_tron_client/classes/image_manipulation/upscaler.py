@@ -187,7 +187,7 @@ class ImageUpscaler:
                     min(merged_image.height, current_height + self.padding),
                 )
                 logging.info(f'Overlap box is {overlap_box}')
-                logging.info(f'Merged image size is {prev_tile.size}')
+                logging.info(f'Merged image size is {merged_image.size}')
                 prev_tile = merged_image.crop(overlap_box)
                 logging.info(f'Prev tile (merged image) size is {prev_tile.size}')
 
