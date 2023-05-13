@@ -186,6 +186,7 @@ class ImageUpscaler:
                 )
 
                 prev_tile = merged_image.crop(overlap_box)
+                logging.info(f"Cropping to box {overlap_box}")
 
                 # Calculate overlap box relative to the upscaled tile
                 ups_tile_overlap_box = (
@@ -196,10 +197,12 @@ class ImageUpscaler:
                 )
 
                 ups_tile_overlap = ups_tile.crop(ups_tile_overlap_box)
+                logging.info(f"Overlap box is {ups_tile_overlap_box}")
+                logging.info(f"Merged image size is {merged_image.size}")
+                logging.info(f"Prev tile (merged image) size is {prev_tile.size}")
+                logging.info(f"Ups tile overlap size is {ups_tile_overlap.size}")
 
-                ups_tile_blend = Image.blend(
-                    prev_tile, ups_tile_overlap, self.blend_alpha
-                )
+                ups_tile_blend = Image.blend(prev_tile, ups_tile_overlap, self.blend_alpha)
 
                 merged_image.paste(ups_tile_blend, overlap_box)
 
