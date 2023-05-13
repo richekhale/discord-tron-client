@@ -4,6 +4,7 @@ import torch, gc, logging
 from split_image import split
 import os
 
+
 class ImageSplitter:
     def __init__(self, rows, cols, should_square, padding=0, should_quiet=False):
         self.rows = rows
@@ -100,7 +101,9 @@ class ImageResizer:
 
 
 class ImageUpscaler:
-    def __init__(self, pipeline, generator, rows=3, cols=3, padding=64, blend_alpha=0.5):
+    def __init__(
+        self, pipeline, generator, rows=3, cols=3, padding=64, blend_alpha=0.5
+    ):
         self.pipeline = pipeline
         self.generator = generator
         self.rows = rows
@@ -121,9 +124,11 @@ class ImageUpscaler:
             )
             ups_tile = self._get_upscaled_tile(conditioned_image)
             ups_tiles.append(ups_tile)
-        return [self._merge_tiles(
-            tiles, ups_tiles, max_dimension, original_width, original_height
-        )]
+        return [
+            self._merge_tiles(
+                tiles, ups_tiles, max_dimension, original_width, original_height
+            )
+        ]
 
     def _get_upscaled_tile(self, conditioned_image):
         return self.pipeline(
@@ -138,7 +143,9 @@ class ImageUpscaler:
             num_inference_steps=32,
         ).images[0]
 
-    def _merge_tiles(self, tiles, ups_tiles, max_dimension, original_width, original_height):
+    def _merge_tiles(
+        self, tiles, ups_tiles, max_dimension, original_width, original_height
+    ):
         side = ups_tiles[0].width
         ups_times = abs(side / tiles[0].width)
         new_size = (max_dimension * ups_times, max_dimension * ups_times)
@@ -157,24 +164,40 @@ class ImageUpscaler:
     def _create_blank_image(total_width, total_height):
         return Image.new("RGB", (total_width, total_height))
 
-    def _paste_tiles(self, merged_image, ups_tiles, side):
-        current_width = 0
-        current_height = 0
-        maximum_width = self.cols * side
-        for ups_tile in ups_tiles:
-            if current_width > 0 and current_height > 0:
-                logging.info(f"Blending tile at {current_width}, {current_height}")
-                prev_tile = merged_image.crop((current_width, current_height, current_width + side, current_height + side))
-                logging.debug(f"Previous tile size: {prev_tile.size}")
-                ups_tile = Image.blend(prev_tile, ups_tile, self.blend_alpha)
 
+def _paste_tiles(self, merged_image, ups_tiles, side):
+    current_width = 0
+    current_height = 0
+    maximum_width = self.cols * side
+
+    for idx, ups_tile in enumerate(ups_tiles):
+        if idx != 0:  # Don't blend for the first tile
+            box = (
+                max(0, current_width - self.padding),
+                max(0, current_height - self.padding),
+                min(merged_image.width, current_width + side + self.padding),
+                min(merged_image.height, current_height + side + self.padding),
+            )
+            prev_tile = merged_image.crop(box)
+
+            # Resize the current tile to match the size of the box
+            ups_tile_resized = ups_tile.resize((box[2] - box[0], box[3] - box[1]))
+
+            # Blend the images
+            ups_tile_blend = Image.blend(prev_tile, ups_tile_resized, self.blend_alpha)
+
+            # Paste the blended tile onto the merged image
+            merged_image.paste(ups_tile_blend, box)
+
+        else:  # For the first tile, just paste it
             merged_image.paste(ups_tile, (current_width, current_height))
-            current_width += ups_tile.width
-            if current_width >= maximum_width:
-                current_width = 0
-                current_height = current_height + side
 
-        return merged_image
+        current_width += side
+        if current_width >= maximum_width:
+            current_width = 0
+            current_height += side
+
+    return merged_image
 
     @staticmethod
     def _crop_final_image(
