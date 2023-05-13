@@ -101,7 +101,7 @@ class ImageUpscaler:
             gc.collect()
             ups_tiles.append(ups_tile)
         return self._merge_tiles(
-            ups_tiles, max_dimension, original_width, original_height
+            tiles, ups_tiles, max_dimension, original_width, original_height
         )
 
     def _get_upscaled_tile(self, conditioned_image):
@@ -117,7 +117,7 @@ class ImageUpscaler:
             num_inference_steps=32,
         ).images[0]
 
-    def _merge_tiles(self, ups_tiles, max_dimension, original_width, original_height):
+    def _merge_tiles(self, tiles, ups_tiles, max_dimension, original_width, original_height):
         side = ups_tiles[0].width
         ups_times = abs(side / tiles[0].width)
         new_size = (max_dimension * ups_times, max_dimension * ups_times)
