@@ -163,7 +163,9 @@ class ImageUpscaler:
         maximum_width = self.cols * side
         for ups_tile in ups_tiles:
             if current_width > 0 and current_height > 0:
+                logging.info(f"Blending tile at {current_width}, {current_height}")
                 prev_tile = merged_image.crop((current_width, current_height, current_width + side, current_height + side))
+                logging.debug(f"Previous tile size: {prev_tile.size}")
                 ups_tile = Image.blend(prev_tile, ups_tile, self.blend_alpha)
 
             merged_image.paste(ups_tile, (current_width, current_height))
