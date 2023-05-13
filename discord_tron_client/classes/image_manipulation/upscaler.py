@@ -4,12 +4,12 @@ import torch, gc, logging
 from split_image import split
 import os
 
-
 class ImageSplitter:
-    def __init__(self, rows, cols, should_square, should_quiet=False):
+    def __init__(self, rows, cols, should_square, padding=0, should_quiet=False):
         self.rows = rows
         self.cols = cols
         self.should_square = should_square
+        self.padding = padding
         self.should_quiet = should_quiet
 
     def split(self, im):
@@ -23,6 +23,27 @@ class ImageSplitter:
         if self.should_square:
             im, row_width, row_height = self._square_image(im, row_width, row_height)
         return self._crop_images(im, row_width, row_height, name, ext)
+
+    def split_with_padding(self, im):
+        im_width, im_height = im.size
+        row_width = int(im_width / self.cols)
+        row_height = int(im_height / self.rows)
+
+        if self.should_square:
+            im, row_width, row_height = self._square_image(im, row_width, row_height)
+
+        padded_images = []
+        for i in range(self.rows):
+            for j in range(self.cols):
+                left = max(0, j * row_width - self.padding)
+                upper = max(0, i * row_height - self.padding)
+                right = min(im_width, (j + 1) * row_width + self.padding)
+                lower = min(im_height, (i + 1) * row_height + self.padding)
+                box = (left, upper, right, lower)
+                padded_image = im.crop(box)
+                padded_images.append(padded_image)
+
+        return padded_images
 
     def _square_image(self, im, row_width, row_height):
         min_dimension = min(im.width, im.height)
@@ -79,17 +100,19 @@ class ImageResizer:
 
 
 class ImageUpscaler:
-    def __init__(self, pipeline, generator, rows=3, cols=3):
+    def __init__(self, pipeline, generator, rows=3, cols=3, padding=0, blend_alpha=0.5):
         self.pipeline = pipeline
         self.generator = generator
         self.rows = rows
         self.cols = cols
+        self.padding = padding
+        self.blend_alpha = blend_alpha
 
     def upscale(self, image):
         original_width, original_height = image.size
         max_dimension = max(original_width, original_height)
-        splitter = ImageSplitter(self.rows, self.cols, True, False)
-        tiles = splitter.split(image)
+        splitter = ImageSplitter(self.rows, self.cols, True, self.padding, False)
+        tiles = splitter.split_with_padding(image)
         ups_tiles = []
         for idx, tile in enumerate(tiles, start=1):
             logging.info(f"Upscaling tile {idx} of {len(tiles)}")
@@ -141,11 +164,16 @@ class ImageUpscaler:
         current_height = 0
         maximum_width = self.cols * side
         for ups_tile in ups_tiles:
+            if current_width > 0 and current_height > 0:
+                prev_tile = merged_image.crop((current_width, current_height, current_width + side, current_height + side))
+                ups_tile = Image.blend(prev_tile, ups_tile, self.blend_alpha)
+
             merged_image.paste(ups_tile, (current_width, current_height))
             current_width += ups_tile.width
             if current_width >= maximum_width:
                 current_width = 0
                 current_height = current_height + side
+
         return merged_image
 
     @staticmethod
