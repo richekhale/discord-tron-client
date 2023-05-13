@@ -177,7 +177,7 @@ class ImageUpscaler:
                 min(merged_image.width, current_width + side),
                 min(merged_image.height, current_height + side),
             )
-
+            logging.info(f'Cropping to box {box}')
             if idx != 0:  # Don't blend for the first tile
                 # Crop the overlapping region from the merged image
                 overlap_box = (
@@ -186,18 +186,21 @@ class ImageUpscaler:
                     min(merged_image.width, current_width + self.padding),
                     min(merged_image.height, current_height + self.padding),
                 )
-
+                logging.info(f'Overlap box is {overlap_box}')
+                logging.info(f'Merged image size is {prev_tile.size}')
                 prev_tile = merged_image.crop(overlap_box)
+                logging.info(f'Prev tile (merged image) size is {prev_tile.size}')
 
                 # Crop the corresponding overlapping region from the current tile
                 ups_tile_overlap = ups_tile.crop(
                     (self.padding, self.padding, ups_tile.width - self.padding, ups_tile.height - self.padding)
                 )
-
+                logging.info(f'Ups tile overlap size is {ups_tile_overlap.size}')
                 # Blend the images
                 ups_tile_blend = Image.blend(prev_tile, ups_tile_overlap, self.blend_alpha)
 
                 # Paste the blended tile onto the merged image
+                logging.debug(f'Pasting blended tile onto merged image')
                 merged_image.paste(ups_tile_blend, overlap_box)
 
             # Paste the current tile onto the merged image
