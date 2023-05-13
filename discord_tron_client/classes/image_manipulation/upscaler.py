@@ -52,8 +52,28 @@ def split_image(im, rows, cols, should_square, should_quiet=False):
     return [img for img in images]
 
 
+def _resize_for_condition_image(input_image: Image, resolution: int):
+    input_image = input_image.convert("RGB")
+    W, H = input_image.size
+    k = float(resolution) / min(H, W)
+    H *= k
+    W *= k
+    H = int(round(H / 64.0)) * 64
+    W = int(round(W / 64.0)) * 64
+    img = input_image.resize((W, H), resample=Image.LANCZOS)
+    return img
+
+
 def upscale_image(
-    pipeline, generator, image, prompt, negative_prompt, guidance=7, steps=50, rows = 3, cols = 3
+    pipeline,
+    generator,
+    image,
+    prompt,
+    negative_prompt,
+    guidance=7,
+    steps=50,
+    rows=3,
+    cols=3,
 ):
     original_width, original_height = image.size
     max_dimension = max(original_width, original_height)
@@ -63,13 +83,18 @@ def upscale_image(
     for x in tiles:
         i = i + 1
         logging.info("Upscaling tile " + str(i) + " of " + str(len(tiles)))
+        conditioned_image = _resize_for_condition_image(input_image=x, resolution=1024)
         ups_tile = pipeline(
-            prompt=prompt,
-            negative_prompt=negative_prompt,
-            guidance_scale=guidance,
-            num_inference_steps=steps,
-            image=x.convert("RGB"),
+            prompt="best quality " + prompt,
+            negative_prompt="blur, lowres, bad anatomy, bad hands, cropped, worst quality "
+            + negative_prompt,
+            image=image,
+            controlnet_conditioning_image=conditioned_image,
+            width=conditioned_image.size[0],
+            height=conditioned_image.size[1],
+            strength=1.0,
             generator=generator,
+            num_inference_steps=32,
         ).images[0]
         torch.cuda.empty_cache()
         gc.collect()
@@ -90,7 +115,9 @@ def upscale_image(
     new_size = (max_dimension * ups_times, max_dimension * ups_times)
     total_width = cols * side
     total_height = rows * side
-    logging.info(f'New image size: {new_size}, total width: {total_width}, total height: {total_height}')
+    logging.info(
+        f"New image size: {new_size}, total width: {total_width}, total height: {total_height}"
+    )
 
     # Create a blank image with the calculated size
     merged_image = Image.new("RGB", (total_width, total_height))
@@ -115,5 +142,4 @@ def upscale_image(
 
     # The resulting image should be identical to the original image in proportions / aspect ratio, with no loss of elements.
     # Save the merged image
-    return tiles + [ final_image, merged_image ]
-    return [ final_image, merged_image ]
+    return [final_image]

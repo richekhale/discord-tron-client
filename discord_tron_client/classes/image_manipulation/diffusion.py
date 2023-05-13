@@ -23,7 +23,7 @@ class DiffusionPipelineManager:
         "text2img": StableDiffusionKDiffusionPipeline,
         "prompt_variation": Pipeline,
         "variation": StableDiffusionPipeline,
-        "upscaler": StableDiffusionUpscalePipeline,
+        "upscaler": StableDiffusionPipeline,
     }
     SCHEDULER_MAPPINGS = {
         "DPMSolverMultistepScheduler": diffusers.DPMSolverMultistepScheduler,
@@ -68,7 +68,7 @@ class DiffusionPipelineManager:
 
     def create_pipeline(self, model_id: str, pipe_type: str) -> Pipeline:
         pipeline_class = self.PIPELINE_CLASSES[pipe_type]
-        if pipe_type in ["variation"]:
+        if pipe_type in ["variation", "upscaler"]:
             # Variation uses ControlNet stuff.
             logging.debug(f"Creating a ControlNet model for {model_id}")
             controlnet = ControlNetModel.from_pretrained("lllyasviel/control_v11f1e_sd15_tile", torch_dtype=self.torch_dtype)
@@ -89,13 +89,6 @@ class DiffusionPipelineManager:
             )
             vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=torch.float16)
             pipeline.vae = vae
-        elif pipe_type in ["upscaler"]:
-            # Use the long prompt weighting pipeline.
-            logging.debug(f"Creating a upscaler pipeline for {model_id} where we do not touch the VAE")
-            pipeline = pipeline_class.from_pretrained(
-                model_id,
-                torch_dtype=self.torch_dtype,
-            )
         elif pipe_type in ["text2img"]:
             # Use the long prompt weighting pipeline.
             logging.debug(f"Creating a LPW pipeline for {model_id}")

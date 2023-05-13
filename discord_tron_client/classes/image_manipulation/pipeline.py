@@ -253,9 +253,6 @@ class PipelineRunner:
                 if image is not None:
                     side_x = image.width
                     side_y = image.height
-                    # side_x, side_y = ResolutionManager.nearest_generation_resolution(
-                    #     side_x, side_y
-                    # )
                 image = self._resize_for_condition_image(
                     input_image=image, resolution=1024
                 )
