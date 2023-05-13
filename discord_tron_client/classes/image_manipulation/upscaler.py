@@ -171,27 +171,37 @@ class ImageUpscaler:
         maximum_width = self.cols * side
 
         for idx, ups_tile in enumerate(ups_tiles):
+            box = (
+                max(0, current_width),
+                max(0, current_height),
+                min(merged_image.width, current_width + side),
+                min(merged_image.height, current_height + side),
+            )
+
             if idx != 0:  # Don't blend for the first tile
-                box = (
+                # Crop the overlapping region from the merged image
+                overlap_box = (
                     max(0, current_width - self.padding),
                     max(0, current_height - self.padding),
-                    min(merged_image.width, current_width + side + self.padding),
-                    min(merged_image.height, current_height + side + self.padding),
+                    min(merged_image.width, current_width + self.padding),
+                    min(merged_image.height, current_height + self.padding),
                 )
-                logging.debug(f'Cropping tile to box, which will also be its location? {box}')
-                prev_tile = merged_image.crop(box)
 
-                # Resize the current tile to match the size of the box
-                ups_tile_resized = ups_tile.resize((box[2] - box[0], box[3] - box[1]))
-                logging.debug(f'New tile size: {ups_tile_resized.size}')
+                prev_tile = merged_image.crop(overlap_box)
+
+                # Crop the corresponding overlapping region from the current tile
+                ups_tile_overlap = ups_tile.crop(
+                    (self.padding, self.padding, ups_tile.width - self.padding, ups_tile.height - self.padding)
+                )
+
                 # Blend the images
-                ups_tile_blend = Image.blend(prev_tile, ups_tile_resized, self.blend_alpha)
+                ups_tile_blend = Image.blend(prev_tile, ups_tile_overlap, self.blend_alpha)
 
                 # Paste the blended tile onto the merged image
-                merged_image.paste(ups_tile_blend, box)
+                merged_image.paste(ups_tile_blend, overlap_box)
 
-            else:  # For the first tile, just paste it
-                merged_image.paste(ups_tile, (current_width, current_height))
+            # Paste the current tile onto the merged image
+            merged_image.paste(ups_tile, box)
 
             current_width += side
             if current_width >= maximum_width:
