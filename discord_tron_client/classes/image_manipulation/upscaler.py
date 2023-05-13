@@ -178,11 +178,12 @@ class ImageUpscaler:
                     min(merged_image.width, current_width + side + self.padding),
                     min(merged_image.height, current_height + side + self.padding),
                 )
+                logging.debug(f'Cropping tile to box, which will also be its location? {box}')
                 prev_tile = merged_image.crop(box)
 
                 # Resize the current tile to match the size of the box
                 ups_tile_resized = ups_tile.resize((box[2] - box[0], box[3] - box[1]))
-
+                logging.debug(f'New tile size: {ups_tile_resized.size}')
                 # Blend the images
                 ups_tile_blend = Image.blend(prev_tile, ups_tile_resized, self.blend_alpha)
 
