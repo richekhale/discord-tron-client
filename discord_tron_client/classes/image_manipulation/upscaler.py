@@ -88,7 +88,7 @@ def upscale_image(
             prompt="best quality " + prompt,
             negative_prompt="blur, lowres, bad anatomy, bad hands, cropped, worst quality "
             + negative_prompt,
-            image=image,
+            image=conditioned_image,
             controlnet_conditioning_image=conditioned_image,
             width=conditioned_image.size[0],
             height=conditioned_image.size[1],
