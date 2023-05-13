@@ -3,88 +3,109 @@ from diffusers import StableDiffusionUpscalePipeline
 import torch, gc, logging
 from split_image import split
 import os
-import random
 
 
-def split_image(im, rows, cols, should_square, should_quiet=False):
-    im_width, im_height = im.size
-    row_width = int(im_width / cols)
-    row_height = int(im_height / rows)
-    name = "image"
-    ext = ".png"
-    name = os.path.basename(name)
-    images = []
-    if should_square:
-        min_dimension = min(im_width, im_height)
-        max_dimension = max(im_width, im_height)
-        if not should_quiet:
-            print("Resizing image to a square...")
-            print("Determining background color...")
+class ImageSplitter:
+    def __init__(self, rows, cols, should_square, should_quiet=False):
+        self.rows = rows
+        self.cols = cols
+        self.should_square = should_square
+        self.should_quiet = should_quiet
+
+    def split(self, im):
+        im_width, im_height = im.size
+        row_width = int(im_width / self.cols)
+        row_height = int(im_height / self.rows)
+        name = "image"
+        ext = ".png"
+        name = os.path.basename(name)
+        images = []
+        if self.should_square:
+            im, row_width, row_height = self._square_image(im, row_width, row_height)
+        return self._crop_images(im, row_width, row_height, name, ext)
+
+    def _square_image(self, im, row_width, row_height):
+        min_dimension = min(im.width, im.height)
+        max_dimension = max(im.width, im.height)
         bg_color = split.determine_bg_color(im)
-        if not should_quiet:
-            print("Background color is... " + str(bg_color))
+        im = self._create_new_image(im, bg_color, min_dimension, max_dimension)
+        row_width = int(max_dimension / self.cols)
+        row_height = int(max_dimension / self.rows)
+        return im, row_width, row_height
+
+    def _create_new_image(self, im, bg_color, min_dimension, max_dimension):
         im_r = Image.new(
-            "RGBA" if ext == "png" else "RGB", (max_dimension, max_dimension), bg_color
+            "RGBA" if ".png" else "RGB", (max_dimension, max_dimension), bg_color
         )
         offset = int((max_dimension - min_dimension) / 2)
-        if im_width > im_height:
+        if im.width > im.height:
             im_r.paste(im, (0, offset))
         else:
             im_r.paste(im, (offset, 0))
-        im = im_r
-        row_width = int(max_dimension / cols)
-        row_height = int(max_dimension / rows)
-    n = 0
-    for i in range(0, rows):
-        for j in range(0, cols):
-            box = (
-                j * row_width,
-                i * row_height,
-                j * row_width + row_width,
-                i * row_height + row_height,
+        return im_r
+
+    def _crop_images(self, im, row_width, row_height, name, ext):
+        images = []
+        n = 0
+        for i in range(0, self.rows):
+            for j in range(0, self.cols):
+                box = (
+                    j * row_width,
+                    i * row_height,
+                    j * row_width + row_width,
+                    i * row_height + row_height,
+                )
+                outp = im.crop(box)
+                outp_path = name + "_" + str(n) + ext
+                if not self.should_quiet:
+                    print("Exporting image tile: " + outp_path)
+                images.append(outp)
+                n += 1
+        return images
+
+
+class ImageResizer:
+    @staticmethod
+    def resize_for_condition_image(input_image: Image, resolution: int):
+        input_image = input_image.convert("RGB")
+        W, H = input_image.size
+        k = float(resolution) / min(H, W)
+        H *= k
+        W *= k
+        H = int(round(H / 64.0)) * 64
+        W = int(round(W / 64.0)) * 64
+        img = input_image.resize((W, H), resample=Image.LANCZOS)
+        return img
+
+
+class ImageUpscaler:
+    def __init__(self, pipeline, generator, rows=3, cols=3):
+        self.pipeline = pipeline
+        self.generator = generator
+        self.rows = rows
+        self.cols = cols
+
+    def upscale(self, image):
+        original_width, original_height = image.size
+        max_dimension = max(original_width, original_height)
+        splitter = ImageSplitter(self.rows, self.cols, True, False)
+        tiles = splitter.split(image)
+        ups_tiles = []
+        for idx, tile in enumerate(tiles, start=1):
+            logging.info(f"Upscaling tile {idx} of {len(tiles)}")
+            conditioned_image = ImageResizer.resize_for_condition_image(
+                input_image=tile, resolution=1024
             )
-            outp = im.crop(box)
-            outp_path = name + "_" + str(n) + ext
-            if not should_quiet:
-                print("Exporting image tile: " + outp_path)
-            images.append(outp)
-            n += 1
-    return [img for img in images]
+            ups_tile = self._get_upscaled_tile(conditioned_image)
+            torch.cuda.empty_cache()
+            gc.collect()
+            ups_tiles.append(ups_tile)
+        return self._merge_tiles(
+            ups_tiles, max_dimension, original_width, original_height
+        )
 
-
-def _resize_for_condition_image(input_image: Image, resolution: int):
-    input_image = input_image.convert("RGB")
-    W, H = input_image.size
-    k = float(resolution) / min(H, W)
-    H *= k
-    W *= k
-    H = int(round(H / 64.0)) * 64
-    W = int(round(W / 64.0)) * 64
-    img = input_image.resize((W, H), resample=Image.LANCZOS)
-    return img
-
-
-def upscale_image(
-    pipeline,
-    generator,
-    image,
-    prompt,
-    negative_prompt,
-    guidance=7,
-    steps=50,
-    rows=3,
-    cols=3,
-):
-    original_width, original_height = image.size
-    max_dimension = max(original_width, original_height)
-    tiles = split_image(image, rows, cols, True, False)
-    ups_tiles = []
-    i = 0
-    for x in tiles:
-        i = i + 1
-        logging.info("Upscaling tile " + str(i) + " of " + str(len(tiles)))
-        conditioned_image = _resize_for_condition_image(input_image=x, resolution=1024)
-        ups_tile = pipeline(
+    def _get_upscaled_tile(self, conditioned_image):
+        return self.pipeline(
             prompt="best quality",
             negative_prompt="blur, lowres, bad anatomy, bad hands, cropped, worst quality",
             image=conditioned_image,
@@ -92,53 +113,47 @@ def upscale_image(
             width=conditioned_image.size[0],
             height=conditioned_image.size[1],
             strength=0.7,
-            generator=generator,
+            generator=self.generator,
             num_inference_steps=32,
         ).images[0]
-        torch.cuda.empty_cache()
-        gc.collect()
-        ups_tiles.append(ups_tile)
 
-    # Determine the size of the merged upscaled image
-    total_width = 0
-    total_height = 0
-    side = 0
-    for ups_tile in ups_tiles:
-        side = ups_tile.width
-        break
-    for x in tiles:
-        tsize = x.width
-        break
+    def _merge_tiles(self, ups_tiles, max_dimension, original_width, original_height):
+        side = ups_tiles[0].width
+        ups_times = abs(side / tiles[0].width)
+        new_size = (max_dimension * ups_times, max_dimension * ups_times)
+        total_width = self.cols * side
+        total_height = self.rows * side
+        logging.info(
+            f"New image size: {new_size}, total width: {total_width}, total height: {total_height}"
+        )
+        merged_image = self._create_blank_image(total_width, total_height)
+        merged_image = self._paste_tiles(merged_image, ups_tiles, side)
+        return self._crop_final_image(
+            merged_image, new_size, original_width, original_height, ups_times
+        )
 
-    ups_times = abs(side / tsize)
-    new_size = (max_dimension * ups_times, max_dimension * ups_times)
-    total_width = cols * side
-    total_height = rows * side
-    logging.info(
-        f"New image size: {new_size}, total width: {total_width}, total height: {total_height}"
-    )
+    @staticmethod
+    def _create_blank_image(total_width, total_height):
+        return Image.new("RGB", (total_width, total_height))
 
-    # Create a blank image with the calculated size
-    merged_image = Image.new("RGB", (total_width, total_height))
+    def _paste_tiles(self, merged_image, ups_tiles, side):
+        current_width = 0
+        current_height = 0
+        maximum_width = self.cols * side
+        for ups_tile in ups_tiles:
+            merged_image.paste(ups_tile, (current_width, current_height))
+            current_width += ups_tile.width
+            if current_width >= maximum_width:
+                current_width = 0
+                current_height = current_height + side
+        return merged_image
 
-    # Paste each upscaled tile into the blank image
-    current_width = 0
-    current_height = 0
-    maximum_width = cols * side
-    for ups_tile in ups_tiles:
-        merged_image.paste(ups_tile, (current_width, current_height))
-        current_width += ups_tile.width
-        if current_width >= maximum_width:
-            current_width = 0
-            current_height = current_height + side
-
-    # Using the center of the image as pivot, crop the image to the original dimension times four
-    crop_left = (new_size[0] - original_width * ups_times) // 2
-    crop_upper = (new_size[1] - original_height * ups_times) // 2
-    crop_right = crop_left + original_width * ups_times
-    crop_lower = crop_upper + original_height * ups_times
-    final_image = merged_image.crop((crop_left, crop_upper, crop_right, crop_lower))
-
-    # The resulting image should be identical to the original image in proportions / aspect ratio, with no loss of elements.
-    # Save the merged image
-    return [final_image]
+    @staticmethod
+    def _crop_final_image(
+        merged_image, new_size, original_width, original_height, ups_times
+    ):
+        crop_left = (new_size[0] - original_width * ups_times) // 2
+        crop_upper = (new_size[1] - original_height * ups_times) // 2
+        crop_right = crop_left + original_width * ups_times
+        crop_lower = crop_upper + original_height * ups_times
+        return merged_image.crop((crop_left, crop_upper, crop_right, crop_lower))
