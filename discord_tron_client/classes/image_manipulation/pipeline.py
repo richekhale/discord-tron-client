@@ -380,7 +380,8 @@ class PipelineRunner:
         )
         prompt = user_config["tile_positive"]
         negative_prompt = user_config["tile_negative"]
-        prompt_embed, negative_embed = self.prompt_manager.process_long_prompt(
+        controlnet_prompt_manager = self._get_prompt_manager(pipe)
+        prompt_embed, negative_embed = controlnet_prompt_manager.process_long_prompt(
             positive_prompt=prompt, negative_prompt=negative_prompt
         )
 
