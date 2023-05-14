@@ -378,9 +378,17 @@ class PipelineRunner:
         image = self._resize_for_condition_image(
             input_image=image, resolution=1024
         )
+        prompt = user_config["tile_positive"]
+        negative_prompt = user_config["tile_negative"]
+        prompt_embed, negative_embed = self.prompt_manager.process_long_prompt(
+            positive_prompt=prompt, negative_prompt=negative_prompt
+        )
+
         new_image = pipe(
-            prompt=user_config["tile_positive"],
-            negative_prompt=user_config["tile_negative"],
+            # prompt=prompt,
+            # negative_prompt=negative_prompt,
+            prompt_embeds=prompt_embed,
+            negative_prompt_embeds=negative_embed,
             image=image,
             controlnet_conditioning_image=image,
             width=image.size[0],
@@ -392,6 +400,10 @@ class PipelineRunner:
         return new_image
     
     def _controlnet_all_images(self, preprocessed_images: list, user_config: dict, generator):
+        if int(user_config['strength']) == 0:
+            # Zero strength = Zero CTU.
+            return preprocessed_images
+
         idx = 0
         controlnet_pipe = self.pipeline_manager.get_controlnet_pipe()
         for image in preprocessed_images:
