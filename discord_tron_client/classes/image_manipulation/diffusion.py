@@ -248,6 +248,6 @@ class DiffusionPipelineManager:
         else:
             pipe.scheduler = scheduler_module.from_config(pipe.scheduler.config)
             
-    def get_controlnet_pipe(self, user_config, model_id = 'theintuitiveye/HARDblend'):
+    def get_controlnet_pipe(self, model_id = 'theintuitiveye/HARDblend'):
         pipeline = self.get_pipe(promptless_variation=True, scheduler_config={'name': 'controlnet'}, model_id=model_id)
         return pipeline
