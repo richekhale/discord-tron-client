@@ -9,7 +9,7 @@ This codebase is capable of:
 * ✔️ Run Stable Diffusion 2.1 images through 1.5 ControlNet pipeline
 * 🔢 Use of Karras Sigmas for major quality improvement
 * 🙊 OpenAI GPT integrations, including the option to enforce "jailbreaks"
-* 📢 Bark TTS samples via bghira/bghira-bark
+* 📢 Bark TTS samples via [bghira/bghira-bark](https://github.com/bghira/bghira-bark)
 * 📖 Language model predict/responses
 * 👌 A focus on reliable and exceptional results, out of the box
 

@@ -1,7 +1,27 @@
 {
-    "enable_llama": false,
-    "llama_subsystem": "llama.cpp",
-    "llama_model_path": "/models/LLaMA",
+    "log_level": "INFO",
+    "friendly_name": "system name",
+    "master_api_key": "",
+    "model_path": "/home/user/.cache/huggingface/hub",
+    "target_partition": "/dev/sda3",
+    "llama_model_path": "/archive/models/LLaMA",
+    "websocket_hub": {
+        "host": "example.net",
+        "port": 6789,
+        "tls": true,
+        "protocol": "wss"
+    },
+    "maxres": {
+        "16:9": {
+            "width": 1920,
+            "height": 1080
+        }
+    },
+    "tls_key_path": "discord_tron_client/config/server_key.pem",
+    "tls_pem_path": "discord_tron_client/config/server_cert.pem",
+    "enable_image_uploads": true,
     "llama_model_default": "7B",
-    "llama_model_filename": "ggml-model-f16.bin"
+    "enable_llama": false,
+    "enable_stablelm": false,
+    "enable_stablevicuna": false
 }
