@@ -125,7 +125,7 @@ To add a new !command to the bot:
    command handlers on the master backend. Otherwise, you will have to
    extend that side to accept a new message type, or, do some kind of special
    handling.
-4. Test your changes extensively. No one wants to accept broken code.
+F4. Test your changes extensively. No one wants to accept broken code.
 5. Open a pull request, and hope for the best! 🤞
 
 ## Limitations 😬
@@ -134,9 +134,11 @@ To add a new !command to the bot:
 
 1. Although this project is extensively tested on a laptop with 8GB of VRAM,
    currently, GPU memory can be easily exhausted if you're doing "lots of things".
+
    Furthermore, **8GB simply isn't enough for most of this bot to work correctly.**
    The TTS engine, language models, and image models, currently cannot signal
    to each other that they need to evacuate GPU memory space back to the CPU.
+
    **Workaround**: Restart the worker.
 2. Due to the asynchronous nature of WebSockets, sending a message to the
    master node does not return a response. There's not any good infrastructure
@@ -144,6 +146,7 @@ To add a new !command to the bot:
    a given message. This means that "linear" programming style is hard to
    pull off in this project, and a routine that needs a lot of coordinated
    back-and-forth between subsystems is currently very difficult to do.
+
    **Example**: Using this project to tie the image generation, TTS, and LLMs
    into a replacement for the `bghira/chatgpt-video-generator` project would
    require implementing this infrastructure, opening modules up to this
