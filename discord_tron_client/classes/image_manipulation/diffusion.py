@@ -118,10 +118,6 @@ class DiffusionPipelineManager:
         upscaler: bool = False,
     ) -> Pipeline:
         self.delete_pipes(keep_model=model_id)
-        logging.info("Generating a new pipe...")
-        if self.is_memory_constrained:
-            self.torch_dtype = torch.float16
-
         pipe_type = (
             "prompt_variation"
             if prompt_variation
@@ -131,6 +127,7 @@ class DiffusionPipelineManager:
             if upscaler
             else "text2img"
         )
+        logging.info(f"Executing get_pipe for model {model_id} and pipe_type {pipe_type}")
 
         if (
             model_id in self.last_pipe_type
@@ -180,6 +177,8 @@ class DiffusionPipelineManager:
             # self.pipelines[model_id].set_use_memory_efficient_attention_xformers(
             #     True
             # )
+        else:
+            logging.info(f'Keeping existing pipeline. Not creating any new ones.')
 
         # This must happen here, or mem savings are minimal.
         if move_cuda is None or move_cuda is True:
@@ -187,7 +186,7 @@ class DiffusionPipelineManager:
             self.pipelines[model_id].to(self.device)
         self.last_pipe_type[model_id] = pipe_type
         self.last_pipe_scheduler[model_id] = scheduler_config["name"]
-        enable_tiling = user_config.get("enable_tiling", True)
+        enable_tiling = user_config.get("enable_tiling", False)
         if enable_tiling:
             self.pipelines[model_id].vae.enable_tiling()
         else:
