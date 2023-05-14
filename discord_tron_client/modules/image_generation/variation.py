@@ -33,6 +33,8 @@ async def promptless_variation(payload, websocket):
         'stabilityai/stable-diffusion-2-1',
         'junglerally/digital-diffusion',
         'ptx0/artius_v21',
+        'stablediffusionapi/illuminati-diffusion',
+        'ptx0/realism-engine',
     ]
     controlnet_warning = ""
     default_controlnet_model = "theintuitiveye/HARDblend"
