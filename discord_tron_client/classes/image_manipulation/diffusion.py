@@ -19,7 +19,6 @@ config = AppConfig()
 
 class DiffusionPipelineManager:
     PIPELINE_CLASSES = {
-        # "text2img": Pipeline,
         "text2img": StableDiffusionKDiffusionPipeline,
         "prompt_variation": Pipeline,
         "variation": StableDiffusionPipeline,
@@ -69,16 +68,7 @@ class DiffusionPipelineManager:
     def create_pipeline(self, model_id: str, pipe_type: str) -> Pipeline:
         pipeline_class = self.PIPELINE_CLASSES[pipe_type]
         if pipe_type in ["variation", "upscaler"]:
-            # Variation uses ControlNet stuff.
-            logging.debug(f"Creating a ControlNet model for {model_id}")
-            controlnet = ControlNetModel.from_pretrained("lllyasviel/control_v11f1e_sd15_tile", torch_dtype=self.torch_dtype)
-            logging.debug(f"Passing the ControlNet into a StableDiffusionControlNetPipeline for {model_id}")
-            pipeline = pipeline_class.from_pretrained(
-                model_id,
-                torch_dtype=self.torch_dtype,
-                custom_pipeline="stable_diffusion_controlnet_img2img",
-                controlnet=controlnet,
-            )
+            pipeline = self.get_controlnet_pipe(model_id)
         elif pipe_type in ["prompt_variation"]:
             # Use the long prompt weighting pipeline.
             logging.debug(f"Creating a LPW pipeline for {model_id}")
@@ -113,7 +103,6 @@ class DiffusionPipelineManager:
         self,
         user_config: dict,
         scheduler_config: dict,
-        resolution: dict,
         model_id: str,
         prompt_variation: bool = False,
         promptless_variation: bool = False,
@@ -249,3 +238,16 @@ class DiffusionPipelineManager:
             )
         else:
             pipe.scheduler = scheduler_module.from_config(pipe.scheduler.config)
+            
+    def get_controlnet_pipe(self, model_id = 'theintuitiveye/HARDblend'):
+        # Variation uses ControlNet stuff.
+        logging.debug(f"Creating a ControlNet model for {model_id}")
+        controlnet = ControlNetModel.from_pretrained("lllyasviel/control_v11f1e_sd15_tile", torch_dtype=self.torch_dtype)
+        logging.debug(f"Passing the ControlNet into a StableDiffusionControlNetPipeline for {model_id}")
+        pipeline = self.PIPELINE_CLASSES["text2img"].from_pretrained(
+            model_id,
+            torch_dtype=self.torch_dtype,
+            custom_pipeline="stable_diffusion_controlnet_img2img",
+            controlnet=controlnet,
+        )
+        return pipeline

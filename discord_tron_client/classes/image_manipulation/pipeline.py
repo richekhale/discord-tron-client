@@ -97,7 +97,6 @@ class PipelineRunner:
         pipe = self.pipeline_manager.get_pipe(
             user_config,
             scheduler_config,
-            resolution,
             model_id,
             prompt_variation=variation,
             promptless_variation=promptless_variation,
@@ -212,7 +211,7 @@ class PipelineRunner:
             alt_weight_algorithm = user_config.get("alt_weight_algorithm", False)
             if not promptless_variation and image is None:
                 # Use the Compel library's prompt weights as input instead of LPW pipelines.
-                new_image = pipe(
+                preprocessed_images = pipe(
                     use_karras_sigmas=True,
                     prompt_embeds=prompt_embed,
                     num_images_per_prompt=4,
@@ -223,6 +222,7 @@ class PipelineRunner:
                     guidance_scale=guidance_scale,
                     generator=generator,
                 ).images
+                new_image = self._controlnet_all_images(preprocessed_images=preprocessed_images, user_config=user_config, generator=generator)
             elif not upscaler and not promptless_variation and image is not None:
                 if not alt_weight_algorithm:
                     new_image = pipe.img2img(
@@ -246,27 +246,7 @@ class PipelineRunner:
                         generator=generator,
                     ).images
             elif promptless_variation:
-                # Get the image width/height from 'image' if it's provided
-                logging.info(
-                    f"Running promptless variation with image.size {image.size}."
-                )
-                if image is not None:
-                    side_x = image.width
-                    side_y = image.height
-                image = self._resize_for_condition_image(
-                    input_image=image, resolution=1024
-                )
-                new_image = pipe(
-                    prompt=user_config["tile_positive"],
-                    negative_prompt=user_config["tile_negative"],
-                    image=image,
-                    controlnet_conditioning_image=image,
-                    width=image.size[0],
-                    height=image.size[1],
-                    strength=user_config["strength"],
-                    generator=generator,
-                    num_inference_steps=int(float(steps)),
-                ).images[0]
+                new_image = self._controlnet_pipeline(image=image, user_config=user_config, pipe=pipe, generator=generator)
             elif upscaler:
                 rows = 3
                 cols = 3
@@ -274,13 +254,6 @@ class PipelineRunner:
                 new_image = UU.upscale(
                     image=image,
                 )
-                # new_image = pipe(
-                #     prompt_embeds=prompt_embed,
-                #     num_images_per_prompt=4,
-                #     negative_prompt_embeds=negative_embed,
-                #     image=image,
-                #     num_inference_steps=int(float(steps)),
-                # ).images
             else:
                 raise Exception(
                     "Invalid combination of parameters for image generation"
@@ -396,3 +369,33 @@ class PipelineRunner:
         W = int(round(W / 64.0)) * 64
         img = input_image.resize((W, H), resample=Image.LANCZOS)
         return img
+
+    def _controlnet_pipeline(self, image: Image, user_config: dict, pipe, generator):
+        # Get the image width/height from 'image' if it's provided
+        logging.info(
+            f"Running promptless variation with image.size {image.size}."
+        )
+        image = self._resize_for_condition_image(
+            input_image=image, resolution=1024
+        )
+        new_image = pipe(
+            prompt=user_config["tile_positive"],
+            negative_prompt=user_config["tile_negative"],
+            image=image,
+            controlnet_conditioning_image=image,
+            width=image.size[0],
+            height=image.size[1],
+            strength=user_config["strength"],
+            generator=generator,
+            num_inference_steps=32,
+        ).images[0]
+        return new_image
+    
+    def _controlnet_all_images(self, preprocessed_images: list, user_config: dict, generator):
+        idx = 0
+        controlnet_pipe = self.pipeline_manager.get_controlnet_pipe()
+        for image in preprocessed_images:
+            preprocessed_images[idx] = self._controlnet_pipeline(image=image, user_config=user_config, pipe=controlnet_pipe, generator=generator)
+            idx += 1
+        del controlnet_pipe
+        return preprocessed_images
