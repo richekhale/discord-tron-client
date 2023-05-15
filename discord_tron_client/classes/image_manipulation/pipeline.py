@@ -316,20 +316,6 @@ class PipelineRunner:
             upscaler,
         )
         # Get the rescaled resolution
-        resolution = self._get_rescaled_resolution(self.user_config, side_x, side_y)
-        side_x = resolution["width"]
-        side_y = resolution["height"]
-        logging.info(f"Rescaled resolution: {side_x}x{side_y}")
-        if isinstance(new_image, list) and not promptless_variation and not upscaler:
-            for i in range(len(new_image)):
-                new_image[i] = new_image[i].resize(
-                    (int(side_x), int(side_y)), resample=Image.LANCZOS
-                )
-        if hasattr(new_image, "resize") and not promptless_variation and not upscaler:
-            new_image = new_image.resize(
-                (int(side_x), int(side_y)), resample=Image.LANCZOS
-            )
-
         self.pipeline_manager.clear_cuda_cache()
 
         return new_image
