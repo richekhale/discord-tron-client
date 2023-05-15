@@ -86,7 +86,7 @@ class DiffusionPipelineManager:
                 torch_dtype=self.torch_dtype,
                 custom_pipeline="lpw_stable_diffusion",
             )
-            vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=torch.float16)
+            vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=self.torch_dtype)
             pipeline.vae = vae
         elif pipe_type in ["text2img"]:
             # Use the long prompt weighting pipeline.
@@ -95,14 +95,14 @@ class DiffusionPipelineManager:
                 model_id,
                 torch_dtype=self.torch_dtype,
             )
-            vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=torch.float16)
+            vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=self.torch_dtype)
             pipeline.vae = vae
         else:
             logging.debug(f"Using standard pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
                 model_id, torch_dtype=self.torch_dtype
             )
-            vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=torch.float16)
+            vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=self.torch_dtype)
             pipeline.vae = vae
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
@@ -171,12 +171,12 @@ class DiffusionPipelineManager:
                 except Exception as e:
                     logging.error(f"Could not enable CPU offload on the model: {e}")
                     move_cuda = True
-            # self.pipelines[model_id].enable_xformers_memory_efficient_attention(
-            #     True
-            # )
-            # self.pipelines[model_id].set_use_memory_efficient_attention_xformers(
-            #     True
-            # )
+            self.pipelines[model_id].enable_xformers_memory_efficient_attention(
+                True
+            )
+            self.pipelines[model_id].set_use_memory_efficient_attention_xformers(
+                True
+            )
         else:
             logging.info(f'Keeping existing pipeline. Not creating any new ones.')
 
@@ -204,7 +204,7 @@ class DiffusionPipelineManager:
         for key in keys_to_delete:
             if active_pipes >= total_allowed_concurrent:
                 logging.info(
-                    f"Clearing out an unwanted pipe, as we have a limit of {total_allowed_concurrent} concurrent pipes."
+                    f"Clearing out an unwanted pipe for {key}, as we have a limit of {total_allowed_concurrent} concurrent pipes."
                 )
                 del self.pipelines[key]
                 gc.collect()
@@ -248,5 +248,6 @@ class DiffusionPipelineManager:
             pipe.scheduler = scheduler_module.from_config(pipe.scheduler.config)
             
     def get_controlnet_pipe(self):
+        self.delete_pipes()
         pipeline = self.get_pipe(promptless_variation=True, user_config={}, scheduler_config={'name': 'controlnet'}, model_id='SG161222/Realistic_Vision_V1.4')
         return pipeline
