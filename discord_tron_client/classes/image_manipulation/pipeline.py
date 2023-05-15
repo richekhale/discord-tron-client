@@ -246,7 +246,7 @@ class PipelineRunner:
                         generator=generator,
                     ).images
             elif promptless_variation:
-                new_image = self._controlnet_pipeline(image=image, user_config=user_config, pipe=pipe, generator=generator)
+                new_image = self._controlnet_pipeline(image=image, user_config=user_config, pipe=pipe, generator=generator, prompt=prompt, negative_prompt=negative_prompt)
             elif upscaler:
                 rows = 3
                 cols = 3
@@ -370,33 +370,35 @@ class PipelineRunner:
         img = input_image.resize((W, H), resample=Image.LANCZOS)
         return img
 
-    def _controlnet_pipeline(self, image: Image, user_config: dict, pipe, generator):
+    def _controlnet_pipeline(self, image: Image, user_config: dict, pipe, generator, prompt: str = None, negative_prompt: str = None):
         # Get the image width/height from 'image' if it's provided
         logging.info(
             f"Running promptless variation with image.size {image.size}."
         )
-        image = self._resize_for_condition_image(
-            input_image=image, resolution=1024
-        )
-        prompt = user_config["tile_positive"]
-        negative_prompt = user_config["tile_negative"]
+        width, height = image.size
+        if width != 1024 and height != 1024:
+            # If neither width nor height is 1024, resize the image so that one is, while
+            # maintaining the aspect ratio.
+            image = self._resize_for_condition_image(
+                input_image=image, resolution=1024
+            )
+        if prompt is None:
+            prompt = user_config["tile_positive"]
+            negative_prompt = user_config["tile_negative"]
         controlnet_prompt_manager = self._get_prompt_manager(pipe)
         prompt_embed, negative_embed = controlnet_prompt_manager.process_long_prompt(
             positive_prompt=prompt, negative_prompt=negative_prompt
         )
-
         new_image = pipe(
-            # prompt=prompt,
-            # negative_prompt=negative_prompt,
             prompt_embeds=prompt_embed,
             negative_prompt_embeds=negative_embed,
             image=image,
             controlnet_conditioning_image=image,
             width=image.size[0],
             height=image.size[1],
-            strength=user_config["strength"],
+            strength=user_config.get("tile_strength", 0.3),
             generator=generator,
-            num_inference_steps=32,
+            num_inference_steps=user_config.get("tile_steps", 32),
         ).images[0]
         return new_image
     
