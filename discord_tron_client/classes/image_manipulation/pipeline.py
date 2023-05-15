@@ -353,7 +353,7 @@ class PipelineRunner:
         W *= k
         H = int(round(H / 64.0)) * 64
         W = int(round(W / 64.0)) * 64
-        img = input_image.resize((W, H), resample=Image.LANCZOS)
+        img = input_image.resize((W, H), resample=Image.BICUBIC)
         return img
 
     def _controlnet_pipeline(self, image: Image, user_config: dict, pipe, generator, prompt: str = None, negative_prompt: str = None):
