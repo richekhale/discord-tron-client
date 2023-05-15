@@ -389,7 +389,7 @@ class PipelineRunner:
         return new_image
     
     def _controlnet_all_images(self, preprocessed_images: list, user_config: dict, generator):
-        if float(user_config['strength']) == 0.0:
+        if float(user_config.get('tile_strength', 0.3)) == 0.0:
             # Zero strength = Zero CTU.
             return preprocessed_images
 
