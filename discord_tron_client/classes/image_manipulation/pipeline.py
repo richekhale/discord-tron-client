@@ -1,10 +1,5 @@
-import logging
-import sys
-import torch
+import logging, sys, torch, gc, traceback, time, asyncio
 from torch.cuda import OutOfMemoryError
-import traceback
-import time
-import asyncio
 from tqdm import tqdm
 from discord_tron_client.classes.app_config import AppConfig
 from discord_tron_client.classes.hardware import HardwareInfo
@@ -246,7 +241,7 @@ class PipelineRunner:
                         generator=generator,
                     ).images
             elif promptless_variation:
-                new_image = self._controlnet_pipeline(image=image, user_config=user_config, pipe=pipe, generator=generator, prompt=prompt, negative_prompt=negative_prompt)
+                new_image = self._controlnet_pipeline(image=image, user_config=user_config, pipe=pipe, generator=generator, prompt=positive_prompt, negative_prompt=negative_prompt)
             elif upscaler:
                 rows = 3
                 cols = 3
@@ -397,6 +392,7 @@ class PipelineRunner:
         controlnet_pipe = self.pipeline_manager.get_controlnet_pipe()
         for image in preprocessed_images:
             preprocessed_images[idx] = self._controlnet_pipeline(image=image, user_config=user_config, pipe=controlnet_pipe, generator=generator)
+            gc.collect()
             idx += 1
         del controlnet_pipe
         return preprocessed_images
