@@ -607,6 +607,37 @@ url = "https://pypi.org/simple"
 reference = "default"
 
 [[package]]
+name = "clip-interrogator"
+version = "0.6.0"
+description = "Generate a prompt from an image"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "clip-interrogator-0.6.0.tar.gz", hash = "sha256:e7942372fe9b96181881f7083e3179de746e59b0e3c4199fb3e3e19bef421693"},
+    {file = "clip_interrogator-0.6.0-py3-none-any.whl", hash = "sha256:cd7c6bf9db170f005b4179e943fc1658aa0f8eebcc75ab3428b0a992aaeabd1c"},
+]
+
+[package.dependencies]
+accelerate = "*"
+open-clip-torch = "*"
+Pillow = "*"
+requests = "*"
+safetensors = "*"
+torch = "*"
+torchvision = "*"
+tqdm = "*"
+transformers = ">=4.27.1"
+
+[package.extras]
+dev = ["pytest"]
+
+[package.source]
+type = "legacy"
+url = "https://pypi.org/simple"
+reference = "default"
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
@@ -2355,6 +2386,34 @@ files = [
 rsa = ["cryptography (>=3.0.0)"]
 signals = ["blinker (>=1.4.0)"]
 signedtoken = ["cryptography (>=3.0.0)", "pyjwt (>=2.0.0,<3)"]
+
+[package.source]
+type = "legacy"
+url = "https://pypi.org/simple"
+reference = "default"
+
+[[package]]
+name = "open-clip-torch"
+version = "2.7.0"
+description = "OpenCLIP"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "open_clip_torch-2.7.0-py3-none-any.whl", hash = "sha256:a86abf63a9fbe70fdd8f251598a0df952e33cefc2fa077434d26ce9c10d905d0"},
+    {file = "open_clip_torch-2.7.0.tar.gz", hash = "sha256:fc0075dd4614494d0af928d817220c1faff5ee96d430d8ef9589571beb4657dd"},
+]
+
+[package.dependencies]
+ftfy = "*"
+huggingface-hub = "*"
+regex = "*"
+torch = ">=1.9.0"
+torchvision = "*"
+tqdm = "*"
+
+[package.extras]
+training = ["braceexpand", "ftfy", "huggingface-hub", "pandas", "regex", "torch (>=1.9.0)", "torchvision", "tqdm", "transformers", "webdataset (>=0.2.5)"]
 
 [package.source]
 type = "legacy"
@@ -5466,4 +5525,4 @@ reference = "default"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "68c0b4c62021773483d097ab500a05bf012ecb64c1d13f01540d4f242ea36ff2"
+content-hash = "b995e1e57eca953b95c3ea6029d135addb9fe376b7e48899d91277198b5a86cb"
