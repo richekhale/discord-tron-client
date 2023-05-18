@@ -99,7 +99,7 @@ class DiffusionPipelineManager:
             pipeline.vae = vae
         elif pipe_type in ["text2img"]:
             # Use the long prompt weighting pipeline.
-            logging.debug(f"Creating a LPW pipeline for {model_id}")
+            logging.debug(f"Creating a KDiffusion pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
                 model_id,
                 torch_dtype=self.torch_dtype,
@@ -115,7 +115,6 @@ class DiffusionPipelineManager:
             pipeline.vae = vae
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
-            pipeline.unet = torch.compile(pipeline.unet)
         return pipeline
 
     def get_pipe(
@@ -185,6 +184,7 @@ class DiffusionPipelineManager:
             logging.info(f'Keeping existing pipeline. Not creating any new ones.')
         self.last_pipe_type[model_id] = pipe_type
         self.last_pipe_scheduler[model_id] = scheduler_config["name"]
+        self.pipelines[model_id].to(0)
         enable_tiling = user_config.get("enable_tiling", False)
         if enable_tiling:
             logging.warn(f'Enabling VAE tiling. This could cause artifacted outputs.')
