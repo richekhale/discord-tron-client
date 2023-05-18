@@ -13,6 +13,15 @@ from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.classes.app_config import AppConfig
 from PIL import Image
 import torch, gc, logging, diffusers
+# torch.backends.cudnn.deterministic = True
+# torch.backends.cuda.matmul.allow_tf32 = True
+# torch.backends.cudnn.allow_tf32 = True
+# torch.backends.cudnn.benchmark = True
+# torch.backends.cuda.enable_flash_sdp(True)
+if torch.backends.cuda.mem_efficient_sdp_enabled():
+    logging.info("CUDA SDP (scaled dot product attention) is enabled.")
+if torch.backends.cuda.math_sdp_enabled():
+    logging.info("CUDA MATH SDP (scaled dot product attention) is enabled.")
 hardware = HardwareInfo()
 config = AppConfig()
 
@@ -106,6 +115,7 @@ class DiffusionPipelineManager:
             pipeline.vae = vae
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
+            pipeline.unet = torch.compile(pipeline.unet)
         return pipeline
 
     def get_pipe(
@@ -166,28 +176,18 @@ class DiffusionPipelineManager:
             # Additional offload settings that we apply to all pipelines.
             if hasattr(self.pipelines[model_id], "enable_model_cpu_offload") and hardware.should_offload():
                 try:
+                    logging.warn(f'Hardware constraints are enabling model CPU offload. This could impact performance.')
                     self.pipelines[model_id].enable_model_cpu_offload()
-                    move_cuda = False
                 except Exception as e:
                     logging.error(f"Could not enable CPU offload on the model: {e}")
-                    move_cuda = True
-            self.pipelines[model_id].enable_xformers_memory_efficient_attention(
-                True
-            )
-            self.pipelines[model_id].set_use_memory_efficient_attention_xformers(
-                True
-            )
+            self.pipelines[model_id].unet = torch.compile(self.pipelines[model_id].unet)
         else:
             logging.info(f'Keeping existing pipeline. Not creating any new ones.')
-
-        # This must happen here, or mem savings are minimal.
-        if move_cuda is None or move_cuda is True:
-            logging.debug(f"Moving to CUDA.")
-            self.pipelines[model_id].to(self.device)
         self.last_pipe_type[model_id] = pipe_type
         self.last_pipe_scheduler[model_id] = scheduler_config["name"]
         enable_tiling = user_config.get("enable_tiling", False)
         if enable_tiling:
+            logging.warn(f'Enabling VAE tiling. This could cause artifacted outputs.')
             self.pipelines[model_id].vae.enable_tiling()
         else:
             self.pipelines[model_id].vae.disable_tiling()

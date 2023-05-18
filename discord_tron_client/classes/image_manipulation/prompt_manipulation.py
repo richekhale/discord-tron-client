@@ -15,6 +15,7 @@ class PromptManipulation:
             tokenizer=self.pipeline.tokenizer,
             text_encoder=pipeline.text_encoder,
             truncate_long_prompts=False,
+            device="cuda"
         )
 
     def process(self, prompt: str):

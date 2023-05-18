@@ -42,7 +42,9 @@ class HardwareInfo:
         return HardwareInfo.identifier
 
     def should_offload(self):
-        return self.get_video_memory_info() == 'Unknown' or self.video_memory_amount < 64
+        return self.get_video_memory_info() == 'Unknown' or self.video_memory_amount < 23
+    def should_sequential_offload(self):
+        return self.should_offload() or self.video_memory_amount < 10
 
     def get_system_capabilities(self):
         self.get_gpu_info()

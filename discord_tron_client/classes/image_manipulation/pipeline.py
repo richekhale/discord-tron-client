@@ -202,6 +202,11 @@ class PipelineRunner:
     ):
         original_stderr = sys.stderr
         sys.stderr = self.tqdm_capture
+        batch_size = 6
+        if hardware.should_offload():
+            batch_size = 4
+        if hardware.should_sequential_offload():
+            batch_size = 3
         try:
             alt_weight_algorithm = user_config.get("alt_weight_algorithm", False)
             if not promptless_variation and image is None:
@@ -209,7 +214,7 @@ class PipelineRunner:
                 preprocessed_images = pipe(
                     use_karras_sigmas=True,
                     prompt_embeds=prompt_embed,
-                    num_images_per_prompt=4,
+                    num_images_per_prompt=batch_size,
                     height=side_y,
                     width=side_x,
                     num_inference_steps=int(float(steps)),
@@ -222,7 +227,7 @@ class PipelineRunner:
                 if not alt_weight_algorithm:
                     new_image = pipe.img2img(
                         prompt=positive_prompt,
-                        num_images_per_prompt=4,
+                        num_images_per_prompt=batch_size,
                         image=image,
                         strength=user_config["strength"],
                         num_inference_steps=int(float(steps)),
@@ -232,7 +237,7 @@ class PipelineRunner:
                 else:
                     new_image = pipe(
                         prompt_embeds=prompt_embed,
-                        num_images_per_prompt=4,
+                        num_images_per_prompt=batch_size,
                         image=image,
                         strength=user_config["strength"],
                         num_inference_steps=int(float(steps)),
