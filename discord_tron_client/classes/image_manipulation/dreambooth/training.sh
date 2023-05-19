@@ -10,18 +10,18 @@ accelerate launch train_dreambooth.py \
   --class_data_dir=$CLASS_DIR \
   --output_dir=$OUTPUT_DIR \
   --with_prior_preservation --prior_loss_weight=1.0 \
-  --instance_prompt="a woman with " \
-  --class_prompt="digital art portrait of a person" \
+  --instance_prompt="a woman with ${2}" \
+  --class_prompt="a woman" \
   --resolution=768 \
-  --train_batch_size=2 \
+  --train_batch_size=3 \
   --use_8bit_adam \
-  --learning_rate=7e-7 \
+  --learning_rate=1e-7 \
   --lr_scheduler="constant" \
   --lr_warmup_steps=0 \
   --num_class_images=1500 \
-  --max_train_steps=300 \
+  --max_train_steps=25000 \
   --mixed_precision=bf16 \
   --allow_tf32 \
-  --checkpointing_steps=10 \
-  --resume_from_checkpoint="checkpoint-500"
-#--train_text_encoder \
+  --checkpointing_steps=100 \
+  --train_text_encoder \
+  --resume_from_checkpoint="checkpoint-8700"

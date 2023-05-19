@@ -26,7 +26,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.utils.checkpoint
-import transformers, xformers
+import transformers
 from accelerate import Accelerator
 from accelerate.logging import get_logger
 from accelerate.utils import ProjectConfiguration, set_seed
@@ -112,6 +112,7 @@ def log_validation(text_encoder, tokenizer, unet, vae, args, accelerator, weight
     pipeline.enable_xformers_memory_efficient_attention()
     pipeline.enable_sequential_cpu_offload()
     pipeline.vae.enable_tiling()
+    pipeline.unet = torch.compile(pipeline.unet)
     # pipeline = pipeline.to(accelerator.device)
     pipeline.set_progress_bar_config(disable=True)
 
@@ -120,7 +121,8 @@ def log_validation(text_encoder, tokenizer, unet, vae, args, accelerator, weight
     images = []
     for _ in range(args.num_validation_images):
         with torch.autocast("cuda"):
-            image = pipeline(args.validation_prompt, num_inference_steps=25, generator=generator).images[0]
+            negative = "negative low quality, low res, messy, grainy, smooth, sand, big eyes, anime, fractured, cracked, wrinkles, makeup (deformed, distorted, disfigured:1.3), poorly drawn, bad anatomy, wrong anatomy, extra limb, missing limb, floating limbs, (mutated hands and fingers:1.4), disconnected limbs, mutation, mutated, ugly, disgusting, blurry, amputation, synthetic, rendering"
+            image = pipeline(args.validation_prompt, negative_prompt=negative, num_inference_steps=35, generator=generator).images[0]
         images.append(image)
 
     for tracker in accelerator.trackers:
