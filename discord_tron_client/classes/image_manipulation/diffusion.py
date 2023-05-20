@@ -185,12 +185,14 @@ class DiffusionPipelineManager:
         self.last_pipe_type[model_id] = pipe_type
         self.last_pipe_scheduler[model_id] = scheduler_config["name"]
         self.pipelines[model_id].to(0)
-        enable_tiling = user_config.get("enable_tiling", False)
+        enable_tiling = user_config.get("enable_tiling", True)
         if enable_tiling:
             logging.warn(f'Enabling VAE tiling. This could cause artifacted outputs.')
             self.pipelines[model_id].vae.enable_tiling()
+            self.pipelines[model_id].vae.enable_slicing()
         else:
             self.pipelines[model_id].vae.disable_tiling()
+            self.pipelines[model_id].vae.disable_slicing()
         return self.pipelines[model_id]
 
     def delete_pipes(self, keep_model: str = None):
