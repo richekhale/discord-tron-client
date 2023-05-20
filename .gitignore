@@ -1,6 +1,4 @@
 # Python and virtual environment files
-*.pem
-.venv/
 */config/config.json
 __pycache__/
 *.pyc
@@ -38,5 +36,9 @@ venv/
 .DS_Store
 Thumbs.db
 
+<<<<<<< HEAD
 */config/auth.json
 work
+=======
+*/config/auth.json
+>>>>>>> 221cdc5 (Add gitignore)
