@@ -109,9 +109,6 @@ def log_validation(text_encoder, tokenizer, unet, vae, args, accelerator, weight
         torch_dtype=weight_dtype,
     )
     pipeline.scheduler = DPMSolverMultistepScheduler.from_config(pipeline.scheduler.config)
-    pipeline.enable_xformers_memory_efficient_attention()
-    pipeline.enable_sequential_cpu_offload()
-    pipeline.vae.enable_tiling()
     pipeline.unet = torch.compile(pipeline.unet)
     # pipeline = pipeline.to(accelerator.device)
     pipeline.set_progress_bar_config(disable=True)
@@ -547,11 +544,15 @@ class DreamBoothDataset(Dataset):
     def __getitem__(self, index):
         example = {}
         instance_image = Image.open(self.instance_images_path[index % self.num_instance_images])
+        instance_prompt = self.instance_images_path[index % self.num_instance_images].stem
+        # Remove underscores and swap with spaces:
+        instance_prompt = instance_prompt.replace("_", " ")
+        print(f'Instance prompt detected: {instance_prompt}')
         if not instance_image.mode == "RGB":
             instance_image = instance_image.convert("RGB")
         example["instance_images"] = self.image_transforms(instance_image)
         example["instance_prompt_ids"] = self.tokenizer(
-            self.instance_prompt,
+            instance_prompt or self.instance_prompt,
             truncation=True,
             padding="max_length",
             max_length=self.tokenizer.model_max_length,
