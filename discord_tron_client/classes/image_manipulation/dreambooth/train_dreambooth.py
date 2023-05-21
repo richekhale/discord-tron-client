@@ -547,6 +547,8 @@ class DreamBoothDataset(Dataset):
         instance_prompt = self.instance_images_path[index % self.num_instance_images].stem
         # Remove underscores and swap with spaces:
         instance_prompt = instance_prompt.replace("_", " ")
+        instance_prompt = instance_prompt.split('upscaled by')[0]
+        instance_prompt = instance_prompt.split('upscaled beta')[0]
         print(f'Instance prompt detected: {instance_prompt}')
         if not instance_image.mode == "RGB":
             instance_image = instance_image.convert("RGB")

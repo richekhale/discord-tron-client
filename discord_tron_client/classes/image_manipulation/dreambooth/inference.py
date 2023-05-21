@@ -6,10 +6,11 @@ torch.manual_seed(420420420)
 # Load the pipeline with the same arguments (model, revision) that were used for training
 #model_id = "/notebooks/images/datasets/models"
 model_id = "stabilityai/stable-diffusion-2-1"
-torch.set_float32_matmul_precision('high')
+# torch.set_float32_matmul_precision('high')
 # Find the latest checkpoint
 import os
-checkpoints = [ int(x.split('-')[1]) for x in os.listdir(f'/notebooks/images/datasets/models/') if x.startswith('checkpoint-') ]
+model_path = f'/home/kash/training/datasets/models/'
+checkpoints = [ int(x.split('-')[1]) for x in os.listdir(model_path) if x.startswith('checkpoint-') ]
 checkpoints.sort()
 range_begin = 0
 range_step = 50
@@ -18,17 +19,16 @@ print(f'Highest checkpoint found so far: {range_end}')
 
 # Convert numeric range to an array of string numerics:
 checkpoints = [ str(x) for x in range(range_begin, range_end + range_step, range_step) ]
-checkpoints = [ "4000" ]
 for checkpoint in checkpoints:
-    if len(checkpoints) > 1 and os.path.isfile(f'/notebooks/_/target-{checkpoint}.png'):
+    if len(checkpoints) > 1 and os.path.isfile(f'{model_path}/_/target-{checkpoint}.png'):
         continue
     try:
         print(f'Loading checkpoint: {checkpoint}')
         if checkpoint != "0":
-            unet = UNet2DConditionModel.from_pretrained(f"/notebooks/images/datasets/models/checkpoint-{checkpoint}/unet")
+            unet = UNet2DConditionModel.from_pretrained(f"{model_path}/checkpoint-{checkpoint}/unet")
             unet = torch.compile(unet)
             # if you have trained with `--args.train_text_encoder` make sure to also load the text encoder
-            text_encoder = CLIPTextModel.from_pretrained(f"/notebooks/images/datasets/models/checkpoint-{checkpoint}/text_encoder")
+            text_encoder = CLIPTextModel.from_pretrained(f"{model_path}/checkpoint-{checkpoint}/text_encoder")
             pipeline = DiffusionPipeline.from_pretrained(model_id, unet=unet, text_encoder=text_encoder)
         else:
             pipeline = DiffusionPipeline.from_pretrained(model_id)
@@ -40,7 +40,7 @@ for checkpoint in checkpoints:
     # Does the file exist already?
     import os
     negative = "low quality, low res, oorly drawn, bad anatomy, wrong anatomy, extra limb, missing limb, floating limbs, (mutated hands and fingers:1.4), disconnected limbs, mutation, mutated, ugly, disgusting, blurry, amputation, synthetic, rendering"
-    pipeline.save_pretrained('/notebooks/images/datasets/models/beta')
+    pipeline.save_pretrained(f'{model_path}/beta')
     prompts = {
         "woman": "a woman, hanging out on the beach",
         "man": "a man playing guitar in a park",
@@ -63,11 +63,11 @@ for checkpoint in checkpoints:
     }
 
     for shortname, prompt in prompts.items():
-        if not os.path.isfile(f'/notebooks/_/{shortname}-{checkpoint}.png'):
+        if not os.path.isfile(f'{model_path}/../output/{shortname}-{checkpoint}.png'):
             print(f'Generating {shortname} at {checkpoint}')
-            #output = pipeline(negative_prompt=negative, prompt=prompt, num_inference_steps=50).images[0]
-            #output.save(f'/notebooks/_/{shortname}-{checkpoint}.png')
-        
-    if not os.path.exists(f'/notebooks/images/datasets/models/pipeline'):
-        print(f'Saving pretrained pipeline.')
-        pipeline.save_pretrained('/notebooks/images/datasets/models/beta-v3')
+            output = pipeline(negative_prompt=negative, prompt=prompt, num_inference_steps=50).images[0]
+            output.save(f'/notebooks/_/{shortname}-{checkpoint}.png')
+    del pipeline
+#    if not os.path.exists(f'{model_path}/pipeline'):
+#        print(f'Saving pretrained pipeline.')
+#        pipeline.save_pretrained('{model_path}/beta-v3')

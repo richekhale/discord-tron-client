@@ -6,9 +6,12 @@ import requests
 import re
 import sys
 
+from concurrent.futures import ThreadPoolExecutor
+
 # Constants
-FILE = "dataset.csv" # The CSV file to read data from
-OUTPUT_DIR = "/home/kash/Downloads/datasets/midjourney" # Directory to save images
+FILE = "dataset.csv"  # The CSV file to read data from
+OUTPUT_DIR = "/models/training/datasets/midjourney"  # Directory to save images
+NUM_WORKERS = 8  # Number of worker threads for parallel downloading
 
 # Check if output directory exists, create if it does not
 if not os.path.exists(OUTPUT_DIR):
@@ -23,16 +26,31 @@ if not os.path.exists(FILE):
     print(f'Could not find CSV file: {FILE}')
     sys.exit(1)
 
+import random
+
 def content_to_filename(content):
     """
     Function to convert content to filename by stripping everything after '--', 
     replacing non-alphanumeric characters and spaces, converting to lowercase, 
     removing leading/trailing underscores, and limiting filename length to 128.
     """
+    # Split on '--' and take the first part
     content = content.split('--', 1)[0] 
-    cleaned_content = re.sub(r'[^a-zA-Z0-9 ]', '', content)
+
+    # Remove URLs
+    cleaned_content = re.sub(r'https*://\S*', '', content)
+
+    # Replace non-alphanumeric characters and spaces, convert to lowercase, remove leading/trailing underscores
+    cleaned_content = re.sub(r'[^a-zA-Z0-9 ]', '', cleaned_content)
     cleaned_content = cleaned_content.replace(' ', '_').lower().strip('_')
+
+    # If cleaned_content is empty after removing URLs, generate a random filename
+    if cleaned_content == '':
+        cleaned_content = f'midjourney_{random.randint(0, 1000000)}'
+    
+    # Limit filename length to 128
     cleaned_content = cleaned_content[:128] if len(cleaned_content) > 128 else cleaned_content
+
     return cleaned_content + '.png'
 
 def load_csv(file):
@@ -49,14 +67,21 @@ def load_csv(file):
             print(f'Could not advance reader: {e}')
     return data
 
-def fetch_image(url, filename):
+def fetch_image(info):
     """
     Function to fetch image from a URL and save it to disk if it is square
     """
+    filename = info['filename']
+    url = info['url']
+    current_file_path = os.path.join(OUTPUT_DIR, filename)
+    # Skip download if file already exists
+    if os.path.exists(current_file_path):
+        print(f'{filename} already exists, skipping download...')
+        return
+
     try:
         r = requests.get(url, stream=True)
         if r.status_code == 200:
-            current_file_path = os.path.join(OUTPUT_DIR, filename)
             with open(current_file_path, 'wb') as f:
                 r.raw.decode_content = True
                 shutil.copyfileobj(r.raw, f)
@@ -75,6 +100,7 @@ def fetch_image(url, filename):
     except Exception as e:
         print(f'Could not fetch {filename} from {url}: {e}')
 
+
 def fetch_data(data):
     """
     Function to fetch all images specified in data
@@ -87,9 +113,8 @@ def fetch_data(data):
         if new_filename not in to_fetch:
             to_fetch[new_filename] = {'url': row['Attachments'], 'filename': new_filename}
     print(f'Fetching {len(to_fetch)} images...')
-    for filename, info in to_fetch.items():
-        print(f'Fetching {filename}...')
-        fetch_image(info['url'], filename)
+    with ThreadPoolExecutor(max_workers=NUM_WORKERS) as executor:
+        executor.map(fetch_image, to_fetch.values())
 
 def main():
     """
