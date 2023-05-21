@@ -251,5 +251,5 @@ class DiffusionPipelineManager:
             
     def get_controlnet_pipe(self):
         self.delete_pipes()
-        pipeline = self.get_pipe(promptless_variation=True, user_config={}, scheduler_config={'name': 'controlnet'}, model_id='SG161222/Realistic_Vision_V1.4')
+        pipeline = self.get_pipe(promptless_variation=True, user_config={}, scheduler_config={'name': 'controlnet'}, model_id='saftle/urpm')
         return pipeline
