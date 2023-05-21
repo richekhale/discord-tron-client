@@ -2,6 +2,8 @@
 *.pem
 */config/config.json
 __pycache__/
+.venv/
+cache/
 *.pyc
 *.pyo
 *.pyd
