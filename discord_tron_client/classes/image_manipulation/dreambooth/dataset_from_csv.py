@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 # Constants
 FILE = "dataset.csv"  # The CSV file to read data from
-OUTPUT_DIR = "/models/training/datasets/midjourney"  # Directory to save images
+OUTPUT_DIR = "/notebooks/images/datasets/midjourney"  # Directory to save images
 NUM_WORKERS = 8  # Number of worker threads for parallel downloading
 
 # Check if output directory exists, create if it does not
@@ -67,6 +67,10 @@ def load_csv(file):
             print(f'Could not advance reader: {e}')
     return data
 
+conn_timeout = 6
+read_timeout = 60
+timeouts = (conn_timeout, read_timeout)
+
 def fetch_image(info):
     """
     Function to fetch image from a URL and save it to disk if it is square
@@ -80,7 +84,7 @@ def fetch_image(info):
         return
 
     try:
-        r = requests.get(url, stream=True)
+        r = requests.get(url, timeout=timeouts, stream=True)
         if r.status_code == 200:
             with open(current_file_path, 'wb') as f:
                 r.raw.decode_content = True
