@@ -735,6 +735,18 @@ def main(args):
     text_encoder = text_encoder_cls.from_pretrained(
         args.pretrained_model_name_or_path, subfolder="text_encoder", revision=args.revision
     )
+    first_frozen_layer = 0
+    last_frozen_layer = 0
+    for name, param in text_encoder.named_parameters():
+        pieces = name.split('.')
+        if pieces[1] != 'encoder' and pieces[2] != 'layers':
+            print(f'Ignoring non-encoder layer: {name}')
+            continue
+        current_layer = int(pieces[3])
+        if current_layer >= first_frozen_layer and current_layer < 21: # choose whatever you like here
+            last_frozen_layer = current_layer
+            param.requires_grad = False
+    print(f'Froze text encoder layers {first_frozen_layer} through {last_frozen_layer} (inclusive) out ot {len(text_encoder.encoder.layers)} total discovered.')
     vae = AutoencoderKL.from_pretrained(args.pretrained_model_name_or_path, subfolder="vae", revision=args.revision)
     unet = UNet2DConditionModel.from_pretrained(
         args.pretrained_model_name_or_path, subfolder="unet", revision=args.revision
