@@ -212,7 +212,6 @@ class PipelineRunner:
             if not promptless_variation and image is None:
                 # Use the Compel library's prompt weights as input instead of LPW pipelines.
                 preprocessed_images = pipe(
-                    use_karras_sigmas=True,
                     prompt_embeds=prompt_embed,
                     num_images_per_prompt=batch_size,
                     height=side_y,
