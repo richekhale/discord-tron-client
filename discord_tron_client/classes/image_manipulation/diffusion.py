@@ -88,7 +88,7 @@ class DiffusionPipelineManager:
                 custom_pipeline="stable_diffusion_controlnet_img2img",
                 controlnet=controlnet,
             )
-        elif pipe_type in ["prompt_variation", "text2img"]:
+        elif pipe_type in ["prompt_variation"]:
             # Use the long prompt weighting pipeline.
             logging.debug(f"Creating a LPW pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
@@ -96,8 +96,14 @@ class DiffusionPipelineManager:
                 torch_dtype=self.torch_dtype,
                 custom_pipeline="lpw_stable_diffusion",
             )
-            #vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=self.torch_dtype)
-            #pipeline.vae = vae
+            vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=self.torch_dtype)
+            pipeline.vae = vae
+        elif pipe_type in [ "text2img" ]:
+            # Use the long prompt weighting pipeline.
+            logging.debug(f"Creating a txt2img pipeline for {model_id}")
+            pipeline = pipeline_class.from_pretrained(
+                model_id
+            )
         else:
             logging.debug(f"Using standard pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
