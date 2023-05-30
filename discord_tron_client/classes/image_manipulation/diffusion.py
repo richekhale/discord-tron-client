@@ -5,6 +5,7 @@ from diffusers import (
     StableDiffusionUpscalePipeline,
     StableDiffusionKDiffusionPipeline,
     AutoencoderKL,
+    DDPMScheduler,
     UniPCMultistepScheduler
 )
 from diffusers import DiffusionPipeline as Pipeline
@@ -28,7 +29,7 @@ config = AppConfig()
 
 class DiffusionPipelineManager:
     PIPELINE_CLASSES = {
-        "text2img": StableDiffusionKDiffusionPipeline,
+        "text2img": Pipeline,
         "prompt_variation": Pipeline,
         "variation": StableDiffusionPipeline,
         "upscaler": StableDiffusionPipeline,
@@ -87,7 +88,7 @@ class DiffusionPipelineManager:
                 custom_pipeline="stable_diffusion_controlnet_img2img",
                 controlnet=controlnet,
             )
-        elif pipe_type in ["prompt_variation"]:
+        elif pipe_type in ["prompt_variation", "text2img"]:
             # Use the long prompt weighting pipeline.
             logging.debug(f"Creating a LPW pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
@@ -95,17 +96,8 @@ class DiffusionPipelineManager:
                 torch_dtype=self.torch_dtype,
                 custom_pipeline="lpw_stable_diffusion",
             )
-            vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=self.torch_dtype)
-            pipeline.vae = vae
-        elif pipe_type in ["text2img"]:
-            # Use the long prompt weighting pipeline.
-            logging.debug(f"Creating a KDiffusion pipeline for {model_id}")
-            pipeline = pipeline_class.from_pretrained(
-                model_id,
-                torch_dtype=self.torch_dtype,
-            )
-            vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=self.torch_dtype)
-            pipeline.vae = vae
+            #vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=self.torch_dtype)
+            #pipeline.vae = vae
         else:
             logging.debug(f"Using standard pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
@@ -166,7 +158,11 @@ class DiffusionPipelineManager:
                     scheduler_config=scheduler_config,
                 )
             elif pipe_type == 'text2img':
-                self.pipelines[model_id].set_scheduler('sample_dpmpp_2m')
+                scheduler = DDPMScheduler.from_pretrained(
+                    model_id,
+                    subfolder="scheduler"
+                )
+                self.pipelines[model_id].scheduler = self.patch_scheduler_betas(scheduler)
             elif pipe_type == 'variation':
                 # I think this needs a specific scheduler set.
                 logging.debug(f"Before setting scheduler: {self.pipelines[model_id].scheduler}")
@@ -253,3 +249,28 @@ class DiffusionPipelineManager:
         self.delete_pipes()
         pipeline = self.get_pipe(promptless_variation=True, user_config={}, scheduler_config={'name': 'controlnet'}, model_id='saftle/urpm')
         return pipeline
+    
+    def enforce_zero_terminal_snr(self, betas):
+        # Convert betas to alphas_bar_sqrt
+        alphas = 1 - betas
+        alphas_bar = alphas.cumprod(0)
+        alphas_bar_sqrt = alphas_bar.sqrt()
+
+        # Store old values.
+        alphas_bar_sqrt_0 = alphas_bar_sqrt[0].clone()
+        alphas_bar_sqrt_T = alphas_bar_sqrt[-1].clone()
+        # Shift so last timestep is zero.
+        alphas_bar_sqrt -= alphas_bar_sqrt_T
+        # Scale so first timestep is back to old value.
+        alphas_bar_sqrt *= alphas_bar_sqrt_0 / (
+        alphas_bar_sqrt_0 - alphas_bar_sqrt_T)
+        # Convert alphas_bar_sqrt to betas
+        alphas_bar = alphas_bar_sqrt ** 2
+        alphas = alphas_bar[1:] / alphas_bar[:-1]
+        alphas = torch.cat([alphas_bar[0:1], alphas])
+        betas = 1 - alphas
+        return betas
+
+    def patch_scheduler_betas(self, scheduler):
+        scheduler.betas = self.enforce_zero_terminal_snr(scheduler.betas)
+        return scheduler
