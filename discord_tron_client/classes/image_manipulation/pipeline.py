@@ -270,6 +270,15 @@ class PipelineRunner:
             raise e
         finally:
             sys.stderr = original_stderr
+            # This should help with sporadic GPU memory errors.
+            # https://github.com/damian0815/compel/issues/24
+            if prompt_embed is not None:
+                del prompt_embed
+            if negative_embed is not None:
+                del negative_embed
+            if prompt_embed is not None or negative_embed is not None:
+                gc.collect()
+
         return new_image
 
     async def generate_image(
