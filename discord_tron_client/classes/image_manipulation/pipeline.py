@@ -273,11 +273,8 @@ class PipelineRunner:
             # This should help with sporadic GPU memory errors.
             # https://github.com/damian0815/compel/issues/24
             try:
-                if prompt_embed is not None:
                     del prompt_embed
-                if negative_embed is not None:
                     del negative_embed
-                if prompt_embed is not None or negative_embed is not None:
                     gc.collect()
             except Exception as e:
                 logging.warn(f'Could not cleanly clear the GC: {e}')
