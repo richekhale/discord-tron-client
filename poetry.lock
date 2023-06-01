@@ -4262,25 +4262,6 @@ url = "https://pypi.org/simple"
 reference = "default"
 
 [[package]]
-name = "tensorrt"
-version = "8.6.1"
-description = "A high performance deep learning inference library"
-category = "main"
-optional = false
-python-versions = "*"
-files = [
-    {file = "tensorrt-8.6.1.tar.gz", hash = "sha256:865c8c18d7ea5de4661df276156a3bdb8c4ff5499b1a00844e9d7291ec60fb67"},
-]
-
-[package.extras]
-numpy = ["numpy"]
-
-[package.source]
-type = "legacy"
-url = "https://pypi.org/simple"
-reference = "default"
-
-[[package]]
 name = "termcolor"
 version = "2.3.0"
 description = "ANSI color formatting for output in terminal"
@@ -5442,4 +5423,4 @@ reference = "default"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "68c0b4c62021773483d097ab500a05bf012ecb64c1d13f01540d4f242ea36ff2"
+content-hash = "0120013ad3886b677801ebabe6d113ce87d4171a47fd66515f41d3e6a306cba5"
