@@ -220,6 +220,7 @@ class PipelineRunner:
                     negative_prompt_embeds=negative_embed,
                     guidance_scale=guidance_scale,
                     generator=generator,
+                    guidance_rescale=user_config.get('guidance_rescale', 0.3),
                 ).images
                 new_image = self._controlnet_all_images(preprocessed_images=preprocessed_images, user_config=user_config, generator=generator)
             elif not upscaler and not promptless_variation and image is not None:
