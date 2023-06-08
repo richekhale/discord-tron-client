@@ -5,7 +5,7 @@ from diffusers import (
     StableDiffusionUpscalePipeline,
     StableDiffusionKDiffusionPipeline,
     AutoencoderKL,
-    DDPMScheduler,
+    DDIMScheduler,
     UniPCMultistepScheduler
 )
 from diffusers import DiffusionPipeline as Pipeline
@@ -99,10 +99,9 @@ class DiffusionPipelineManager:
             vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=self.torch_dtype)
             pipeline.vae = vae
         elif pipe_type in [ "text2img" ]:
-            # Use the long prompt weighting pipeline.
             logging.debug(f"Creating a txt2img pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
-                model_id
+                model_id, torch_dtype=self.torch_dtype
             )
         else:
             logging.debug(f"Using standard pipeline for {model_id}")
@@ -164,9 +163,11 @@ class DiffusionPipelineManager:
                     scheduler_config=scheduler_config,
                 )
             elif pipe_type == 'text2img':
-                scheduler = DDPMScheduler.from_pretrained(
+                scheduler = DDIMScheduler.from_pretrained(
                     model_id,
-                    subfolder="scheduler"
+                    subfolder="scheduler",
+                    rescale_betas_zero_snr=True,
+                    timestep_spacing='trailing',
                 )
                 self.pipelines[model_id].scheduler = self.patch_scheduler_betas(scheduler)
             elif pipe_type == 'variation':
