@@ -202,7 +202,7 @@ class PipelineRunner:
     ):
         original_stderr = sys.stderr
         sys.stderr = self.tqdm_capture
-        batch_size = 2
+        batch_size = 4
         if hardware.should_offload():
             batch_size = 2
         if hardware.should_sequential_offload():
