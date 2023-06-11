@@ -15,6 +15,11 @@ def get_upscaler(scale: int = 4):
     return model
 
 def use_upscaler(model: RealESRGAN, image: Image):
+    # If it's an array, we have to walk it:
+    if isinstance(image, image):
+        for i in range(len(image)):
+            image[i] = use_upscaler(model, image[i])
+        return image
     sr_image = predict(model, image)
     return sr_image
 
