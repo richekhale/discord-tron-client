@@ -16,7 +16,7 @@ def get_upscaler(scale: int = 4):
 
 def use_upscaler(model: RealESRGAN, image: Image):
     # If it's an array, we have to walk it:
-    if isinstance(image, image):
+    if isinstance(image, (list, tuple)):
         for i in range(len(image)):
             image[i] = use_upscaler(model, image[i])
         return image
