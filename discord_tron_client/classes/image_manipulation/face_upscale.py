@@ -14,13 +14,13 @@ def get_upscaler(scale: int = 4):
     model.load_weights(os.path.join(model_path, 'RealESRGAN_x4.pth'), download=True)
     return model
 
-def use_upscaler(model: RealESRGAN, image: Image):
+def use_upscaler(pipeline: RealESRGAN, image: Image):
     # If it's an array, we have to walk it:
     if isinstance(image, (list, tuple)):
         for i in range(len(image)):
-            image[i] = use_upscaler(model, image[i])
+            image[i] = use_upscaler(pipeline, image[i])
         return image
-    sr_image = predict(model, image)
+    sr_image = predict(pipeline, image)
     return sr_image
 
 def pad_reflect(image, pad_size):
@@ -38,7 +38,7 @@ def pad_reflect(image, pad_size):
     return new_img
 
 @torch.cuda.amp.autocast()
-def predict(model, lr_image, batch_size=4, patches_size=192,
+def predict(pipeline, lr_image, batch_size=4, patches_size=192,
             padding=24, pad_size=15):
     lr_image = np.array(lr_image)
     lr_image = pad_reflect(lr_image, pad_size)
@@ -48,9 +48,9 @@ def predict(model, lr_image, batch_size=4, patches_size=192,
     img = torch.FloatTensor(patches/255).permute((0,3,1,2)).to(device).detach()
 
     with torch.no_grad():
-        res = model(img[0:batch_size])
+        res = pipeline.model(img[0:batch_size])
         for i in range(batch_size, img.shape[0], batch_size):
-            res = torch.cat((res, model(img[i:i+batch_size])), 0)
+            res = torch.cat((res, pipeline.model(img[i:i+batch_size])), 0)
 
     sr_image = res.permute((0,2,3,1)).clamp_(0, 1).cpu()
     np_sr_image = sr_image.numpy()
