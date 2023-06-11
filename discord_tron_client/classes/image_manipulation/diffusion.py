@@ -12,13 +12,14 @@ from diffusers import DiffusionPipeline as Pipeline
 from typing import Dict
 from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.classes.app_config import AppConfig
+from discord_tron_client.classes.image_manipulation.face_upscale import get_upscaler, use_upscaler
 from PIL import Image
 import torch, gc, logging, diffusers
-# torch.backends.cudnn.deterministic = True
-# torch.backends.cuda.matmul.allow_tf32 = True
-# torch.backends.cudnn.allow_tf32 = True
-# torch.backends.cudnn.benchmark = True
-# torch.backends.cuda.enable_flash_sdp(True)
+torch.backends.cudnn.deterministic = True
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
+torch.backends.cudnn.benchmark = True
+torch.backends.cuda.enable_flash_sdp(True)
 if torch.backends.cuda.mem_efficient_sdp_enabled():
     logging.info("CUDA SDP (scaled dot product attention) is enabled.")
 if torch.backends.cuda.math_sdp_enabled():
@@ -113,6 +114,15 @@ class DiffusionPipelineManager:
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
         return pipeline
+
+    def upscale_image(self, image: Image):
+        self._initialize_upscaler_pipe()
+        return use_upscaler(self.pipelines["upscaler"], image)
+
+    def _initialize_upscaler_pipe(self):
+        if "upscaler" not in self.pipelines:
+            self.pipelines["upscaler"] = get_upscaler()
+        return self.pipelines["upscaler"]
 
     def get_pipe(
         self,

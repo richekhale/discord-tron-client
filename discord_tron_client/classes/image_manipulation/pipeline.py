@@ -280,6 +280,12 @@ class PipelineRunner:
             except Exception as e:
                 logging.warn(f'Could not cleanly clear the GC: {e}')
 
+        # Now we upscale using Real-ESRGAN.
+        should_upscale = user_config.get('hires_fix', False)
+        if should_upscale:
+            logging.info('Upscaling image using Real-ESRGAN!')
+            new_image = self.pipeline_manager.upscale_image(new_image)
+
         return new_image
 
     async def generate_image(

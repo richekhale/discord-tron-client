@@ -44,6 +44,7 @@ controlnet-aux = "^0.0.3"
 k-diffusion = "^0.0.14"
 safetensors = "^0.3.1"
 split-image = "^2.0.1"
+realesrgan = {git = "https://github.com/sberbank-ai/Real-ESRGAN.git"}
 
 [[tool.poetry.source]]
 name = "default"

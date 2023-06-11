@@ -3177,6 +3177,30 @@ url = "https://pypi.org/simple"
 reference = "default"
 
 [[package]]
+name = "RealESRGAN"
+version = "1.0"
+description = ""
+optional = false
+python-versions = "*"
+files = []
+develop = false
+
+[package.dependencies]
+huggingface-hub = "*"
+numpy = "*"
+opencv-python = "*"
+Pillow = "*"
+torch = ">=1.7"
+torchvision = ">=0.8.0"
+tqdm = "*"
+
+[package.source]
+type = "git"
+url = "https://github.com/sberbank-ai/Real-ESRGAN.git"
+reference = "HEAD"
+resolved_reference = "362a0316878f41dbdfbb23657b450c3353de5acf"
+
+[[package]]
 name = "regex"
 version = "2023.5.5"
 description = "Alternative regular expression module, to replace re."
@@ -5251,4 +5275,4 @@ reference = "default"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "ebe2ae1f62ff6594dd94b95d63ef574cf1c5ceaeb922e16013e389309b843350"
+content-hash = "306abf88260306fea2c5110a5933d6f4039d803585aaf1587ac3b5bbd6950774"
