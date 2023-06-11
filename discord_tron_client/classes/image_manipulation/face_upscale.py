@@ -1,4 +1,4 @@
-import torch, os
+import torch, os, logging
 from PIL import Image
 import numpy as np
 from RealESRGAN import RealESRGAN
