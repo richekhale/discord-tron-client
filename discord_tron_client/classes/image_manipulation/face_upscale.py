@@ -20,6 +20,7 @@ def use_upscaler(model: RealESRGAN, image: Image):
 
 def pad_reflect(image, pad_size):
     imsize = image.shape
+    logging.debug(f'Pad reflection sees imsize {imsize}')
     height, width = imsize[:2]
     new_img = np.zeros([height+pad_size*2, width+pad_size*2, imsize[2]]).astype(np.uint8)
     new_img[pad_size:-pad_size, pad_size:-pad_size, :] = image
