@@ -1,20 +1,25 @@
 from diffusers import (
     StableDiffusionPipeline,
     StableDiffusionImageVariationPipeline,
-    StableDiffusionControlNetPipeline, ControlNetModel,
+    StableDiffusionControlNetPipeline,
+    ControlNetModel,
     StableDiffusionUpscalePipeline,
     StableDiffusionKDiffusionPipeline,
     AutoencoderKL,
     DDIMScheduler,
-    UniPCMultistepScheduler
+    UniPCMultistepScheduler,
 )
 from diffusers import DiffusionPipeline as Pipeline
 from typing import Dict
 from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.classes.app_config import AppConfig
-from discord_tron_client.classes.image_manipulation.face_upscale import get_upscaler, use_upscaler
+from discord_tron_client.classes.image_manipulation.face_upscale import (
+    get_upscaler,
+    use_upscaler,
+)
 from PIL import Image
 import torch, gc, logging, diffusers
+
 torch.backends.cudnn.deterministic = True
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
@@ -30,7 +35,7 @@ config = AppConfig()
 
 class DiffusionPipelineManager:
     PIPELINE_CLASSES = {
-        "text2img": Pipeline,
+        "text2img": StableDiffusionPipeline,
         "prompt_variation": Pipeline,
         "variation": StableDiffusionPipeline,
         "upscaler": StableDiffusionPipeline,
@@ -45,7 +50,7 @@ class DiffusionPipelineManager:
         "EulerDiscreteScheduler": diffusers.EulerDiscreteScheduler,
         "KDPM2DiscreteScheduler": diffusers.KDPM2DiscreteScheduler,
         "IPNDMScheduler": diffusers.IPNDMScheduler,
-        "KarrasVeScheduler": diffusers.KarrasVeScheduler
+        "KarrasVeScheduler": diffusers.KarrasVeScheduler,
     }
 
     def __init__(self):
@@ -81,8 +86,12 @@ class DiffusionPipelineManager:
         if pipe_type in ["variation", "upscaler"]:
             # Variation uses ControlNet stuff.
             logging.debug(f"Creating a ControlNet model for {model_id}")
-            controlnet = ControlNetModel.from_pretrained("lllyasviel/control_v11f1e_sd15_tile", torch_dtype=self.torch_dtype)
-            logging.debug(f"Passing the ControlNet into a StableDiffusionControlNetPipeline for {model_id}")
+            controlnet = ControlNetModel.from_pretrained(
+                "lllyasviel/control_v11f1e_sd15_tile", torch_dtype=self.torch_dtype
+            )
+            logging.debug(
+                f"Passing the ControlNet into a StableDiffusionControlNetPipeline for {model_id}"
+            )
             pipeline = self.PIPELINE_CLASSES["text2img"].from_pretrained(
                 model_id,
                 torch_dtype=self.torch_dtype,
@@ -97,9 +106,13 @@ class DiffusionPipelineManager:
                 torch_dtype=self.torch_dtype,
                 custom_pipeline="lpw_stable_diffusion",
             )
-            vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=self.torch_dtype)
+            vae = AutoencoderKL.from_pretrained(
+                "stabilityai/sd-vae-ft-mse",
+                use_safetensors=True,
+                torch_dtype=self.torch_dtype,
+            )
             pipeline.vae = vae
-        elif pipe_type in [ "text2img" ]:
+        elif pipe_type in ["text2img"]:
             logging.debug(f"Creating a txt2img pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
                 model_id, torch_dtype=self.torch_dtype
@@ -109,7 +122,11 @@ class DiffusionPipelineManager:
             pipeline = pipeline_class.from_pretrained(
                 model_id, torch_dtype=self.torch_dtype
             )
-            vae = AutoencoderKL.from_pretrained("stabilityai/sd-vae-ft-mse", use_safetensors=True, torch_dtype=self.torch_dtype)
+            vae = AutoencoderKL.from_pretrained(
+                "stabilityai/sd-vae-ft-mse",
+                use_safetensors=True,
+                torch_dtype=self.torch_dtype,
+            )
             pipeline.vae = vae
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
@@ -143,7 +160,9 @@ class DiffusionPipelineManager:
             if upscaler
             else "text2img"
         )
-        logging.info(f"Executing get_pipe for model {model_id} and pipe_type {pipe_type}")
+        logging.info(
+            f"Executing get_pipe for model {model_id} and pipe_type {pipe_type}"
+        )
 
         if (
             model_id in self.last_pipe_type
@@ -165,42 +184,63 @@ class DiffusionPipelineManager:
         move_cuda = True
         if model_id not in self.pipelines:
             logging.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
-            self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type)
+            self.pipelines[model_id] = self.create_pipeline(
+                model_id,
+                pipe_type,
+                feature_extractor=None,
+                safety_checker=None,
+                requires_safety_checker=None,
+            )
             if pipe_type in ["upscaler", "prompt_variation"]:
                 self.set_scheduler(
                     pipe=self.pipelines[model_id],
                     user_config=None,
                     scheduler_config=scheduler_config,
                 )
-            elif pipe_type == 'text2img':
+            elif pipe_type == "text2img":
                 scheduler = DDIMScheduler.from_pretrained(
                     model_id,
                     subfolder="scheduler",
                     rescale_betas_zero_snr=True,
-                    timestep_spacing='trailing',
+                    timestep_spacing="trailing",
                 )
-                self.pipelines[model_id].scheduler = self.patch_scheduler_betas(scheduler)
-            elif pipe_type == 'variation':
+                self.pipelines[model_id].scheduler = self.patch_scheduler_betas(
+                    scheduler
+                )
+            elif pipe_type == "variation":
                 # I think this needs a specific scheduler set.
-                logging.debug(f"Before setting scheduler: {self.pipelines[model_id].scheduler}")
-                self.pipelines[model_id].scheduler = UniPCMultistepScheduler.from_config(self.pipelines[model_id].scheduler.config)
-                logging.debug(f"After setting scheduler: {self.pipelines[model_id].scheduler}")
+                logging.debug(
+                    f"Before setting scheduler: {self.pipelines[model_id].scheduler}"
+                )
+                self.pipelines[
+                    model_id
+                ].scheduler = UniPCMultistepScheduler.from_config(
+                    self.pipelines[model_id].scheduler.config
+                )
+                logging.debug(
+                    f"After setting scheduler: {self.pipelines[model_id].scheduler}"
+                )
             # Additional offload settings that we apply to all pipelines.
-            if hasattr(self.pipelines[model_id], "enable_model_cpu_offload") and hardware.should_offload():
+            if (
+                hasattr(self.pipelines[model_id], "enable_model_cpu_offload")
+                and hardware.should_offload()
+            ):
                 try:
-                    logging.warn(f'Hardware constraints are enabling model CPU offload. This could impact performance.')
+                    logging.warn(
+                        f"Hardware constraints are enabling model CPU offload. This could impact performance."
+                    )
                     self.pipelines[model_id].enable_model_cpu_offload()
                 except Exception as e:
                     logging.error(f"Could not enable CPU offload on the model: {e}")
             self.pipelines[model_id].unet = torch.compile(self.pipelines[model_id].unet)
         else:
-            logging.info(f'Keeping existing pipeline. Not creating any new ones.')
+            logging.info(f"Keeping existing pipeline. Not creating any new ones.")
         self.last_pipe_type[model_id] = pipe_type
         self.last_pipe_scheduler[model_id] = scheduler_config["name"]
         self.pipelines[model_id].to(0)
         enable_tiling = user_config.get("enable_tiling", True)
         if enable_tiling:
-            logging.warn(f'Enabling VAE tiling. This could cause artifacted outputs.')
+            logging.warn(f"Enabling VAE tiling. This could cause artifacted outputs.")
             self.pipelines[model_id].vae.enable_tiling()
             self.pipelines[model_id].vae.enable_slicing()
         else:
@@ -261,12 +301,17 @@ class DiffusionPipelineManager:
             )
         else:
             pipe.scheduler = scheduler_module.from_config(pipe.scheduler.config)
-            
+
     def get_controlnet_pipe(self):
         self.delete_pipes()
-        pipeline = self.get_pipe(promptless_variation=True, user_config={}, scheduler_config={'name': 'controlnet'}, model_id='saftle/urpm')
+        pipeline = self.get_pipe(
+            promptless_variation=True,
+            user_config={},
+            scheduler_config={"name": "controlnet"},
+            model_id="saftle/urpm",
+        )
         return pipeline
-    
+
     def enforce_zero_terminal_snr(self, betas):
         # Convert betas to alphas_bar_sqrt
         alphas = 1 - betas
@@ -279,10 +324,9 @@ class DiffusionPipelineManager:
         # Shift so last timestep is zero.
         alphas_bar_sqrt -= alphas_bar_sqrt_T
         # Scale so first timestep is back to old value.
-        alphas_bar_sqrt *= alphas_bar_sqrt_0 / (
-        alphas_bar_sqrt_0 - alphas_bar_sqrt_T)
+        alphas_bar_sqrt *= alphas_bar_sqrt_0 / (alphas_bar_sqrt_0 - alphas_bar_sqrt_T)
         # Convert alphas_bar_sqrt to betas
-        alphas_bar = alphas_bar_sqrt ** 2
+        alphas_bar = alphas_bar_sqrt**2
         alphas = alphas_bar[1:] / alphas_bar[:-1]
         alphas = torch.cat([alphas_bar[0:1], alphas])
         betas = 1 - alphas
