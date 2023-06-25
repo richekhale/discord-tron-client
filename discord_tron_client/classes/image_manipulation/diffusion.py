@@ -130,6 +130,7 @@ class DiffusionPipelineManager:
                 safety_checker=None,
                 requires_safety_checker=None,
             )
+            logging.debug(f'Model config: {pipeline.config}')
         else:
             logging.debug(f"Using standard pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
