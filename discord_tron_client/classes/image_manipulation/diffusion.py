@@ -212,13 +212,8 @@ class DiffusionPipelineManager:
                 scheduler = DDIMScheduler.from_pretrained(
                     model_id,
                     subfolder="scheduler",
-                    rescale_betas_zero_snr=True,
-                    timestep_spacing="trailing",
-                    guidance_rescale=0.3,
                 )
-                self.pipelines[model_id].scheduler = self.patch_scheduler_betas(
-                    scheduler
-                )
+                self.pipelines[model_id].scheduler = scheduler
             elif pipe_type == "variation":
                 # I think this needs a specific scheduler set.
                 logging.debug(
