@@ -145,7 +145,7 @@ class PipelineRunner:
     ):
         try:
             guidance_scale = user_config.get("guidance_scaling", 7.5)
-            guidance_scale = min(guidance_scale, 20)
+            guidance_scale = min(float(guidance_scale), float(20))
 
             self.gpu_power_consumption = 0.0
             generator = self._get_generator(user_config=user_config)
