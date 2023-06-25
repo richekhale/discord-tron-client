@@ -80,7 +80,7 @@ class ImageSplitter:
                 outp = im.crop(box)
                 outp_path = name + "_" + str(n) + ext
                 if not self.should_quiet:
-                    print("Exporting image tile: " + outp_path)
+                    logging.info("Exporting image tile: " + outp_path)
                 images.append(outp)
                 n += 1
         return images

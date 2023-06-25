@@ -98,7 +98,7 @@ class WorkerProcessor:
             # show top 10 lines
             top_stats = snapshot.statistics("lineno")
             for stat in top_stats[:10]:
-                print(stat)
+                logging.info(stat)
             # disable tracemalloc:
             tracemalloc.stop()
             import traceback

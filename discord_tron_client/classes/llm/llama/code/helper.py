@@ -51,7 +51,7 @@ generation_config = GenerationConfig(
     top_k=40,
     num_beams=4,
 )
-print(f"temperature; {generation_config.temperature}")
+logging.info(f"temperature; {generation_config.temperature}")
 
 
 def format_system_prompt(prompt, eos_token="</s>"):
@@ -74,6 +74,6 @@ def generate(
         )
     s = generation_output.sequences[0]
     output = tokenizer.decode(s)
-    print("Text generated:")
-    print(output)
+    logging.info("Text generated:")
+    logging.info(output)
     return output

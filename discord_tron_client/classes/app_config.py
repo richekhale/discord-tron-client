@@ -3,7 +3,6 @@
 import json, os, logging, traceback
 from concurrent.futures import ThreadPoolExecutor
 
-
 class AppConfig:
     # Class variables
     main_loop = None
@@ -80,6 +79,9 @@ class AppConfig:
     @classmethod
     def get_pipeline_manager(cls):
         return cls.main_pipelinemanager
+
+    def get_nfixer_path(self):
+        return self.parent + "/" + "nfixer.pt"
 
     def get_log_level(self):
         self.reload_config()

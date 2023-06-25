@@ -62,7 +62,7 @@ class Auth:
             response = requests.post(
                 url, json=payload, verify=self.config.verify_master_ssl()
             )
-            print(f"Response: {response.text}")
+            logging.info(f"Response: {response.text}")
             if response.status_code == 200:
                 logging.debug(f"Received new auth ticket. Updating local copy.")
                 new_ticket = response.json()["access_token"]
@@ -123,7 +123,7 @@ class Auth:
                 )
                 import json
 
-                print(f"New ticket: {json.dumps(current_ticket, indent=4)}")
+                logging.info(f"New ticket: {json.dumps(current_ticket, indent=4)}")
             return current_ticket
         raise Exception(
             "Unable to get access token after {} attempts.".format(attempts)

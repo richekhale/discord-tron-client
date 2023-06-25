@@ -2,7 +2,7 @@ import tiktoken
 
 
 class TokenTester:
-    def __init__(self, engine: str = "gpt-3.5-turbo"):
+    def __init__(self, engine: str = "gpt-3.5-turbo-0613"):
         self.tokenizer = tiktoken.encoding_for_model(engine)
 
     def tokenize(self, text):

@@ -33,7 +33,7 @@ class LlamaCpp:
             )
         self.model_config = json.load(open(self.path + "/params.json", "r"))
         logging.debug(f"Model config: {self.model_config}")
-        print(f"Directory contents: {directory_contents}")
+        logging.info(f"Directory contents: {directory_contents}")
         return True
 
     def locate_ggml(self):
@@ -74,7 +74,7 @@ class LlamaCpp:
                 f"Could not set LLaMA prompt seed. Perhaps the ABI changed? {e}"
             )
         """
-            >>> print(f"Result: {result}")
+            >>> logging.info(f"Result: {result}")
                 Result: {'id': 'cmpl-4b2d3c01-3e7d-41aa-8c2c-9a87ca4ad35d', 'object': 'text_completion', 'created': 1682215736,
                 'model': '/archive/models/LLaMA/7B/ggml-model-f16.bin',
                 'choices': [{'text': '\nI’m not really sure what to think about this yet, so I’ll leave it at that for now.', 'index': 0, 'logprobs': None, 'finish_reason': 'stop'}],

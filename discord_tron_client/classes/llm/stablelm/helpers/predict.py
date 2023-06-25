@@ -76,7 +76,7 @@ def clean_output(output: str):
     if search is not None and hasattr(search, "group"):
         output = search.group(1)
         logging.debug(f"Search4 result: {search}")
-    print(f"Output: {output}")
+    logging.info(f"Output: {output}")
     return output
 
 
