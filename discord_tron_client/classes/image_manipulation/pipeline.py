@@ -144,7 +144,7 @@ class PipelineRunner:
         upscaler: bool = False,
     ):
         try:
-            guidance_scale = user_config.get("guidance_scale", 7.5)
+            guidance_scale = user_config.get("guidance_scaling", 7.5)
             guidance_scale = min(guidance_scale, 20)
 
             self.gpu_power_consumption = 0.0
