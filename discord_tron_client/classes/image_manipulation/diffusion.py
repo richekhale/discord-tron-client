@@ -213,6 +213,7 @@ class DiffusionPipelineManager:
                     subfolder="scheduler",
                     rescale_betas_zero_snr=True,
                     timestep_spacing="trailing",
+                    guidance_rescale=0.3,
                 )
                 self.pipelines[model_id].scheduler = self.patch_scheduler_betas(
                     scheduler
