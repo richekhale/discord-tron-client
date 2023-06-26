@@ -23,7 +23,7 @@ tensorflow = "^2.12.0"
 accelerate = "^0.18.0"
 
 numpy = ">=1.23.2"
-torch = {version = "2.0.0", allow-prereleases = true}
+torch = "^2.0.1"
 torchaudio = { version = ">=0.12.1" }
 colorama = "^0.4.6"
 xformers = {version = "^0.0.20.dev526", allow-prereleases = true}
@@ -37,7 +37,7 @@ pydub = "^0.25.1"
 tiktoken = "^0.3.3"
 pyopenssl = "^23.1.1"
 black = "^23.3.0"
-torchvision = "0.15.1"
+torchvision = "^0.15.2"
 torchmetrics = "^0.11.4"
 opencv-contrib-python = "^4.7.0.72"
 controlnet-aux = "^0.0.3"
