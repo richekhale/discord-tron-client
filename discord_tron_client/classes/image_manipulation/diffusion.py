@@ -242,7 +242,12 @@ class DiffusionPipelineManager:
                 except Exception as e:
                     logging.error(f"Could not enable CPU offload on the model: {e}")
             torch._dynamo.config.suppress_errors = True
-            self.pipelines[model_id].unet = torch.compile(self.pipelines[model_id].unet, mode="reduce-overhead", fullgraph=True)
+            torch._dynamo.config.log_level = logging.WARNING
+            try {
+                self.pipelines[model_id].unet = torch.compile(self.pipelines[model_id].unet, mode="reduce-overhead", fullgraph=True)
+            except Exception as e:
+                logging.error(f'Could not compile unet! Maybe it is SDXL? {e}')
+            }
         else:
             logging.info(f"Keeping existing pipeline. Not creating any new ones.")
         self.last_pipe_type[model_id] = pipe_type
