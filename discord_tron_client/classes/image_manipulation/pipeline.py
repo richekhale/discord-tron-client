@@ -211,17 +211,29 @@ class PipelineRunner:
             alt_weight_algorithm = user_config.get("alt_weight_algorithm", False)
             if not promptless_variation and image is None:
                 # Use the Compel library's prompt weights as input instead of LPW pipelines.
-                preprocessed_images = pipe(
-                    prompt_embeds=prompt_embed,
-                    num_images_per_prompt=batch_size,
-                    height=side_y,
-                    width=side_x,
-                    num_inference_steps=int(float(steps)),
-                    negative_prompt_embeds=negative_embed,
-                    guidance_scale=guidance_scale,
-                    generator=generator,
-                    guidance_rescale=user_config.get('guidance_rescale', 0.3),
-                ).images
+                if "ptx0/s" in user_config.get("model", ""):
+                    preprocessed_images = pipe(
+                        prompt=positive_prompt,
+                        num_images_per_prompt=batch_size,
+                        height=side_y,
+                        width=side_x,
+                        num_inference_steps=int(float(steps)),
+                        negative_prompt=negative_prompt,
+                        guidance_scale=guidance_scale,
+                        generator=generator,
+                    ).images
+                else:
+                    preprocessed_images = pipe(
+                        prompt_embeds=prompt_embed,
+                        num_images_per_prompt=batch_size,
+                        height=side_y,
+                        width=side_x,
+                        num_inference_steps=int(float(steps)),
+                        negative_prompt_embeds=negative_embed,
+                        guidance_scale=guidance_scale,
+                        generator=generator,
+                        guidance_rescale=user_config.get('guidance_rescale', 0.3),
+                    ).images
                 new_image = self._controlnet_all_images(preprocessed_images=preprocessed_images, user_config=user_config, generator=generator)
             elif not upscaler and not promptless_variation and image is not None:
                 if not alt_weight_algorithm:
