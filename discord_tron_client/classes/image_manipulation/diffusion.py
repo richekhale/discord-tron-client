@@ -129,6 +129,7 @@ class DiffusionPipelineManager:
                 feature_extractor=None,
                 safety_checker=None,
                 requires_safety_checker=None,
+                use_auth_token=config.get_huggingface_api_key(),
             )
             logging.debug(f'Model config: {pipeline.config}')
         else:
@@ -151,7 +152,8 @@ class DiffusionPipelineManager:
 
     def upscale_image(self, image: Image):
         self._initialize_upscaler_pipe()
-        return use_upscaler(self.pipelines["upscaler"], image)
+        esrgan_upscaled = use_upscaler(self.pipelines["upscaler"], image)
+        reasonable_size = self._c
 
     def _initialize_upscaler_pipe(self):
         if "upscaler" not in self.pipelines:
