@@ -243,7 +243,7 @@ class DiffusionPipelineManager:
                     logging.error(f"Could not enable CPU offload on the model: {e}")
             torch._dynamo.config.suppress_errors = True
             torch._dynamo.config.log_level = logging.WARNING
-            if "sdxl" not in model_id:
+            if "ptx0/s" not in model_id:
                 self.pipelines[model_id].unet = torch.compile(self.pipelines[model_id].unet, mode="reduce-overhead", fullgraph=True)
             else:
                 logging.warning(f'Not enabling fullgraph for {model_id}')
