@@ -241,7 +241,7 @@ class DiffusionPipelineManager:
                     self.pipelines[model_id].enable_model_cpu_offload()
                 except Exception as e:
                     logging.error(f"Could not enable CPU offload on the model: {e}")
-            self.pipelines[model_id].unet = torch.compile(self.pipelines[model_id].unet)
+            self.pipelines[model_id].unet = torch.compile(self.pipelines[model_id].unet, mode="reduce-overhead", fullgraph=True)
         else:
             logging.info(f"Keeping existing pipeline. Not creating any new ones.")
         self.last_pipe_type[model_id] = pipe_type
