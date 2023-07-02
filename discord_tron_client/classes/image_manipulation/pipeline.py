@@ -219,6 +219,7 @@ class PipelineRunner:
                         width=side_x,
                         num_inference_steps=int(float(steps)),
                         negative_prompt=negative_prompt,
+                        guidance_rescale=user_config.get('guidance_rescale', 0.3),
                         guidance_scale=guidance_scale,
                         generator=generator,
                     ).images
@@ -246,6 +247,7 @@ class PipelineRunner:
                         strength=user_config["strength"],
                         num_inference_steps=int(float(steps)),
                         guidance_scale=guidance_scale,
+                        guidance_rescale=user_config.get('guidance_rescale', 0.3),
                         generator=generator,
                     ).images
                 else:
@@ -257,6 +259,7 @@ class PipelineRunner:
                         num_inference_steps=int(float(steps)),
                         negative_prompt_embeds=negative_embed,
                         guidance_scale=guidance_scale,
+                        guidance_rescale=user_config.get('guidance_rescale', 0.3),
                         generator=generator,
                     ).images
             elif promptless_variation:
