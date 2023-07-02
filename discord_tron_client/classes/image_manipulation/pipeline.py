@@ -236,6 +236,8 @@ class PipelineRunner:
                     ).images
                 new_image = self._controlnet_all_images(preprocessed_images=preprocessed_images, user_config=user_config, generator=generator)
             elif not upscaler and not promptless_variation and image is not None:
+                if "ptx0/s" in user_config.get("model", ""):
+                    alt_weight_algorithm = False
                 if not alt_weight_algorithm:
                     new_image = pipe.img2img(
                         prompt=positive_prompt,
