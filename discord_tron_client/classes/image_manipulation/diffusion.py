@@ -101,6 +101,7 @@ class DiffusionPipelineManager:
                 feature_extractor=None,
                 safety_checker=None,
                 requires_safety_checker=None,
+                use_safetensors=True
             )
         elif pipe_type in ["prompt_variation"]:
             # Use the long prompt weighting pipeline.
@@ -112,6 +113,7 @@ class DiffusionPipelineManager:
                 feature_extractor=None,
                 safety_checker=None,
                 requires_safety_checker=None,
+                use_safetensors=True
             )
             vae = AutoencoderKL.from_pretrained(
                 "stabilityai/sd-vae-ft-mse",
@@ -131,6 +133,7 @@ class DiffusionPipelineManager:
                 safety_checker=None,
                 requires_safety_checker=None,
                 use_auth_token=config.get_huggingface_api_key(),
+                use_safetensors=True
             )
             logging.debug(f'Model config: {pipeline.config}')
         else:
