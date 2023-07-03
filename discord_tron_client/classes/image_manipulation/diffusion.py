@@ -60,9 +60,9 @@ class DiffusionPipelineManager:
         self.torch_dtype = torch.float16
         self.is_memory_constrained = False
         self.model_id = None
-        if hw_limits["gpu"] >= 16 and config.get_precision_bits() == 32:
+        if hw_limits["gpu"] != "Unknown" and hw_limits["gpu"] >= 16 and config.get_precision_bits() == 32:
             self.torch_dtype = torch.float32
-        if hw_limits["gpu"] <= 16:
+        if hw_limits["gpu"] != "Unknown" and hw_limits["gpu"] <= 16:
             logging.warn(
                 f"Our GPU has less than 16GB of memory, so we will use memory constrained pipeline parameters for image generation, resulting in much higher CPU use to lower VMEM use."
             )
