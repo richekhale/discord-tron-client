@@ -215,6 +215,8 @@ class HardwareInfo:
     def should_disable_resolution(self, resolution: dict):
         logging.info(f"Running attention slicing check for resolution {resolution}...")
         gpu_memory = self.video_memory_amount
+        if gpu_memory == "Unknown":
+            gpu_memory = 8
         pixel_count = resolution["width"] * resolution["height"]
         memory_to_pixel_ratio = gpu_memory * (1024**3) / pixel_count
         # In practice, an 8GB GPU can handle about 1280x720 which is a ratio of 9320 pixels per GiB.
