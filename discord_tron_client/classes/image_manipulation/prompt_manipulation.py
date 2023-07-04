@@ -12,7 +12,7 @@ class PromptManipulation:
                 f"Cannot use PromptManipulation on a model without a tokenizer."
             )
         pipe_tokenizer = self.pipeline.tokenizer
-        if self.pipeline.tokenizer is None and hasattr(self.pipeline.tokenizer_2):
+        if self.pipeline.tokenizer is None and hasattr(self.pipeline, 'tokenizer_2'):
             pipe_tokenizer = self.pipeline.tokenizer_2
         self.compel = Compel(
             tokenizer=pipe_tokenizer,
