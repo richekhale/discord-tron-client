@@ -24,6 +24,7 @@ class PromptManipulation:
             text_encoder=pipe_text_encoder,
             truncate_long_prompts=False,
             device="cuda",
+            use_penultimate_clip_layer=True
         )
 
     def has_dual_text_encoders(self, pipeline):
@@ -44,14 +45,14 @@ class PromptManipulation:
             )
 
     def process(self, prompt: str):
-        conditioning = self.compel.build_conditioning_tensor(prompt, use_penultimate_clip_layer=True)
+        conditioning = self.compel.build_conditioning_tensor(prompt)
         return conditioning
 
     def process_long_prompt(self, positive_prompt: str, negative_prompt: str):
         if positive_prompt == "":
             positive_prompt = "since you did not provide a string, i will do it for you"
-        conditioning = self.compel.build_conditioning_tensor(positive_prompt, use_penultimate_clip_layer=True)
-        negative_conditioning = self.compel.build_conditioning_tensor(negative_prompt, use_penultimate_clip_layer=True)
+        conditioning = self.compel.build_conditioning_tensor(positive_prompt)
+        negative_conditioning = self.compel.build_conditioning_tensor(negative_prompt)
         [
             conditioning,
             negative_conditioning,
