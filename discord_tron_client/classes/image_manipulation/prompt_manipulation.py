@@ -14,9 +14,13 @@ class PromptManipulation:
         pipe_tokenizer = self.pipeline.tokenizer
         if self.pipeline.tokenizer is None and hasattr(self.pipeline, 'tokenizer_2'):
             pipe_tokenizer = self.pipeline.tokenizer_2
+
+        pipe_text_encoder = self.pipeline.text_encoder
+        if self.pipeline.text_encoder is None and hasattr(self.pipeline, 'text_encoder_2'):
+            pipe_text_encoder = self.pipeline.text_encoder_2
         self.compel = Compel(
             tokenizer=pipe_tokenizer,
-            text_encoder=pipeline.text_encoder,
+            text_encoder=pipe_text_encoder,
             truncate_long_prompts=False,
             device="cuda"
         )
