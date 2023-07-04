@@ -36,8 +36,8 @@ class PromptManipulation:
         return False
 
     def is_valid_pipeline(self, pipeline):
-        if not hasattr(self.pipeline, "tokenizer") and not hasattr(
-            self.pipeline, "tokenizer_2"
+        if not hasattr(pipeline, "tokenizer") and not hasattr(
+            pipeline, "tokenizer_2"
         ):
             raise Exception(
                 f"Cannot use PromptManipulation on a model without a tokenizer."
