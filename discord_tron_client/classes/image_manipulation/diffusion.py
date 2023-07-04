@@ -114,15 +114,6 @@ class DiffusionPipelineManager:
                 requires_safety_checker=None,
                 use_safetensors=True
             )
-            vae = AutoencoderKL.from_pretrained(
-                "stabilityai/sd-vae-ft-mse",
-                use_safetensors=True,
-                torch_dtype=self.torch_dtype,
-                feature_extractor=None,
-                safety_checker=None,
-                requires_safety_checker=None,
-            )
-            pipeline.vae = vae
         elif pipe_type in ["text2img"]:
             logging.debug(f"Creating a txt2img pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
@@ -140,15 +131,6 @@ class DiffusionPipelineManager:
             pipeline = pipeline_class.from_pretrained(
                 model_id, torch_dtype=self.torch_dtype
             )
-            vae = AutoencoderKL.from_pretrained(
-                "stabilityai/sd-vae-ft-mse",
-                use_safetensors=True,
-                torch_dtype=self.torch_dtype,
-                feature_extractor=None,
-                safety_checker=None,
-                requires_safety_checker=None,
-            )
-            pipeline.vae = vae
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
         return pipeline
