@@ -250,7 +250,7 @@ class PipelineRunner:
                 if "ptx0/s" in user_config.get("model", ""):
                     alt_weight_algorithm = False
                 if not alt_weight_algorithm:
-                    new_image = pipe.img2img(
+                    new_image = pipe(
                         prompt=positive_prompt,
                         num_images_per_prompt=batch_size,
                         image=image,
