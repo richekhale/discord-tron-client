@@ -211,12 +211,22 @@ class PipelineRunner:
             alt_weight_algorithm = user_config.get("alt_weight_algorithm", False)
             if not promptless_variation and image is None:
                 # Use the Compel library's prompt weights as input instead of LPW pipelines.
-                if "ptx0/s" in user_config.get("model", ""):
+                if "ptx0/s1" in user_config.get("model", ""):
                     preprocessed_images = pipe(
                         prompt=positive_prompt,
                         num_images_per_prompt=batch_size,
                         height=side_y,
                         width=side_x,
+                        num_inference_steps=int(float(steps)),
+                        negative_prompt=negative_prompt,
+                        guidance_rescale=user_config.get('guidance_rescale', 0.3),
+                        guidance_scale=guidance_scale,
+                        generator=generator,
+                    ).images
+                elif "ptx0/s2" in user_config.get("model", ""):
+                    preprocessed_images = pipe(
+                        prompt=positive_prompt,
+                        num_images_per_prompt=batch_size,
                         num_inference_steps=int(float(steps)),
                         negative_prompt=negative_prompt,
                         guidance_rescale=user_config.get('guidance_rescale', 0.3),

@@ -37,7 +37,7 @@ config = AppConfig()
 class DiffusionPipelineManager:
     PIPELINE_CLASSES = {
         "text2img": DiffusionPipeline,
-        "prompt_variation": Pipeline,
+        "prompt_variation": DiffusionPipeline,
         "variation": StableDiffusionPipeline,
         "upscaler": StableDiffusionPipeline,
     }
@@ -109,7 +109,6 @@ class DiffusionPipelineManager:
             pipeline = pipeline_class.from_pretrained(
                 model_id,
                 torch_dtype=self.torch_dtype,
-                custom_pipeline="lpw_stable_diffusion",
                 feature_extractor=None,
                 safety_checker=None,
                 requires_safety_checker=None,
