@@ -454,11 +454,11 @@ class PipelineRunner:
         if prompt is None:
             prompt = user_config["tile_positive"]
             negative_prompt = user_config["tile_negative"]
-        if random_seed:
-            generator = torch.Generator(device=self.pipeline_manager.device).manual_seed(-1)
+        # if random_seed:
+        #     generator = torch.Generator(device=self.pipeline_manager.device).manual_seed(-1)
         return pipe(
             prompt=prompt,
-            # negative_prompt=negative_prompt,
+            negative_prompt=negative_prompt,
             image=image,
             guidance_scale=user_config.get("refiner_guidance", 7.5),
             strength=user_config.get("refiner_strength", 0.3),
