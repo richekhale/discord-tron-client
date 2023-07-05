@@ -209,6 +209,10 @@ class PipelineRunner:
             batch_size = 1
         try:
             alt_weight_algorithm = user_config.get("alt_weight_algorithm", False)
+            use_latent_result = user_config.get('latent_refiner', True)
+            image_return_type = "pil"
+            if use_latent_result:
+                image_return_type = "latent"
             if not promptless_variation and image is None:
                 # Use the Compel library's prompt weights as input instead of LPW pipelines.
                 if "ptx0/s1" in user_config.get("model", ""):
@@ -221,6 +225,7 @@ class PipelineRunner:
                         negative_prompt=negative_prompt,
                         guidance_rescale=user_config.get('guidance_rescale', 0.3),
                         guidance_scale=guidance_scale,
+                        output_type=image_return_type,
                         generator=generator,
                     ).images
                 elif "ptx0/s2" in user_config.get("model", ""):
@@ -245,6 +250,15 @@ class PipelineRunner:
                         generator=generator,
                         guidance_rescale=user_config.get('guidance_rescale', 0.3),
                     ).images
+                if use_latent_result:
+                    preprocessed_images = self._refiner_pipeline(
+                        image=preprocessed_images,
+                        user_config=user_config,
+                        generator=generator,
+                        prompt=positive_prompt,
+                        negative_prompt=negative_prompt,
+                        random_seed=True
+                    )
                 new_image = self._controlnet_all_images(preprocessed_images=preprocessed_images, user_config=user_config, generator=generator)
             elif not upscaler and not promptless_variation and image is not None:
                 if "ptx0/s" in user_config.get("model", ""):
@@ -428,7 +442,32 @@ class PipelineRunner:
             num_inference_steps=user_config.get("tile_steps", 32),
         ).images[0]
         return new_image
-    
+
+    def _refiner_pipeline(self, image: Image, user_config: dict, generator, prompt: str = None, negative_prompt: str = None, random_seed = False):
+        
+        # Get the image width/height from 'image' if it's provided
+        logging.info(
+            f"Running SDXL Refiner.."
+        )
+        pipe = self.pipeline_manager.get_sdxl_refiner_pipe()
+        if prompt is None:
+            prompt = user_config["tile_positive"]
+            negative_prompt = user_config["tile_negative"]
+        if random_seed:
+            generator = torch.Generator(device=self.pipeline_manager.device).manual_seed(-1)
+        return pipe(
+            prompt=prompt,
+            negative_prompt=negative_prompt,
+            image=image,
+            guidance_scale=user_config.get("refiner_guidance", 7.5),
+            strength=user_config.get("refiner_strength", 0.3),
+            aesthetic_score=user_config.get("aesthetic_score", 5.0),
+            negative_aesthetic_score=user_config.get("negative_aesthetic_score", 1.0),
+            generator=generator,
+            num_inference_steps=user_config.get("refiner_steps", 10),
+        ).images
+
+
     def _controlnet_all_images(self, preprocessed_images: list, user_config: dict, generator):
         if float(user_config.get('tile_strength', 0.3)) == 0.0:
             # Zero strength = Zero CTU.

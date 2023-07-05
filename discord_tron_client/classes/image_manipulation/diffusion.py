@@ -189,13 +189,7 @@ class DiffusionPipelineManager:
         if model_id not in self.pipelines:
             logging.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type)
-            if pipe_type in ["upscaler", "prompt_variation"]:
-                self.set_scheduler(
-                    pipe=self.pipelines[model_id],
-                    user_config=None,
-                    scheduler_config=scheduler_config,
-                )
-            elif pipe_type == "text2img":
+            if pipe_type in ["upscaler", "prompt_variation", "text2img"]:
                 scheduler = DDIMScheduler.from_pretrained(
                     model_id,
                     subfolder="scheduler",
@@ -307,7 +301,14 @@ class DiffusionPipelineManager:
             model_id="saftle/urpm",
         )
         return pipeline
-
+    def get_sdxl_refiner_pipe(self):
+        self.delete_pipes()
+        pipeline = self.get_pipe(
+            user_config={},
+            scheduler_config={"name": "fast"},
+            model_id="ptx0/s2",
+        )
+        return pipeline
     def enforce_zero_terminal_snr(self, betas):
         # Convert betas to alphas_bar_sqrt
         alphas = 1 - betas
