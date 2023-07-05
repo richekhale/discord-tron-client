@@ -97,7 +97,7 @@ class DiscordMessage(WebsocketMessage):
         if "refiner_strength" in user_config:
             refiner_strength = str(user_config.get('refiner_strength'))
         if latent_refiner == "On":
-            latent_refiner = f": {latent_refiner}, **Strength**: {refiner_strength}, **Steps**: {refiner_steps}, **Guidance**: {refiner_guidance}, **Aesthetic Score**: {aesthetic_score}, **Negative Aesthetic Score**: {negative_aesthetic_score}"
+            latent_refiner = f"{latent_refiner}, **Strength**: {refiner_strength}, **Steps**: {refiner_steps}, **Guidance**: {refiner_guidance}, **Aesthetic Score**: {aesthetic_score}, **Negative Aesthetic Score**: {negative_aesthetic_score}"
         if model_id == "ptx0/s1" and latent_refiner == "Off":
             model_id = "SDXL Base"
         elif model_id == "ptx0/s1" and latent_refiner != "Off":
