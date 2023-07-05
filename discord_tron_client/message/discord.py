@@ -80,12 +80,36 @@ class DiscordMessage(WebsocketMessage):
         negative_prompt = user_config["negative_prompt"]
         positive_prompt = user_config["positive_prompt"]
         author_id = payload["discord_context"]["author"]["id"]
+        
+        latent_refiner = "Off"
+        if "latent_refiner" in user_config and user_config.get('latent_refiner'):
+            latent_refiner = "On"
+        if "refiner_strength" in user_config:
+            refiner_strength = str(user_config.get('refiner_strength'))
+        if "refiner_steps" in user_config:
+            refiner_steps = str(user_config.get('refiner_steps'))
+        if "refiner_guidance" in user_config:
+            refiner_guidance = str(user_config.get('refiner_guidance'))
+        if "aesthetic_score" in user_config:
+            aesthetic_score = str(user_config.get('aesthetic_score'))
+        if "negative_aesthetic_score" in user_config:
+            negative_aesthetic_score = str(user_config.get('negative_aesthetic_score'))
+        if "refiner_strength" in user_config:
+            refiner_strength = str(user_config.get('refiner_strength'))
+        if latent_refiner == "On":
+            latent_refiner == f"**SDXL Refiner**: {latent_refiner}, **Strength**: {refiner_strength}, **Steps**: {refiner_steps}, **Guidance**: {refiner_guidance}, **Aesthetic Score**: {aesthetic_score}, **Negative Aesthetic Score**: {negative_aesthetic_score"
+        if model_id == "ptx0/s1" and latent_refiner == "Off":
+            model_id = "SDXL Base"
+        elif model_id == "ptx0/s1" and latent_refiner != "Off":
+            model_id = "SDXL Base + Refiner"
+        else:
+            model_id = f"!model {model_id}"
         vmem = int(system_hw["video_memory_amount"])
         return (
             f"**<@{author_id}>'s Prompt**: {prompt}\n"
-            f"**Seed**: `!seed {seed}`, **Guidance**: {user_config['guidance_scaling']}, **Steps**: `!steps {steps}`, **Strength (img2img)**: {strength}, **Temperature (txt2txt)**: {temperature}\n"
-            f"**Model**: `!model {model_id}` **Scheduler**: `!scheduler {scheduler_name}`\n"
-            f"**Resolution (txt2img)**: "
+            f"**Seed**: `!seed {seed}`, **Guidance**: {user_config['guidance_scaling']}, **Steps**: `!steps {steps}`, **Strength (img2img)**: {strength}\n"
+            f"**Model**: `{model_id}`, \n"
+            f"**Resolution**: "
             + str(resolution["width"])
             + "x"
             + str(resolution["height"])
