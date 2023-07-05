@@ -207,6 +207,7 @@ class PipelineRunner:
             batch_size = 2
         if hardware.should_sequential_offload():
             batch_size = 1
+        batch_size = 1
         try:
             alt_weight_algorithm = user_config.get("alt_weight_algorithm", False)
             use_latent_result = user_config.get('latent_refiner', True)
