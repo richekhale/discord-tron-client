@@ -82,22 +82,22 @@ class DiscordMessage(WebsocketMessage):
         author_id = payload["discord_context"]["author"]["id"]
         
         latent_refiner = "Off"
-        if hasattr(user_config, "latent_refiner") and user_config.get('latent_refiner'):
+        if "latent_refiner" in user_config and user_config.get('latent_refiner'):
             latent_refiner = "On"
-        if hasattr(user_config, "refiner_strength"):
+        if "refiner_strength" in user_config:
             refiner_strength = str(user_config.get('refiner_strength'))
-        if hasattr(user_config, "refiner_steps"):
+        if "refiner_steps" in user_config:
             refiner_steps = str(user_config.get('refiner_steps'))
-        if hasattr(user_config, "refiner_guidance"):
+        if "refiner_guidance" in user_config:
             refiner_guidance = str(user_config.get('refiner_guidance'))
-        if hasattr(user_config, "aesthetic_score"):
+        if "aesthetic_score" in user_config:
             aesthetic_score = str(user_config.get('aesthetic_score'))
-        if hasattr(user_config, "negative_aesthetic_score"):
+        if "negative_aesthetic_score" in user_config:
             negative_aesthetic_score = str(user_config.get('negative_aesthetic_score'))
-        if hasattr(user_config, "refiner_strength"):
+        if "refiner_strength" in user_config:
             refiner_strength = str(user_config.get('refiner_strength'))
         if latent_refiner == "On":
-            latent_refiner == f"**SDXL Refiner**: {latent_refiner}, **Strength**: {refiner_strength}, **Steps**: {refiner_steps}, **Guidance**: {refiner_guidance}, **Aesthetic Score**: {aesthetic_score}, **Negative Aesthetic Score**: {negative_aesthetic_score}"
+            latent_refiner = f"**SDXL Refiner**: {latent_refiner}, **Strength**: {refiner_strength}, **Steps**: {refiner_steps}, **Guidance**: {refiner_guidance}, **Aesthetic Score**: {aesthetic_score}, **Negative Aesthetic Score**: {negative_aesthetic_score}"
         if model_id == "ptx0/s1" and latent_refiner == "Off":
             model_id = "SDXL Base"
         elif model_id == "ptx0/s1" and latent_refiner != "Off":
