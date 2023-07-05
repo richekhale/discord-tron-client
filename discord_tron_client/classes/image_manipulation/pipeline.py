@@ -462,7 +462,6 @@ class PipelineRunner:
                 strength=user_config.get("refiner_strength", 0.3),
                 aesthetic_score=user_config.get("aesthetic_score", 5.0),
                 negative_aesthetic_score=user_config.get("negative_aesthetic_score", 1.0),
-                generator=generator,
                 num_inference_steps=user_config.get("refiner_steps", 10),
             ).images[0])
         return new_images
