@@ -108,7 +108,7 @@ class DiscordMessage(WebsocketMessage):
         return (
             f"**<@{author_id}>'s Prompt**: {prompt}\n"
             f"**Seed**: `!seed {seed}`, **Guidance**: {user_config['guidance_scaling']}, **Steps**: `!steps {steps}`, **Strength (img2img)**: {strength}\n"
-            f"**Model**: `{model_id}`, \n"
+            f"**Model**: `{model_id}`, **SDXL Refiner**: {latent_refiner}\n"
             f"**Resolution**: "
             + str(resolution["width"])
             + "x"
