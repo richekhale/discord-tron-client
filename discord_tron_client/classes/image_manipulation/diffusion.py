@@ -9,6 +9,8 @@ from diffusers import (
     AutoencoderKL,
     DDIMScheduler,
     UniPCMultistepScheduler,
+    StableDiffusionXLImg2ImgPipeline,
+    
 )
 from diffusers import DiffusionPipeline as Pipeline
 from typing import Dict
@@ -37,7 +39,7 @@ config = AppConfig()
 class DiffusionPipelineManager:
     PIPELINE_CLASSES = {
         "text2img": DiffusionPipeline,
-        "prompt_variation": DiffusionPipeline,
+        "prompt_variation": StableDiffusionXLImg2ImgPipeline,
         "variation": StableDiffusionPipeline,
         "upscaler": StableDiffusionPipeline,
     }
@@ -100,7 +102,8 @@ class DiffusionPipelineManager:
                 controlnet=controlnet,
                 feature_extractor=None,
                 safety_checker=None,
-                requires_safety_checker=None
+                requires_safety_checker=None,
+                use_safetensors=True
             )
         elif pipe_type in ["prompt_variation"]:
             # Use the long prompt weighting pipeline.
@@ -110,7 +113,8 @@ class DiffusionPipelineManager:
                 torch_dtype=self.torch_dtype,
                 feature_extractor=None,
                 safety_checker=None,
-                requires_safety_checker=None
+                requires_safety_checker=None,
+                use_safetensors=True
             )
         elif pipe_type in ["text2img"]:
             logging.debug(f"Creating a txt2img pipeline for {model_id}")
@@ -120,7 +124,8 @@ class DiffusionPipelineManager:
                 feature_extractor=None,
                 safety_checker=None,
                 requires_safety_checker=None,
-                use_auth_token=config.get_huggingface_api_key()
+                use_auth_token=config.get_huggingface_api_key(),
+                use_safetensors=True
             )
             logging.debug(f'Model config: {pipeline.config}')
         else:

@@ -148,8 +148,7 @@ async def prompt_variation(payload, websocket):
     scheduler_config = payload["scheduler_config"]
     prompt = payload["image_prompt"]
     model_id = user_config["model"]
-    if model_id == "ptx0/s1" or "sdxl-base" in model_id:
-        model_id = "ptx0/s2"
+    model_id = "ptx0/s1"
     resolution = user_config["resolution"]
     negative_prompt = user_config["negative_prompt"]
     steps = user_config["steps"]
