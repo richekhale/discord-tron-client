@@ -267,7 +267,7 @@ class PipelineRunner:
                 if not alt_weight_algorithm:
                     new_image = pipe(
                         prompt=positive_prompt,
-                        negative_prompt=negative_prompt,
+                        # negative_prompt=negative_prompt, # negative prompts are broken in img2img.
                         num_images_per_prompt=batch_size,
                         image=image,
                         strength=user_config["strength"],
