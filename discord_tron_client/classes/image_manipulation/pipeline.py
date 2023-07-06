@@ -214,7 +214,7 @@ class PipelineRunner:
             if use_latent_result:
                 image_return_type = "latent"
             if not promptless_variation and image is None:
-                # Use the Compel library's prompt weights as input instead of LPW pipelines.
+                # text2img workflow
                 if "ptx0/s1" in user_config.get("model", ""):
                     preprocessed_images = pipe(
                         prompt=positive_prompt,
@@ -259,17 +259,21 @@ class PipelineRunner:
                     )
                 new_image = self._controlnet_all_images(preprocessed_images=preprocessed_images, user_config=user_config, generator=generator)
             elif not upscaler and not promptless_variation and image is not None:
+                # Img2Img workflow
+                # Create {batch_size} torch.Generator objects in a list:
+                torch_generators = [torch.Generator() for _ in range(batch_size)]
                 if "ptx0/s" in user_config.get("model", ""):
                     alt_weight_algorithm = False
                 if not alt_weight_algorithm:
                     new_image = pipe(
                         prompt=positive_prompt,
+                        negative_prompt=negative_prompt,
                         num_images_per_prompt=batch_size,
                         image=image,
                         strength=user_config["strength"],
                         num_inference_steps=int(float(steps)),
                         guidance_scale=guidance_scale,
-                        generator=generator,
+                        generator=torch_generators,
                     ).images
                 else:
                     new_image = pipe(
@@ -281,7 +285,7 @@ class PipelineRunner:
                         negative_prompt_embeds=negative_embed,
                         guidance_scale=guidance_scale,
                         guidance_rescale=user_config.get('guidance_rescale', 0.3),
-                        generator=generator,
+                        generator=torch_generators,
                     ).images
             elif promptless_variation:
                 new_image = self._controlnet_pipeline(image=image, user_config=user_config, pipe=pipe, generator=generator, prompt=positive_prompt, negative_prompt=negative_prompt)
@@ -451,10 +455,13 @@ class PipelineRunner:
         if prompt is None:
             prompt = user_config["tile_positive"]
             negative_prompt = user_config["tile_negative"]
-        generator = self._get_generator(user_config=user_config)
         new_images = []
+        import random
         for image in images:
+            # Get a random int:
+            seed = random.randint(0, 2**32)
             new_images.append(pipe(
+                generator = torch.Generator().seed(int(seed))
                 prompt=prompt,
                 negative_prompt=negative_prompt,
                 image=image,
