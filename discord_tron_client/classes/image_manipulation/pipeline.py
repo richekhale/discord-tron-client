@@ -287,8 +287,8 @@ class PipelineRunner:
                         generator=torch_generators,
                     ).images
                 if use_latent_result:
-                    preprocessed_images = self._refiner_pipeline(
-                        images=preprocessed_images,
+                    new_image = self._refiner_pipeline(
+                        images=new_image,
                         user_config=user_config,
                         prompt=positive_prompt,
                         negative_prompt=negative_prompt,
