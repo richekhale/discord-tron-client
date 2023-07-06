@@ -286,6 +286,13 @@ class PipelineRunner:
                         guidance_rescale=user_config.get('guidance_rescale', 0.3),
                         generator=torch_generators,
                     ).images
+                if use_latent_result:
+                    preprocessed_images = self._refiner_pipeline(
+                        images=preprocessed_images,
+                        user_config=user_config,
+                        prompt=positive_prompt,
+                        negative_prompt=negative_prompt,
+                    )
             elif promptless_variation:
                 new_image = self._controlnet_pipeline(image=image, user_config=user_config, pipe=pipe, generator=generator, prompt=positive_prompt, negative_prompt=negative_prompt)
             elif upscaler:
