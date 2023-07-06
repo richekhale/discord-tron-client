@@ -273,7 +273,6 @@ class PipelineRunner:
                         strength=user_config["strength"],
                         num_inference_steps=int(float(steps)),
                         guidance_scale=guidance_scale,
-                        generator=torch_generators,
                     ).images
                 else:
                     new_image = pipe(
