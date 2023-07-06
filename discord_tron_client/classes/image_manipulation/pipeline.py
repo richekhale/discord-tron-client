@@ -268,7 +268,7 @@ class PipelineRunner:
                     new_image = pipe(
                         prompt=positive_prompt,
                         negative_prompt=negative_prompt, # negative prompts are broken in img2img.
-                        num_images_per_prompt=max(batch_size, 2),
+                        num_images_per_prompt=min(batch_size, 2),
                         image=image,
                         strength=user_config["strength"],
                         num_inference_steps=int(float(steps)),
