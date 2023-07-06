@@ -460,7 +460,7 @@ class PipelineRunner:
             # Get a random int:
             seed = random.randint(0, 2**32)
             new_images.append(pipe(
-                generator = torch.Generator().seed(int(seed)),
+                generator = torch.Generator().manual_seed(int(seed)),
                 prompt=prompt,
                 negative_prompt=negative_prompt,
                 image=image,
