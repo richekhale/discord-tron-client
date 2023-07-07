@@ -65,7 +65,7 @@ class DiscordMessage(WebsocketMessage):
         return b64_image
 
     @staticmethod
-    def print_prompt(payload):
+    def print_prompt(payload, execute_duration = "unknown"):
         system_hw = hardware.get_machine_info()
         user_config = payload["config"]
         scheduler_config = payload["scheduler_config"]
@@ -114,7 +114,7 @@ class DiscordMessage(WebsocketMessage):
             + "x"
             + str(resolution["height"])
             + "\n"
-            f"**{HardwareInfo.get_identifier()}**: {payload['gpu_power_consumption']}W power used via {system_hw['gpu_type']} ({vmem}G), on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
+            f"**{HardwareInfo.get_identifier()}**: {payload['gpu_power_consumption']}W power used in {execute_duration} seconds via {system_hw['gpu_type']} ({vmem}G), on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
         )
 
     @staticmethod

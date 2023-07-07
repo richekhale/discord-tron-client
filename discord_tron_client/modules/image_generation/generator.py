@@ -20,6 +20,8 @@ from discord_tron_client.classes.debug import clean_traceback
 async def generate_image(payload, websocket):
     # We extract the features from the payload and pass them onto the actual generator
     try:
+        # Grab a beginning timestamp:
+        start_time = asyncio.get_event_loop().time()
         user_config = payload["config"]
         scheduler_config = payload["scheduler_config"]
         prompt = payload["image_prompt"]
@@ -86,6 +88,8 @@ async def generate_image(payload, websocket):
             image=image,
             upscaler=upscaler,
         )
+        end_time = asyncio.get_event_loop().time()
+        
         websocket = AppConfig.get_websocket()
         discord_msg = DiscordMessage(
             websocket=websocket,
@@ -126,14 +130,14 @@ async def generate_image(payload, websocket):
         )
         await websocket.send(discord_msg.to_json())
         # discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=DiscordMessage.print_prompt(payload), image_url_list=url_list)
-
+        execute_duration = end_time - start_time
         websocket = AppConfig.get_websocket()
         discord_msg = DiscordMessage(
             websocket=websocket,
             context=payload["discord_first_message"],
             module_command="create_thread",
             name=truncated_prompt,
-            message=DiscordMessage.print_prompt(payload),
+            message=DiscordMessage.print_prompt(payload, execute_duration=execute_duration),
             image_url_list=url_list,
         )
         await websocket.send(discord_msg.to_json())
