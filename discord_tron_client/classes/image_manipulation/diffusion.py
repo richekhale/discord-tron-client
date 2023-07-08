@@ -226,7 +226,6 @@ class DiffusionPipelineManager:
             logging.info(f"Keeping existing pipeline. Not creating any new ones.")
         self.last_pipe_type[model_id] = pipe_type
         self.last_pipe_scheduler[model_id] = scheduler_config["name"]
-        self.pipelines[model_id].to(0)
         enable_tiling = user_config.get("enable_tiling", True)
         if enable_tiling:
             logging.warn(f"Enabling VAE tiling. This could cause artifacted outputs.")
@@ -331,3 +330,17 @@ class DiffusionPipelineManager:
     def patch_scheduler_betas(self, scheduler):
         scheduler.betas = self.enforce_zero_terminal_snr(scheduler.betas)
         return scheduler
+
+    def to_accelerator(self, pipeline):
+        try:
+            pipeline.to(self.device)
+        except Exception as e:
+            logging.error(f"Could not move pipeline to accelerator: {e}")
+            raise e
+        
+    def to_cpu(self, pipeline):
+        try:
+            pipeline.to("cpu")
+        except Exception as e:
+            logging.error(f"Could not move pipeline to CPU: {e}")
+        

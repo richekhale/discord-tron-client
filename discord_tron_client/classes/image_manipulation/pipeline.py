@@ -210,6 +210,7 @@ class PipelineRunner:
         try:
             alt_weight_algorithm = user_config.get("alt_weight_algorithm", False)
             use_latent_result = user_config.get('latent_refiner', True)
+            self.pipeline_manager.to_accelerator(pipe)
             image_return_type = "pil"
             if use_latent_result:
                 image_return_type = "latent"
@@ -257,6 +258,8 @@ class PipelineRunner:
                         prompt=positive_prompt,
                         negative_prompt=negative_prompt,
                     )
+                # Unload the primary pipeline before ControlNet.
+                self.pipeline_manager.to_cpu(pipe)
                 new_image = self._controlnet_all_images(preprocessed_images=preprocessed_images, user_config=user_config, generator=generator)
             elif not upscaler and not promptless_variation and image is not None:
                 # Img2Img workflow
@@ -324,6 +327,7 @@ class PipelineRunner:
             try:
                     del prompt_embed
                     del negative_embed
+                    self.pipeline_manager.to_cpu(pipe)
                     gc.collect()
             except Exception as e:
                 logging.warn(f'Could not cleanly clear the GC: {e}')
@@ -438,6 +442,7 @@ class PipelineRunner:
         prompt_embed, negative_embed = controlnet_prompt_manager.process_long_prompt(
             positive_prompt=prompt, negative_prompt=negative_prompt
         )
+        self.pipeline_manager.to_accelerator(pipe)
         new_image = pipe(
             prompt_embeds=prompt_embed,
             negative_prompt_embeds=negative_embed,
@@ -449,6 +454,7 @@ class PipelineRunner:
             generator=generator,
             num_inference_steps=user_config.get("tile_steps", 32),
         ).images[0]
+        self.pipeline_manager.to_cpu(pipe)                    
         return new_image
 
     def _refiner_pipeline(self, images: Image, user_config: dict, prompt: str = None, negative_prompt: str = None, random_seed = False):
@@ -463,6 +469,7 @@ class PipelineRunner:
             negative_prompt = user_config["tile_negative"]
         new_images = []
         import random
+        self.pipeline_manager.to_accelerator(pipe)
         for image in images:
             # Get a random int:
             seed = random.randint(0, 2**32)
@@ -477,6 +484,7 @@ class PipelineRunner:
                 negative_aesthetic_score=user_config.get("negative_aesthetic_score", 1.0),
                 num_inference_steps=user_config.get("refiner_steps", 10),
             ).images[0])
+        self.pipeline_manager.to_cpu(pipe)
         return new_images
 
 
@@ -487,9 +495,11 @@ class PipelineRunner:
 
         idx = 0
         controlnet_pipe = self.pipeline_manager.get_controlnet_pipe()
+        self.pipeline_manager.to_accelerator(controlnet_pipe)
         for image in preprocessed_images:
             preprocessed_images[idx] = self._controlnet_pipeline(image=image, user_config=user_config, pipe=controlnet_pipe, generator=generator)
             gc.collect()
             idx += 1
         del controlnet_pipe
+        self.pipeline_manager.to_cpu(controlnet_pipe)
         return preprocessed_images
