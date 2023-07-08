@@ -215,7 +215,7 @@ class PipelineRunner:
                 image_return_type = "latent"
             if not promptless_variation and image is None:
                 # text2img workflow
-                if "ptx0/s1" in user_config.get("model", ""):
+                if "ptx0/s1" in user_config.get("model", "") or "stable-diffusion-xl" in user_config.get("model", ""):
                     preprocessed_images = pipe(
                         prompt=positive_prompt,
                         num_images_per_prompt=batch_size,
@@ -228,7 +228,7 @@ class PipelineRunner:
                         output_type=image_return_type,
                         generator=generator,
                     ).images
-                elif "ptx0/s2" in user_config.get("model", ""):
+                elif "ptx0/s2" in user_config.get("model", "") or "xl-refiner" in user_config.get("model", ""):
                     preprocessed_images = pipe(
                         prompt=positive_prompt,
                         num_images_per_prompt=batch_size,
