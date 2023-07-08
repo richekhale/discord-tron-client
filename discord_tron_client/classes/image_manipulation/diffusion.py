@@ -352,6 +352,7 @@ class DiffusionPipelineManager:
             return
         try:
             pipeline.to("cpu")
+            torch.clear_autocast_cache()
             logging.info(f'Moved pipeline to CPU.')
         except Exception as e:
             logging.error(f"Could not move pipeline to CPU: {e}")
