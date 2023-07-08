@@ -332,23 +332,27 @@ class DiffusionPipelineManager:
         return scheduler
 
     def to_accelerator(self, pipeline):
+        logging.debug(f'Moving pipeline to accelerator, begins.')
         is_on_gpu = next(pipeline.unet.parameters()).is_cuda
         if is_on_gpu:
             logging.warning(f'Requested to move pipeline to CPU, when it is already there.')
             return
         try:
             pipeline.to(self.device)
+            logging.info(f'Moved pipeline to accelerator.')
         except Exception as e:
             logging.error(f"Could not move pipeline to accelerator: {e}")
             raise e
         
     def to_cpu(self, pipeline):
+        logging.debug(f'Moving pipeline to CPU, begins.')
         is_on_gpu = next(pipeline.unet.parameters()).is_cuda
         if not is_on_gpu:
             logging.warning(f'Requested to move pipeline to CPU, when it is already there.')
             return
         try:
             pipeline.to("cpu")
+            logging.info(f'Moved pipeline to CPU.')
         except Exception as e:
             logging.error(f"Could not move pipeline to CPU: {e}")
         
