@@ -108,8 +108,9 @@ class DiscordMessage(WebsocketMessage):
         vmem = int(system_hw["video_memory_amount"])
         return (
             f"**<@{author_id}>'s Prompt**: {prompt}\n"
-            f"**Seed**: `!seed {seed}`, **!guidance** {user_config['guidance_scaling']}, **!settings guidance_rescale** {guidance_rescale}, **!steps** {steps}`, **!settings strength** {strength}\n"
-            f"**Model**: `{model_id}`, **SDXL Refiner**: {latent_refiner}\n"
+            f"**Seed**: `!seed {seed}`, `!guidance {user_config['guidance_scaling']}`, `!settings guidance_rescale {guidance_rescale}`, `!steps {steps}`, `!settings strength {strength}`\n"
+            f"**Model**: `{model_id}`"
+            f"**SDXL Refiner**: {latent_refiner}\n"
             f"**Resolution**: "
             + str(resolution["width"])
             + "x"
