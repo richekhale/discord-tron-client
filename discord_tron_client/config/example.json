@@ -3,6 +3,7 @@
     "friendly_name": "system name",
     "master_api_key": "",
     "model_path": "/home/user/.cache/huggingface/hub",
+    "use_compel_prompt_weighting": true,
     "target_partition": "/dev/sda3",
     "llama_model_path": "/archive/models/LLaMA",
     "websocket_hub": {

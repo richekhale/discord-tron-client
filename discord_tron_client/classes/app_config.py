@@ -278,3 +278,6 @@ class AppConfig:
 
     def bark_subsystem_type(self):
         return self.config.get("bark_subsystem", "torch")
+
+    def enable_compel(self):
+        return self.config.get("use_compel_prompt_weighting", True)
