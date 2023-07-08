@@ -233,6 +233,9 @@ class DiffusionPipelineManager:
                     logging.error(
                         f"Could not enable sequential CPU offload on the model: {e}"
                     )
+            else:
+                logging.info(f'Moving pipe to CUDA early, because no offloading is being used.')
+                self.pipelines[model_id].to(self.device)
             torch._dynamo.config.suppress_errors = True
             torch._dynamo.config.log_level = logging.WARNING
             self.pipelines[model_id].unet = torch.compile(self.pipelines[model_id].unet, mode="reduce-overhead", fullgraph=True)
