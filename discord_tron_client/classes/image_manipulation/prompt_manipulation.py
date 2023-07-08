@@ -23,9 +23,12 @@ class PromptManipulation:
             tokenizer=pipe_tokenizer,
             text_encoder=pipe_text_encoder,
             truncate_long_prompts=False,
-            device="cuda",
+            device=device,
             use_penultimate_clip_layer=True
         )
+
+    def should_enable(self, pipeline):
+        return not self.has_dual_text_encoders(pipeline)
 
     def has_dual_text_encoders(self, pipeline):
         return hasattr(pipeline, "text_encoder_2")
