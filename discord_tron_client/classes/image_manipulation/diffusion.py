@@ -332,6 +332,7 @@ class DiffusionPipelineManager:
         return scheduler
 
     def to_accelerator(self, pipeline):
+        return
         logging.debug(f'Moving pipeline to accelerator, begins.')
         is_on_gpu = next(pipeline.unet.parameters()).is_cuda
         if is_on_gpu:
@@ -345,6 +346,7 @@ class DiffusionPipelineManager:
             raise e
         
     def to_cpu(self, pipeline):
+        return
         logging.debug(f'Moving pipeline to CPU, begins.')
         is_on_gpu = next(pipeline.unet.parameters()).is_cuda
         if not is_on_gpu:
