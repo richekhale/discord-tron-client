@@ -1,7 +1,8 @@
 import subprocess, torch
 import logging, socket
 from discord_tron_client.classes.app_config import AppConfig
-
+from diffusers.utils.logging import set_verbosity_warning()
+set_verbosity_warning()
 config = AppConfig()
 
 
