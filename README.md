@@ -6,7 +6,8 @@ This codebase is capable of:
 
 * 🖼 Generating Stable Diffusion images using ControlNet Tile Upscaler
 * 🕵 Upscale images via ControlNet Tile v1.5
-* ✔️ Run Stable Diffusion 2.1 images through 1.5 ControlNet pipeline
+* ✔️ Run Stable Diffusion 2.1 images through 1.5 ControlNet pipeline or the SDXL refiner
+* ✔️ Run Stable Diffusion XL (SDXL) images with its refiner
 * 🔢 Use of Karras Sigmas for major quality improvement
 * 🙊 OpenAI GPT integrations, including the option to enforce "jailbreaks"
 * 📢 Bark TTS samples via [bghira/bghira-bark](https://github.com/bghira/bghira-bark)
