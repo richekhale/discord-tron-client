@@ -59,7 +59,7 @@ class DiffusionPipelineManager:
     def __init__(self):
         self.pipelines = {}
         hw_limits = hardware.get_hardware_limits()
-        self.torch_dtype = torch.bfloat16
+        self.torch_dtype = torch.float16
         self.is_memory_constrained = False
         self.model_id = None
         if hw_limits["gpu"] != "Unknown" and hw_limits["gpu"] >= 16 and config.get_precision_bits() == 32:
