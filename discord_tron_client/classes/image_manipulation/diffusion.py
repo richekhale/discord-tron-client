@@ -23,9 +23,9 @@ from discord_tron_client.classes.image_manipulation.face_upscale import (
 from PIL import Image
 import torch, gc, logging, diffusers
 
-torch.backends.cudnn.deterministic = True
-torch.backends.cuda.matmul.allow_tf32 = True
-torch.backends.cudnn.allow_tf32 = True
+torch.backends.cudnn.deterministic = False
+torch.backends.cuda.matmul.allow_tf32 = False
+torch.backends.cudnn.allow_tf32 = False
 torch.backends.cudnn.benchmark = True
 torch.backends.cuda.enable_flash_sdp(True)
 if torch.backends.cuda.mem_efficient_sdp_enabled():
