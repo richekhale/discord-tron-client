@@ -98,7 +98,7 @@ class DiscordMessage(WebsocketMessage):
             refiner_strength = str(user_config.get('refiner_strength'))
         guidance_rescale = user_config.get("guidance_rescale")
         if latent_refiner == "On":
-            latent_refiner = f"{latent_refiner}, **refiner_strength**: {refiner_strength}, **refiner_steps**: {refiner_steps}, **refiner_guidance**: {refiner_guidance}, **aesthetic_score**: {aesthetic_score}, **negative_aesthetic_score**: {negative_aesthetic_score}"
+            latent_refiner = f"{latent_refiner}, `!settings refiner_strength {refiner_strength}`, `!settings refiner_steps {refiner_steps}`, `!settings refiner_guidance {refiner_guidance}`, `!settings aesthetic_score {aesthetic_score}`, `!settings negative_aesthetic_score {negative_aesthetic_score}`"
         if model_id == "ptx0/s1" and latent_refiner == "Off":
             model_id = "SDXL Base"
         elif model_id == "ptx0/s1" and latent_refiner != "Off":
@@ -109,7 +109,7 @@ class DiscordMessage(WebsocketMessage):
         return (
             f"**<@{author_id}>'s Prompt**: {prompt}\n"
             f"**Seed**: `!seed {seed}`, `!guidance {user_config['guidance_scaling']}`, `!settings guidance_rescale {guidance_rescale}`, `!steps {steps}`, `!settings strength {strength}`\n"
-            f"**Model**: `{model_id}`"
+            f"**Model**: `{model_id}`\n"
             f"**SDXL Refiner**: {latent_refiner}\n"
             f"**Resolution**: "
             + str(resolution["width"])
