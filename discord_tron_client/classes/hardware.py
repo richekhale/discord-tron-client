@@ -213,7 +213,6 @@ class HardwareInfo:
         }
 
     def should_disable_resolution(self, resolution: dict):
-        logging.info(f"Running attention slicing check for resolution {resolution}...")
         gpu_memory = self.video_memory_amount
         if gpu_memory == "Unknown":
             gpu_memory = 8
