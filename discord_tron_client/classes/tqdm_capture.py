@@ -31,7 +31,7 @@ class TqdmCapture:
 
                 if progress >= 50 and progress <= 60:
                     # Record GPU power use around 60% progress.
-                    gpu_power_consumption = (
+                    gpu_power_consumption = float(
                         self.hardware_info.get_gpu_power_consumption()
                     )
                     if gpu_power_consumption > self.gpu_power_consumption:
