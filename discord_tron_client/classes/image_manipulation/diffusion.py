@@ -59,7 +59,7 @@ class DiffusionPipelineManager:
     def __init__(self):
         self.pipelines = {}
         hw_limits = hardware.get_hardware_limits()
-        self.torch_dtype = torch.float16
+        self.torch_dtype = torch.bfloat16
         self.is_memory_constrained = False
         self.model_id = None
         if hw_limits["gpu"] != "Unknown" and hw_limits["gpu"] >= 16 and config.get_precision_bits() == 32:
@@ -211,6 +211,7 @@ class DiffusionPipelineManager:
             if (
                 hasattr(self.pipelines[model_id], "enable_model_cpu_offload")
                 and hardware.should_offload()
+                and not hardware.should_sequential_offload()
             ):
                 try:
                     logging.warn(
@@ -219,6 +220,19 @@ class DiffusionPipelineManager:
                     self.pipelines[model_id].enable_model_cpu_offload()
                 except Exception as e:
                     logging.error(f"Could not enable CPU offload on the model: {e}")
+            elif (
+                hasattr(self.pipelines[model_id], "enable_sequential_cpu_offload")
+                and hardware.should_sequential_offload()
+            ):
+                try:
+                    logging.warn(
+                        f"Hardware constraints are enabling *SEQUENTIAL* CPU offload. This WILL impact performance."
+                    )
+                    self.pipelines[model_id].enable_sequential_cpu_offload()
+                except Exception as e:
+                    logging.error(
+                        f"Could not enable sequential CPU offload on the model: {e}"
+                    )
             torch._dynamo.config.suppress_errors = True
             torch._dynamo.config.log_level = logging.WARNING
             self.pipelines[model_id].unet = torch.compile(self.pipelines[model_id].unet, mode="reduce-overhead", fullgraph=True)
@@ -257,6 +271,7 @@ class DiffusionPipelineManager:
         if config.get_cuda_cache_clear_toggle():
             logging.info("Clearing the CUDA cache...")
             torch.cuda.empty_cache()
+            torch.clear_autocast_cache()
         else:
             logging.debug(
                 f"NOT clearing CUDA cache. Config option `cuda_cache_clear` is not set, or is False."
