@@ -401,9 +401,13 @@ class PipelineRunner:
         logging.info(f"Seed: {self.seed}")
         return generator
 
-    def _get_prompt_manager(self, pipe):
-        logging.debug(f"Initialized the Compel")
-        return PromptManipulation(pipeline=pipe, device=self.pipeline_manager.device)
+    def _get_prompt_manager(self, pipe, device = "cpu"):
+        is_gpu = next(pipe.unet.parameters()).is_cuda
+        if is_gpu:
+            if device == "cpu":
+                logging.warning(f'Prompt manager was requested to be placed on the CPU, but the unet is already on the GPU. We have to adjust the prompt manager, to the GPU.')
+            device = "cuda"
+        return PromptManipulation(pipeline=pipe, device=device)
 
     def _get_rescaled_resolution(self, user_config, side_x, side_y):
         resolution = {"width": side_x, "height": side_y}
@@ -454,7 +458,7 @@ class PipelineRunner:
             generator=generator,
             num_inference_steps=user_config.get("tile_steps", 32),
         ).images[0]
-        self.pipeline_manager.to_cpu(pipe)                    
+        self.pipeline_manager.to_cpu(pipe, user_config['model_id'])                    
         return new_image
 
     def _refiner_pipeline(self, images: Image, user_config: dict, prompt: str = None, negative_prompt: str = None, random_seed = False):

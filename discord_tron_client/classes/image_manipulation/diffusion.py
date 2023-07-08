@@ -332,6 +332,10 @@ class DiffusionPipelineManager:
         return scheduler
 
     def to_accelerator(self, pipeline):
+        is_on_gpu = next(pipeline.unet.parameters()).is_cuda
+        if is_on_gpu:
+            logging.warning(f'Requested to move pipeline to CPU, when it is already there.')
+            return
         try:
             pipeline.to(self.device)
         except Exception as e:
@@ -339,6 +343,10 @@ class DiffusionPipelineManager:
             raise e
         
     def to_cpu(self, pipeline):
+        is_on_gpu = next(pipeline.unet.parameters()).is_cuda
+        if not is_on_gpu:
+            logging.warning(f'Requested to move pipeline to CPU, when it is already there.')
+            return
         try:
             pipeline.to("cpu")
         except Exception as e:
