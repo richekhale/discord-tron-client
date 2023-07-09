@@ -106,7 +106,7 @@ class DiscordMessage(WebsocketMessage):
         else:
             model_id = f"!model {model_id}"
         vmem = int(system_hw["video_memory_amount"])
-        if not execute_duration.isdigit():
+        if type(execute_duration, (str)) and not execute_duration.isdigit():
             execute_time = execute_duration
         else:
             execute_time = round(execute_duration, 2)
