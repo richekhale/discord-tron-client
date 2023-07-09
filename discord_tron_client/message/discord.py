@@ -106,6 +106,10 @@ class DiscordMessage(WebsocketMessage):
         else:
             model_id = f"!model {model_id}"
         vmem = int(system_hw["video_memory_amount"])
+        if not execute_duration.isdigit():
+            execute_time = execute_duration
+        else:
+            execute_time = round(execute_duration, 2)
         return (
             f"**<@{author_id}>'s Prompt**: {prompt}\n"
             f"**Seed**: `!seed {seed}`, `!guidance {user_config['guidance_scaling']}`, `!settings guidance_rescale {guidance_rescale}`, `!steps {steps}`, `!settings strength {strength}`\n"
@@ -116,7 +120,7 @@ class DiscordMessage(WebsocketMessage):
             + "x"
             + str(resolution["height"])
             + "\n"
-            f"**{HardwareInfo.get_identifier()}**: {payload['gpu_power_consumption']}W power used in {round(execute_duration, 2)} seconds via {system_hw['gpu_type']} ({vmem}G), on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
+            f"**{HardwareInfo.get_identifier()}**: {payload['gpu_power_consumption']}W power used in {execute_time} seconds via {system_hw['gpu_type']} ({vmem}G), on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
         )
 
     @staticmethod

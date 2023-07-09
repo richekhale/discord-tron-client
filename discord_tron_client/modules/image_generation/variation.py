@@ -82,6 +82,8 @@ async def promptless_variation(payload, websocket):
             module_command="delete",
         )
         await websocket.send(discord_msg.to_json())
+        # Grab starting timestamp
+        start_time = asyncio.get_running_loop().time()
         result = await pipeline_runner.generate_image(
             user_config=user_config,
             scheduler_config=scheduler_config,
@@ -94,6 +96,8 @@ async def promptless_variation(payload, websocket):
             image=image,
             promptless_variation=True,
         )
+        end_time = asyncio.get_running_loop().time()
+        total_time = end_time - start_time
         payload["seed"] = pipeline_runner.seed
         payload["gpu_power_consumption"] = pipeline_runner.gpu_power_consumption
         websocket = AppConfig.get_websocket()
@@ -108,7 +112,7 @@ async def promptless_variation(payload, websocket):
             websocket=websocket,
             context=payload["discord_first_message"],
             module_command="send",
-            message=DiscordMessage.print_prompt(payload),
+            message=DiscordMessage.print_prompt(payload, execute_duration=total_time),
             image=result,
         )
         await websocket.send(discord_msg.to_json())
