@@ -232,7 +232,7 @@ class PipelineRunner:
                         height=side_y,
                         width=side_x,
                         num_inference_steps=int(float(steps)),
-                        final_inference_step=final_inference_step,
+                        final_inference_step=final_inference_step - 1,
                         negative_prompt=negative_prompt,
                         guidance_rescale=float(user_config.get('guidance_rescale', 0.3)),
                         guidance_scale=float(guidance_scale),
