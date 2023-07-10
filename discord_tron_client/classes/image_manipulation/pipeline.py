@@ -492,7 +492,7 @@ class PipelineRunner:
                 aesthetic_score=user_config.get("aesthetic_score", 5.0),
                 negative_aesthetic_score=user_config.get("negative_aesthetic_score", 1.0),
                 num_inference_steps=user_config.get("refiner_steps", 10),
-                first_inference_step=first_inference_step,
+                first_inference_step=user_config.get("first_inference_step", first_inference_step),
             ).images[0])
         self.pipeline_manager.to_cpu(pipe)
         return new_images
