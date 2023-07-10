@@ -226,10 +226,10 @@ class PipelineRunner:
                         height=side_y,
                         width=side_x,
                         num_inference_steps=int(float(steps)),
-                        max_inference_steps=user_config.get('max_inference_steps', max_inference_steps),
+                        max_inference_steps=int(user_config.get('max_inference_steps', max_inference_steps)),
                         negative_prompt=negative_prompt,
-                        guidance_rescale=user_config.get('guidance_rescale', 0.3),
-                        guidance_scale=guidance_scale,
+                        guidance_rescale=float(user_config.get('guidance_rescale', 0.3)),
+                        guidance_scale=float(guidance_scale),
                         output_type=image_return_type,
                         generator=generator,
                     ).images
