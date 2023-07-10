@@ -496,7 +496,7 @@ class PipelineRunner:
                 strength=float(user_config.get("refiner_strength", 0.3)),
                 aesthetic_score=float(user_config.get("aesthetic_score", 5.0)),
                 negative_aesthetic_score=float(user_config.get("negative_aesthetic_score", 1.0)),
-                num_inference_steps=int(user_config.get("refiner_steps", 10)),
+                num_inference_steps=int(user_config.get("steps", 20)),
                 first_inference_step=int(user_config.get("first_inference_step", first_inference_step)),
             ).images[0])
         self.pipeline_manager.to_cpu(pipe)
