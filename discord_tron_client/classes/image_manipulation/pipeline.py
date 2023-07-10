@@ -306,7 +306,7 @@ class PipelineRunner:
                         user_config=user_config,
                         prompt=positive_prompt,
                         negative_prompt=negative_prompt,
-                        begin_inference_step=begin_inference_step + 1
+                        begin_inference_step=begin_inference_step
                     )
             elif promptless_variation:
                 new_image = self._controlnet_pipeline(image=image, user_config=user_config, pipe=pipe, generator=generator, prompt=positive_prompt, negative_prompt=negative_prompt)
@@ -499,10 +499,10 @@ class PipelineRunner:
                 image=image,
                 guidance_scale=float(user_config.get("refiner_guidance", 7.5)),
                 strength=float(user_config.get("refiner_strength", 0.5)),
-                aesthetic_score=float(user_config.get("aesthetic_score", 5.0)),
+                aesthetic_score=float(user_config.get("aesthetic_score", 10.0)),
                 negative_aesthetic_score=float(user_config.get("negative_aesthetic_score", 1.0)),
-                num_inference_steps=int(user_config.get("refiner_steps", 20)),
-                begin_inference_step=begin_inference_step - 1,
+                num_inference_steps=int(user_config.get("steps", 20)),
+                begin_inference_step=begin_inference_step,
                 add_noise=add_noise
             ).images[0])
         self.pipeline_manager.to_cpu(pipe)
