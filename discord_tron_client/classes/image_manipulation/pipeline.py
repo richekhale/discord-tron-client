@@ -215,8 +215,13 @@ class PipelineRunner:
             max_inference_steps = None
             if use_latent_result:
                 image_return_type = "latent"
+                if user_config.get("refiner_strength", 1.0) > 1.0:
+                    raise ValueError("refiner_strength must be between 0.0 and 1.0")
                 if "ptx0/s1" in user_config.get("model", "") or "stable-diffusion-xl" in user_config.get("model", ""):
-                    max_inference_steps = int(int(steps) * user_config.get('refiner_strength', 0.4))
+                    # Max inference steps are an inverse relationship of the refiner strength with the base steps.
+                    max_inference_steps = int(int(steps) * (1 - user_config.get('refiner_strength', 0.4)))
+                    if max_inference_steps >= steps:
+                        raise ValueError('Max inference steps ended up being greater or equal to the number of steps.')
             if not promptless_variation and image is None:
                 # text2img workflow
                 if "ptx0/s1" in user_config.get("model", "") or "stable-diffusion-xl" in user_config.get("model", ""):
@@ -226,7 +231,7 @@ class PipelineRunner:
                         height=side_y,
                         width=side_x,
                         num_inference_steps=int(float(steps)),
-                        max_inference_steps=int(user_config.get('max_inference_steps', max_inference_steps)),
+                        max_inference_steps=max_inference_steps,
                         negative_prompt=negative_prompt,
                         guidance_rescale=float(user_config.get('guidance_rescale', 0.3)),
                         guidance_scale=float(guidance_scale),
