@@ -220,7 +220,7 @@ class PipelineRunner:
                 if "ptx0/s1" in user_config.get("model", "") or "stable-diffusion-xl" in user_config.get("model", ""):
                     # Max inference steps are an inverse relationship of the refiner strength with the base steps.
                     final_inference_step, begin_inference_step = pipe.timesteps_from_strength(user_config.get("refiner_strength", 0.5), steps)
-                    logging.debug(f'Final inference step: {final_inference_step}, begin inference step: {begin_inference_step}')
+                    logging.debug(f'Final inference step: {final_inference_step}, begin inference step: {begin_inference_step}, steps: {steps}')
                     if final_inference_step >= steps:
                         raise ValueError('Max inference steps ended up being greater or equal to the number of steps.')
             if not promptless_variation and image is None:
@@ -232,7 +232,7 @@ class PipelineRunner:
                         height=side_y,
                         width=side_x,
                         num_inference_steps=int(float(steps)),
-                        final_inference_step=final_inference_step - 1,
+                        final_inference_step=final_inference_step,
                         negative_prompt=negative_prompt,
                         guidance_rescale=float(user_config.get('guidance_rescale', 0.3)),
                         guidance_scale=float(guidance_scale),
@@ -500,6 +500,7 @@ class PipelineRunner:
                 negative_aesthetic_score=float(user_config.get("negative_aesthetic_score", 1.0)),
                 num_inference_steps=int(user_config.get("steps", 20)),
                 begin_inference_step=int(user_config.get("begin_inference_step", begin_inference_step)),
+                add_noise=False
             ).images[0])
         self.pipeline_manager.to_cpu(pipe)
         return new_images
