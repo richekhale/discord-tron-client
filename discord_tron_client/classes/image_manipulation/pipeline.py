@@ -306,7 +306,7 @@ class PipelineRunner:
                         user_config=user_config,
                         prompt=positive_prompt,
                         negative_prompt=negative_prompt,
-                        begin_inference_step=begin_inference_step
+                        begin_inference_step=begin_inference_step - 1
                     )
             elif promptless_variation:
                 new_image = self._controlnet_pipeline(image=image, user_config=user_config, pipe=pipe, generator=generator, prompt=positive_prompt, negative_prompt=negative_prompt)
