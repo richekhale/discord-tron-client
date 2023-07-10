@@ -215,11 +215,11 @@ class PipelineRunner:
             final_inference_step = None
             if use_latent_result:
                 image_return_type = "latent"
-                if user_config.get("refiner_strength", 1.0) > 1.0:
+                if user_config.get("refiner_strength", 0.5) > 1.0:
                     raise ValueError("refiner_strength must be between 0.0 and 1.0")
                 if "ptx0/s1" in user_config.get("model", "") or "stable-diffusion-xl" in user_config.get("model", ""):
                     # Max inference steps are an inverse relationship of the refiner strength with the base steps.
-                    final_inference_step = int(int(steps) * (1 - user_config.get('refiner_strength', 0.4)))
+                    final_inference_step, begin_inference_step = pipe.timesteps_from_strength(user_config.get("refiner_strength", 0.5), steps)
                     if final_inference_step >= steps:
                         raise ValueError('Max inference steps ended up being greater or equal to the number of steps.')
             if not promptless_variation and image is None:
@@ -268,7 +268,7 @@ class PipelineRunner:
                         user_config=user_config,
                         prompt=positive_prompt,
                         negative_prompt=negative_prompt,
-                        begin_inference_step=final_inference_step
+                        begin_inference_step=begin_inference_step,
                     )
                 new_image = self._controlnet_all_images(preprocessed_images=preprocessed_images, user_config=user_config, generator=generator)
             elif not upscaler and not promptless_variation and image is not None:
@@ -305,6 +305,7 @@ class PipelineRunner:
                         user_config=user_config,
                         prompt=positive_prompt,
                         negative_prompt=negative_prompt,
+                        begin_inference_step=begin_inference_step
                     )
             elif promptless_variation:
                 new_image = self._controlnet_pipeline(image=image, user_config=user_config, pipe=pipe, generator=generator, prompt=positive_prompt, negative_prompt=negative_prompt)
@@ -493,7 +494,7 @@ class PipelineRunner:
                 negative_prompt=negative_prompt,
                 image=image,
                 guidance_scale=float(user_config.get("refiner_guidance", 7.5)),
-                strength=float(user_config.get("refiner_strength", 0.3)),
+                strength=float(user_config.get("refiner_strength", 0.5)),
                 aesthetic_score=float(user_config.get("aesthetic_score", 5.0)),
                 negative_aesthetic_score=float(user_config.get("negative_aesthetic_score", 1.0)),
                 num_inference_steps=int(user_config.get("steps", 20)),
