@@ -480,6 +480,9 @@ class PipelineRunner:
             f"Running SDXL Refiner.."
         )
         pipe = self.pipeline_manager.get_sdxl_refiner_pipe()
+        add_noise = True
+        if begin_inference_step is not None:
+            add_noise = False
         if prompt is None:
             prompt = user_config["tile_positive"]
             negative_prompt = user_config["tile_negative"]
@@ -500,7 +503,7 @@ class PipelineRunner:
                 negative_aesthetic_score=float(user_config.get("negative_aesthetic_score", 1.0)),
                 num_inference_steps=int(user_config.get("steps", 20)),
                 begin_inference_step=int(user_config.get("begin_inference_step", begin_inference_step)),
-                add_noise=False
+                add_noise=add_noise
             ).images[0])
         self.pipeline_manager.to_cpu(pipe)
         return new_images
