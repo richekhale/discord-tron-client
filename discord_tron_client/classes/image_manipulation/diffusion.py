@@ -103,6 +103,7 @@ class DiffusionPipelineManager:
                 feature_extractor=None,
                 safety_checker=None,
                 requires_safety_checker=None,
+                use_safetensors=True,
             )
         elif pipe_type in ["prompt_variation"]:
             # Use the long prompt weighting pipeline.
@@ -113,6 +114,7 @@ class DiffusionPipelineManager:
                 feature_extractor=None,
                 safety_checker=None,
                 requires_safety_checker=None,
+                use_safetensors=True,
             )
         elif pipe_type in ["text2img"]:
             logging.debug(f"Creating a txt2img pipeline for {model_id}")
@@ -122,6 +124,7 @@ class DiffusionPipelineManager:
                 feature_extractor=None,
                 safety_checker=None,
                 requires_safety_checker=None,
+                use_safetensors=True,
                 use_auth_token=config.get_huggingface_api_key(),
             )
             logging.debug(f'Model config: {pipeline.config}')
