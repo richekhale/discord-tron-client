@@ -83,6 +83,7 @@ async def promptless_variation(payload, websocket):
         )
         await websocket.send(discord_msg.to_json())
         # Grab starting timestamp
+        user_config["user_id"] = payload["discord_context"]["author"]["id"]
         start_time = asyncio.get_running_loop().time()
         result = await pipeline_runner.generate_image(
             user_config=user_config,
@@ -201,6 +202,7 @@ async def prompt_variation(payload, websocket):
         )
         await websocket.send(discord_msg.to_json())
         # Grab starting timestamp
+        user_config["user_id"] = payload["discord_context"]["author"]["id"]
         start_time = asyncio.get_running_loop().time()
         output_images = await pipeline_runner.generate_image(
             user_config=user_config,

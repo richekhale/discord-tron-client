@@ -75,7 +75,7 @@ async def generate_image(payload, websocket):
             module_command="delete",
         )
         await websocket.send(discord_msg.to_json())
-
+        user_config["user_id"] = payload["discord_context"]["author"]["id"]
         output_images = await pipeline_runner.generate_image(
             user_config=user_config,
             scheduler_config=scheduler_config,
