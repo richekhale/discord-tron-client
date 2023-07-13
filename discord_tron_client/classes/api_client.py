@@ -108,7 +108,7 @@ class ApiClient:
                     AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
                     self.post,
                     endpoint,
-                    {"image_metadata": image_metadata},
+                    image_metadata,
                     {"image": buffer},
                     send_auth,
                 )
@@ -122,8 +122,8 @@ class ApiClient:
                 time.sleep(sleep_time)
                 if attempt >= 15:
                     raise Exception(f"Upload failed after 15 attempts")
-    def send_buffer(self, endpoint: str, buffer: io.BytesIO, image_metadata: dict = {}):
-        response = self.post(endpoint, params={"image_metadata": image_metadata}, files={"file": buffer})
+    def send_buffer(self, endpoint: str, buffer: io.BytesIO):
+        response = self.post(endpoint, files={"file": buffer})
         return response
 
     def handle_response(self, response):
