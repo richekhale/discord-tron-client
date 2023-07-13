@@ -525,7 +525,7 @@ class PipelineRunner:
     def _encode_image_metadata(self, image: Image, prompt, user_config):
         attributes = {
             "prompt": prompt,
-            "original_user": user_config["user_id"]
+            "original_user": str(user_config["user_id"])
         }
         del user_config["user_id"]
         if not user_config.get("encode_metadata", True):
