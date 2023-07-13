@@ -12,6 +12,7 @@ from discord_tron_client.classes.tqdm_capture import TqdmCapture
 from discord_tron_client.classes.discord_progress_bar import DiscordProgressBar
 from discord_tron_client.message.discord import DiscordMessage
 from PIL import Image
+from discord_tron_client.classes.image_manipulation.metadata import ImageMetadata
 
 hardware = HardwareInfo()
 
@@ -350,7 +351,7 @@ class PipelineRunner:
             logging.info('Upscaling image using Real-ESRGAN!')
             new_image = self.pipeline_manager.upscale_image(new_image)
 
-        return new_image
+        return self._encode_output(new_image)
 
     async def generate_image(
         self,
@@ -520,3 +521,23 @@ class PipelineRunner:
         del controlnet_pipe
         self.pipeline_manager.to_cpu(controlnet_pipe)
         return preprocessed_images
+    
+    def _encode_image_metadata(self, image: Image, prompt, user_config):
+        attributes = {
+            "prompt": prompt,
+        }
+        if not user_config.get("encode_metadata", True):
+            return image
+        return ImageMetadata.encode(image, user_config, attributes)
+    
+    def _encode_images_metadata(self, images: list, prompt, user_config):
+        idx = 0
+        for image in images:
+            images[idx] = self._encode_image_metadata(image, prompt, user_config)
+            idx += 1
+        return images
+    
+    def _encode_output(self, output, prompt, user_config):
+        if type(output) == list:
+            return self._encode_images_metadata(output, prompt, user_config)
+        return self._encode_image_metadata(output, prompt, user_config)
