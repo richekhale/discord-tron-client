@@ -351,7 +351,7 @@ class PipelineRunner:
             logging.info('Upscaling image using Real-ESRGAN!')
             new_image = self.pipeline_manager.upscale_image(new_image)
 
-        return self._encode_output(new_image)
+        return self._encode_output(new_image, positive_prompt, user_config)
 
     async def generate_image(
         self,
