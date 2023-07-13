@@ -19,6 +19,7 @@ class ImageMetadata:
         image.save(buffered, format="PNG", pnginfo=metadata)
         # Retrieve the png with metadata back as an Image:
         image = Image.open(buffered)
+        logging.debug(f'Image metadata: {image.info}')
         return image
         
     @staticmethod
