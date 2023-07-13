@@ -95,7 +95,7 @@ class ApiClient:
         )
         return response
 
-    async def send_pil_image(self, endpoint: str, image: Image, send_auth: bool = True):
+    async def send_pil_image(self, endpoint: str, image: Image, send_auth: bool = True, image_metadata: dict = {}):
         buffer = io.BytesIO()
         image.save(buffer, format="PNG")
         attempt = 0
@@ -108,7 +108,7 @@ class ApiClient:
                     AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
                     self.post,
                     endpoint,
-                    None,
+                    image_metadata,
                     {"image": buffer},
                     send_auth,
                 )

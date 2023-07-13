@@ -30,7 +30,7 @@ class Uploader:
         logging.debug(f"Uploading image to {self.config.get_master_url()}")
         self.api_client.update_auth()
         result = asyncio.run(
-            self.api_client.send_pil_image("/upload_image", image, False)
+            self.api_client.send_pil_image("/upload_image", image, False, image.info)
         )
         logging.debug(f"Image uploader received result: {result}")
         if "image_url" in result:
