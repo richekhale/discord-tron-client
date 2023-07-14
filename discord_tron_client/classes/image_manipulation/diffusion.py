@@ -10,7 +10,6 @@ from diffusers import (
     DDIMScheduler,
     UniPCMultistepScheduler,
     StableDiffusionXLImg2ImgPipeline,
-    
 )
 from diffusers import DiffusionPipeline as Pipeline
 from typing import Dict
@@ -62,7 +61,11 @@ class DiffusionPipelineManager:
         self.torch_dtype = torch.float16
         self.is_memory_constrained = False
         self.model_id = None
-        if hw_limits["gpu"] != "Unknown" and hw_limits["gpu"] >= 16 and config.get_precision_bits() == 32:
+        if (
+            hw_limits["gpu"] != "Unknown"
+            and hw_limits["gpu"] >= 16
+            and config.get_precision_bits() == 32
+        ):
             self.torch_dtype = torch.float32
         if hw_limits["gpu"] != "Unknown" and hw_limits["gpu"] <= 16:
             logging.warn(
@@ -127,7 +130,7 @@ class DiffusionPipelineManager:
                 use_safetensors=True,
                 use_auth_token=config.get_huggingface_api_key(),
             )
-            logging.debug(f'Model config: {pipeline.config}')
+            logging.debug(f"Model config: {pipeline.config}")
         else:
             logging.debug(f"Using standard pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
@@ -237,12 +240,18 @@ class DiffusionPipelineManager:
                         f"Could not enable sequential CPU offload on the model: {e}"
                     )
             else:
-                logging.info(f'Moving pipe to CUDA early, because no offloading is being used.')
+                logging.info(
+                    f"Moving pipe to CUDA early, because no offloading is being used."
+                )
                 self.pipelines[model_id].to(self.device)
                 torch._dynamo.config.suppress_errors = True
                 torch._dynamo.config.log_level = logging.WARNING
                 if config.enable_compile():
-                    self.pipelines[model_id].unet = torch.compile(self.pipelines[model_id].unet, mode="reduce-overhead", fullgraph=True)
+                    self.pipelines[model_id].unet = torch.compile(
+                        self.pipelines[model_id].unet,
+                        mode="reduce-overhead",
+                        fullgraph=True,
+                    )
         else:
             logging.info(f"Keeping existing pipeline. Not creating any new ones.")
         self.last_pipe_type[model_id] = pipe_type
@@ -264,8 +273,12 @@ class DiffusionPipelineManager:
             for pipeline in self.pipelines
             if keep_model is None or pipeline != keep_model
         ]
-        active_pipes = 1
+
+        # Updated to count the current number of active pipelines
+        active_pipes = len(self.pipelines) - len(keys_to_delete)
+
         for key in keys_to_delete:
+            # Only delete pipes if we exceed the limit
             if active_pipes >= total_allowed_concurrent:
                 logging.info(
                     f"Clearing out an unwanted pipe for {key}, as we have a limit of {total_allowed_concurrent} concurrent pipes."
@@ -273,6 +286,7 @@ class DiffusionPipelineManager:
                 del self.pipelines[key]
                 gc.collect()
                 self.clear_cuda_cache()
+                active_pipes -= 1  # Update the count after deleting a pipeline
 
     def clear_cuda_cache(self):
         if config.get_cuda_cache_clear_toggle():
@@ -321,6 +335,7 @@ class DiffusionPipelineManager:
             model_id="saftle/urpm",
         )
         return pipeline
+
     def get_sdxl_refiner_pipe(self):
         self.delete_pipes()
         pipeline = self.get_pipe(
@@ -329,6 +344,7 @@ class DiffusionPipelineManager:
             model_id="ptx0/s2",
         )
         return pipeline
+
     def enforce_zero_terminal_snr(self, betas):
         # Convert betas to alphas_bar_sqrt
         alphas = 1 - betas
@@ -355,29 +371,32 @@ class DiffusionPipelineManager:
 
     def to_accelerator(self, pipeline):
         return
-        logging.debug(f'Moving pipeline to accelerator, begins.')
+        logging.debug(f"Moving pipeline to accelerator, begins.")
         is_on_gpu = next(pipeline.unet.parameters()).is_cuda
         if is_on_gpu:
-            logging.warning(f'Requested to move pipeline to CPU, when it is already there.')
+            logging.warning(
+                f"Requested to move pipeline to CPU, when it is already there."
+            )
             return
         try:
             pipeline.to(self.device)
-            logging.info(f'Moved pipeline to accelerator.')
+            logging.info(f"Moved pipeline to accelerator.")
         except Exception as e:
             logging.error(f"Could not move pipeline to accelerator: {e}")
             raise e
-        
+
     def to_cpu(self, pipeline):
         return
-        logging.debug(f'Moving pipeline to CPU, begins.')
+        logging.debug(f"Moving pipeline to CPU, begins.")
         is_on_gpu = next(pipeline.unet.parameters()).is_cuda
         if not is_on_gpu:
-            logging.warning(f'Requested to move pipeline to CPU, when it is already there.')
+            logging.warning(
+                f"Requested to move pipeline to CPU, when it is already there."
+            )
             return
         try:
             pipeline.to("cpu")
             torch.clear_autocast_cache()
-            logging.info(f'Moved pipeline to CPU.')
+            logging.info(f"Moved pipeline to CPU.")
         except Exception as e:
             logging.error(f"Could not move pipeline to CPU: {e}")
-        
