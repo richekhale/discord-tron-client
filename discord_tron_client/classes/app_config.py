@@ -281,3 +281,5 @@ class AppConfig:
 
     def enable_compel(self):
         return self.config.get("use_compel_prompt_weighting", True)
+    def enable_compile(self):
+        return self.config.get('enable_torch_compile', True)
