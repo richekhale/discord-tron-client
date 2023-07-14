@@ -284,11 +284,11 @@ class DiffusionPipelineManager:
                     f"Clearing out an unwanted pipe for {key}, as we have a limit of {total_allowed_concurrent} concurrent pipes."
                 )
                 del self.pipelines[key]
-                gc.collect()
                 self.clear_cuda_cache()
                 active_pipes -= 1  # Update the count after deleting a pipeline
 
     def clear_cuda_cache(self):
+        gc.collect()
         if config.get_cuda_cache_clear_toggle():
             logging.info("Clearing the CUDA cache...")
             torch.cuda.empty_cache()
