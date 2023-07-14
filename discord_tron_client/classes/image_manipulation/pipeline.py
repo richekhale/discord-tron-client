@@ -213,17 +213,15 @@ class PipelineRunner:
             use_latent_result = user_config.get('latent_refiner', True)
             self.pipeline_manager.to_accelerator(pipe)
             image_return_type = "pil"
-            final_inference_step = None
+            refiner_begin_step = None
             if use_latent_result:
                 image_return_type = "latent"
                 if user_config.get("refiner_strength", 0.5) > 1.0:
                     raise ValueError("refiner_strength must be between 0.0 and 1.0")
                 if "ptx0/s1" in user_config.get("model", "") or "stable-diffusion-xl" in user_config.get("model", ""):
                     # Max inference steps are an inverse relationship of the refiner strength with the base steps.
-                    final_inference_step, begin_inference_step = pipe.timesteps_from_strength(user_config.get("refiner_strength", 0.5), steps)
-                    logging.debug(f'Final inference step: {final_inference_step}, begin inference step: {begin_inference_step}, steps: {steps}')
-                    if final_inference_step >= steps:
-                        raise ValueError('Max inference steps ended up being greater or equal to the number of steps.')
+                    refiner_begin_step = 1 - user_config.get("refiner_strength", 0.5)
+                    logging.debug(f'Final inference step: {refiner_begin_step}, steps: {steps}')
             if not promptless_variation and image is None:
                 # text2img workflow
                 if "ptx0/s1" in user_config.get("model", "") or "stable-diffusion-xl" in user_config.get("model", ""):
@@ -233,7 +231,7 @@ class PipelineRunner:
                         height=side_y,
                         width=side_x,
                         num_inference_steps=int(float(steps)),
-                        final_inference_step=final_inference_step,
+                        denoising_end=refiner_begin_step,
                         negative_prompt=negative_prompt,
                         guidance_rescale=float(user_config.get('guidance_rescale', 0.3)),
                         guidance_scale=float(guidance_scale),
@@ -270,7 +268,7 @@ class PipelineRunner:
                         user_config=user_config,
                         prompt=positive_prompt,
                         negative_prompt=negative_prompt,
-                        begin_inference_step=begin_inference_step,
+                        denoising_begin=refiner_begin_step,
                     )
                 new_image = self._controlnet_all_images(preprocessed_images=preprocessed_images, user_config=user_config, generator=generator)
             elif not upscaler and not promptless_variation and image is not None:
@@ -307,7 +305,7 @@ class PipelineRunner:
                         user_config=user_config,
                         prompt=positive_prompt,
                         negative_prompt=negative_prompt,
-                        begin_inference_step=begin_inference_step
+                        refiner_begin_step=refiner_begin_step
                     )
             elif promptless_variation:
                 new_image = self._controlnet_pipeline(image=image, user_config=user_config, pipe=pipe, generator=generator, prompt=positive_prompt, negative_prompt=negative_prompt)
@@ -474,7 +472,7 @@ class PipelineRunner:
         self.pipeline_manager.to_cpu(pipe, user_config['model_id'])                    
         return new_image
 
-    def _refiner_pipeline(self, images: Image, user_config: dict, prompt: str = None, negative_prompt: str = None, random_seed = False, begin_inference_step = None):
+    def _refiner_pipeline(self, images: Image, user_config: dict, prompt: str = None, negative_prompt: str = None, random_seed = False, denoising_begin = None):
         
         # Get the image width/height from 'image' if it's provided
         logging.info(
@@ -500,7 +498,7 @@ class PipelineRunner:
                 aesthetic_score=float(user_config.get("aesthetic_score", 10.0)),
                 negative_aesthetic_score=float(user_config.get("negative_aesthetic_score", 1.0)),
                 num_inference_steps=int(user_config.get("steps", 20)),
-                begin_inference_step=begin_inference_step
+                denoising_begin=denoising_begin
             ).images[0])
         self.pipeline_manager.to_cpu(pipe)
         return new_images
