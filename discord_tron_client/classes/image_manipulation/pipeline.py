@@ -268,7 +268,7 @@ class PipelineRunner:
                         user_config=user_config,
                         prompt=positive_prompt,
                         negative_prompt=negative_prompt,
-                        denoising_begin=refiner_begin_step,
+                        denoising_start=refiner_begin_step,
                     )
                 new_image = self._controlnet_all_images(preprocessed_images=preprocessed_images, user_config=user_config, generator=generator)
             elif not upscaler and not promptless_variation and image is not None:
@@ -472,7 +472,7 @@ class PipelineRunner:
         self.pipeline_manager.to_cpu(pipe, user_config['model_id'])                    
         return new_image
 
-    def _refiner_pipeline(self, images: Image, user_config: dict, prompt: str = None, negative_prompt: str = None, random_seed = False, denoising_begin = None):
+    def _refiner_pipeline(self, images: Image, user_config: dict, prompt: str = None, negative_prompt: str = None, random_seed = False, denoising_start = None):
         
         # Get the image width/height from 'image' if it's provided
         logging.info(
@@ -498,7 +498,7 @@ class PipelineRunner:
                 aesthetic_score=float(user_config.get("aesthetic_score", 10.0)),
                 negative_aesthetic_score=float(user_config.get("negative_aesthetic_score", 1.0)),
                 num_inference_steps=int(user_config.get("steps", 20)),
-                denoising_begin=denoising_begin
+                denoising_start=denoising_start
             ).images[0])
         self.pipeline_manager.to_cpu(pipe)
         return new_images
