@@ -82,8 +82,7 @@ class DiffusionPipelineManager:
         if model_id in self.pipelines:
             try:
                 del self.pipelines[model_id]
-                gc.collect()
-                torch.clear_autocast_cache()
+                self.clear_cuda_cache()
             except Exception as e:
                 logging.error(f"Error when deleting pipe: {e}")
 
