@@ -141,8 +141,20 @@ class DiffusionPipelineManager:
 
     def upscale_image(self, image: Image):
         self._initialize_upscaler_pipe()
+        def resize_for_condition_image(input_image: Image, resolution: int):
+            input_image = input_image.convert("RGB")
+            W, H = input_image.size
+            k = float(resolution) / min(H, W)
+            H *= k
+            W *= k
+            H = int(round(H / 64.0)) * 64
+            W = int(round(W / 64.0)) * 64
+            img = input_image.resize((W, H), resample=Image.LANCZOS)
+            return img
+
         esrgan_upscaled = use_upscaler(self.pipelines["upscaler"], image)
-        reasonable_size = self._c
+        # reasonable_size = resize_for_condition_image(esrgan_upscaled, 2048)
+        return esrgan_upscaled
 
     def _initialize_upscaler_pipe(self):
         if "upscaler" not in self.pipelines:
