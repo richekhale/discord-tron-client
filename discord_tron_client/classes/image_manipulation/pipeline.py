@@ -310,12 +310,8 @@ class PipelineRunner:
             elif promptless_variation:
                 new_image = self._controlnet_pipeline(image=image, user_config=user_config, pipe=pipe, generator=generator, prompt=positive_prompt, negative_prompt=negative_prompt)
             elif upscaler:
-                rows = 3
-                cols = 3
-                UU = upscaling_helper.ImageUpscaler(pipeline=pipe, generator=generator, rows=rows, cols=cols)
-                new_image = UU.upscale(
-                    image=image,
-                )
+                logging.info('Upscaling image using Real-ESRGAN!')
+                new_image = self.pipeline_manager.upscale_image(new_image)
             else:
                 raise Exception(
                     "Invalid combination of parameters for image generation"
