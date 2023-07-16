@@ -185,9 +185,15 @@ async def prompt_variation(payload, websocket):
         image = Image.open(
             io.BytesIO(requests.get(payload["image_data"], timeout=10).content)
         )
-        image = image.resize(
-            (resolution["width"], resolution["height"]), resample=Image.LANCZOS
-        )
+        their_aspect_ratio = image.width / image.height
+        old_aspect_ratio = resolution['width'] / resolution['height']
+        if their_aspect_ratio == old_aspect_ratio and (
+            image.width != resolution['width'] or image.height != resolution['height']
+        ):
+            # If we have an image that's the right aspect ratio, but not the right size, we need to resize it.
+            image = image.resize(
+                (resolution["width"], resolution["height"]), resample=Image.LANCZOS
+            )
         try:
             background = Image.new("RGBA", image.size, (255, 255, 255))
             alpha_composite = Image.alpha_composite(background, image)
