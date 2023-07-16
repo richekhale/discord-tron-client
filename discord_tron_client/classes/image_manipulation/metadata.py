@@ -13,7 +13,7 @@ class ImageMetadata:
         if attributes is not None:
             # Random attributes can be added to the image, eg. "prompt", "user_id", "user_name"
             for key, value in attributes.items():
-                metadata.add_text(key, value)
+                metadata.add_text(key, str(value))
         # Save into a buffer:
         buffered = BytesIO()
         image.save(buffered, format="PNG", pnginfo=metadata)
