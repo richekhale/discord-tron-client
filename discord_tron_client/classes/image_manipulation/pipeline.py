@@ -344,8 +344,8 @@ class PipelineRunner:
         if should_upscale:
             logging.info('Upscaling image using Real-ESRGAN!')
             new_image = self.pipeline_manager.upscale_image(new_image)
-
-        return self._encode_output(new_image, positive_prompt, user_config)
+        image_params = { "seed": self.seed }
+        return self._encode_output(new_image, positive_prompt, user_config, image_params)
 
     async def generate_image(
         self,
@@ -516,23 +516,24 @@ class PipelineRunner:
         self.pipeline_manager.to_cpu(controlnet_pipe)
         return preprocessed_images
     
-    def _encode_image_metadata(self, image: Image, prompt, user_config):
+    def _encode_image_metadata(self, image: Image, prompt, user_config, image_params):
         attributes = {
             "prompt": prompt,
-            "original_user": str(user_config["user_id"])
+            "original_user": str(user_config["user_id"]),
+            "seed": int(image_params['seed']),
         }
         if not user_config.get("encode_metadata", True):
             return image
         return ImageMetadata.encode(image, user_config, attributes)
     
-    def _encode_images_metadata(self, images: list, prompt, user_config):
+    def _encode_images_metadata(self, images: list, prompt, user_config, image_params: dict = {}):
         idx = 0
         for image in images:
-            images[idx] = self._encode_image_metadata(image, prompt, user_config)
+            images[idx] = self._encode_image_metadata(image, prompt, user_config, image_params)
             idx += 1
         return images
     
-    def _encode_output(self, output, prompt, user_config):
+    def _encode_output(self, output, prompt, user_config, image_params: dict = {}):
         if type(output) == list:
-            return self._encode_images_metadata(output, prompt, user_config)
-        return self._encode_image_metadata(output, prompt, user_config)
+            return self._encode_images_metadata(output, prompt, user_config, image_params)
+        return self._encode_image_metadata(output, prompt, user_config, image_params)
