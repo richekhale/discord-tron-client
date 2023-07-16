@@ -520,7 +520,7 @@ class PipelineRunner:
         attributes = {
             "prompt": prompt,
             "original_user": str(user_config["user_id"]),
-            "seed": int(image_params['seed']),
+            "seed": str(image_params['seed']),
         }
         if not user_config.get("encode_metadata", True):
             return image
