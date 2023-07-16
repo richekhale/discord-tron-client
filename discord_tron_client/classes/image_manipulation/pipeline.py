@@ -284,8 +284,8 @@ class PipelineRunner:
                         num_images_per_prompt=batch_size,
                         image=image,
                         strength=user_config["strength"],
-                        num_inference_steps=int(float(steps)),
-                        guidance_scale=guidance_scale,
+                        num_inference_steps=20,
+                        guidance_scale=5.4,
                     ).images
                 else:
                     new_image = pipe(
@@ -293,20 +293,12 @@ class PipelineRunner:
                         num_images_per_prompt=batch_size,
                         image=image,
                         strength=user_config["strength"],
-                        num_inference_steps=int(float(steps)),
                         negative_prompt_embeds=negative_embed,
-                        guidance_scale=guidance_scale,
+                        num_inference_steps=20,
+                        guidance_scale=5.4,
                         guidance_rescale=user_config.get('guidance_rescale', 0.3),
                         generator=torch_generators,
                     ).images
-                if use_latent_result:
-                    new_image = self._refiner_pipeline(
-                        images=new_image,
-                        user_config=user_config,
-                        prompt=positive_prompt,
-                        negative_prompt=negative_prompt,
-                        denoising_start=denoising_start
-                    )
             elif promptless_variation:
                 new_image = self._controlnet_pipeline(image=image, user_config=user_config, pipe=pipe, generator=generator, prompt=positive_prompt, negative_prompt=negative_prompt)
             elif upscaler:
