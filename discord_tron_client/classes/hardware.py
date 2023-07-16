@@ -43,7 +43,7 @@ class HardwareInfo:
         return HardwareInfo.identifier
 
     def should_offload(self):
-        return self.get_video_memory_info() == 'Unknown' or self.video_memory_amount < 23
+        return self.get_video_memory_info() == 'Unknown' or self.video_memory_amount < 48
     def should_sequential_offload(self):
         return self.should_offload() or self.video_memory_amount < 10
 
@@ -156,9 +156,9 @@ class HardwareInfo:
             return 1
         gb = int(memory_amount)
         if gb == 8:
-            # We have 8GiB per model, essentially.
+            # We have 12GiB per model, essentially.
             return 1
-        pipe_count = int(gb / 8)
+        pipe_count = int(gb / 12)
         return pipe_count
 
     def get_gpu_power_consumption(self):
