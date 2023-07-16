@@ -203,11 +203,7 @@ class PipelineRunner:
     ):
         original_stderr = sys.stderr
         sys.stderr = self.tqdm_capture
-        batch_size = 4
-        if hardware.should_offload():
-            batch_size = 2
-        if hardware.should_sequential_offload():
-            batch_size = 1
+        batch_size = self.config.maximum_batch_size()
         try:
             alt_weight_algorithm = user_config.get("alt_weight_algorithm", False)
             use_latent_result = user_config.get('latent_refiner', True)

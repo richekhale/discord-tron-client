@@ -283,3 +283,7 @@ class AppConfig:
         return self.config.get("use_compel_prompt_weighting", True)
     def enable_compile(self):
         return self.config.get('enable_torch_compile', True)
+    def enable_cpu_offload(self):
+        return self.config.get('enable_cpu_offload', True)
+    def maximum_batch_size(self):
+        return max(self.config.get('maximum_batch_size', 4), 1)
