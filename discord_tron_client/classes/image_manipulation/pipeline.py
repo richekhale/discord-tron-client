@@ -159,8 +159,8 @@ class PipelineRunner:
                 )
                 if len(embeddings) == 2:
                     prompt_embed, negative_embed = embeddings
-                elif len(embeddings) == 3:
-                    prompt_embed, negative_embed, pooled_embed = embeddings
+                elif len(embeddings) == 4:
+                    prompt_embed, negative_embed, pooled_embed, negative_pooled_embed = embeddings
                 else:
                     raise ValueError(
                         f"Unexpected number of embeddings returned: {len(embeddings)}"
@@ -184,6 +184,7 @@ class PipelineRunner:
                         positive_prompt=prompt,
                         negative_prompt=negative_prompt,
                         pooled_embed=pooled_embed,
+                        negative_pooled_embed=negative_pooled_embed,
                     )
             self.gpu_power_consumption = self.tqdm_capture.gpu_power_consumption
             return new_image
@@ -209,7 +210,8 @@ class PipelineRunner:
         upscaler: bool = False,
         positive_prompt="",
         negative_prompt="",
-        pooled_embed=None
+        pooled_embed=None,
+        negative_pooled_embed=None
     ):
         original_stderr = sys.stderr
         sys.stderr = self.tqdm_capture
@@ -235,6 +237,7 @@ class PipelineRunner:
                         prompt_embed=prompt_embed,
                         negative_prompt_embed=negative_embed,
                         pooled_embed=pooled_embed,
+                        negative_pooled_embed=negative_pooled_embed,
                         num_images_per_prompt=batch_size,
                         height=side_y,
                         width=side_x,
@@ -250,6 +253,7 @@ class PipelineRunner:
                         prompt_embed=prompt_embed,
                         negative_prompt_embed=negative_embed,
                         pooled_embed=pooled_embed,
+                        negative_pooled_embed=negative_pooled_embed,
                         num_images_per_prompt=batch_size,
                         num_inference_steps=int(float(steps)),
                         guidance_rescale=user_config.get('guidance_rescale', 0.3),
