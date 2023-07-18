@@ -236,8 +236,8 @@ class PipelineRunner:
                     preprocessed_images = pipe(
                         prompt_embeds=prompt_embed,
                         negative_prompt_embeds=negative_embed,
-                        pooled_embeds=pooled_embed,
-                        negative_pooled_embeds=negative_pooled_embed,
+                        pooled_prompt_embeds=pooled_embed,
+                        negative_pooled_prompt_embeds=negative_pooled_embed,
                         num_images_per_prompt=batch_size,
                         height=side_y,
                         width=side_x,
@@ -252,8 +252,8 @@ class PipelineRunner:
                     preprocessed_images = pipe(
                         prompt_embeds=prompt_embed,
                         negative_prompt_embeds=negative_embed,
-                        pooled_embeds=pooled_embed,
-                        negative_pooled_embeds=negative_pooled_embed,
+                        pooled_prompt_embeds=pooled_embed,
+                        negative_pooled_prompt_embeds=negative_pooled_embed,
                         num_images_per_prompt=batch_size,
                         num_inference_steps=int(float(steps)),
                         guidance_rescale=user_config.get('guidance_rescale', 0.3),
