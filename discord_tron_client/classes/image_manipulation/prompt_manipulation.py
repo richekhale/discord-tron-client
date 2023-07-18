@@ -1,6 +1,5 @@
 from compel import Compel, ReturnedEmbeddingsType
-from torch import Generator
-import torch
+import logging
 
 # Manipulating prompts for the pipeline.
 class PromptManipulation:
@@ -42,7 +41,7 @@ class PromptManipulation:
                 returned_embeddings_type=ReturnedEmbeddingsType.PENULTIMATE_HIDDEN_STATES_NON_NORMALIZED,
             )
     def should_enable(self, pipeline):
-        return not self.has_dual_text_encoders(pipeline)
+        return True
 
     def has_dual_text_encoders(self, pipeline):
         return hasattr(pipeline, "text_encoder_2")
@@ -67,6 +66,7 @@ class PromptManipulation:
 
     def process_long_prompt(self, positive_prompt: str, negative_prompt: str):
         if self.has_dual_text_encoders(self.pipeline):
+            logging.debug(f'Running dual encoder Compel pipeline.')
             conditioning, pooled_embeds = self.compel.build_conditioning_tensor(positive_prompt)
         else:
             conditioning = self.compel.build_conditioning_tensor(positive_prompt)
@@ -78,6 +78,7 @@ class PromptManipulation:
             [conditioning, negative_conditioning]
         )
         if self.has_dual_text_encoders(self.pipeline):
+            logging.debug(f'Returning pooled embeds along with positive/negative conditionings.')
             return conditioning, negative_conditioning, pooled_embeds
         return conditioning, negative_conditioning
         
