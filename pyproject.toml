@@ -27,7 +27,7 @@ torch = "^2.0.1"
 torchaudio = { version = ">=0.12.1" }
 colorama = "^0.4.6"
 xformers = {version = "^0.0.20.dev526", allow-prereleases = true}
-compel = "^1.1.3"
+compel = "^2.0.0"
 llama-cpp-python = "^0.1.36"
 peft = "^0.2.0"
 sentencepiece = "^0.1.98"
