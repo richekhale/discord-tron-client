@@ -6,9 +6,7 @@ class PromptManipulation:
     def __init__(self, pipeline, device, use_second_encoder: bool = False):
         self.is_valid_pipeline(pipeline)
         self.pipeline = pipeline
-        if (use_second_encoder and self.has_dual_text_encoders(pipeline)) or (
-            self.has_dual_text_encoders(pipeline) and self.is_sdxl_refiner(pipeline)
-        ):
+        if (self.has_dual_text_encoders(pipeline)):
             # SDXL Refiner and Base can both use the 2nd tokenizer/encoder.
             logging.debug(f'Initialising Compel prompt manager with dual encoders.')
             pipe_tokenizer = self.pipeline.tokenizer_2
