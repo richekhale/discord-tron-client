@@ -154,9 +154,17 @@ class PipelineRunner:
             prompt_embed = None
             negative_embed = None
             if not promptless_variation and self.prompt_manager.should_enable(pipe) and self.config.enable_compel():
-                prompt_embed, negative_embed = self.prompt_manager.process_long_prompt(
+                embeddings = self.prompt_manager.process_long_prompt(
                     positive_prompt=prompt, negative_prompt=negative_prompt
                 )
+                if len(embeddings) == 2:
+                    prompt_embed, negative_embed = embeddings
+                elif len(embeddings) == 3:
+                    prompt_embed, negative_embed, pooled_embed = embeddings
+                else:
+                    raise ValueError(
+                        f"Unexpected number of embeddings returned: {len(embeddings)}"
+                    )
 
             with torch.no_grad():
                 with tqdm(total=steps, ncols=100, file=self.tqdm_capture) as pbar:
@@ -175,6 +183,7 @@ class PipelineRunner:
                         upscaler,
                         positive_prompt=prompt,
                         negative_prompt=negative_prompt,
+                        pooled_embed=pooled_embed,
                     )
             self.gpu_power_consumption = self.tqdm_capture.gpu_power_consumption
             return new_image
@@ -200,6 +209,7 @@ class PipelineRunner:
         upscaler: bool = False,
         positive_prompt="",
         negative_prompt="",
+        pooled_embed=None
     ):
         original_stderr = sys.stderr
         sys.stderr = self.tqdm_capture
@@ -222,13 +232,14 @@ class PipelineRunner:
                 # text2img workflow
                 if "ptx0/s1" in user_config.get("model", "") or "stable-diffusion-xl" in user_config.get("model", ""):
                     preprocessed_images = pipe(
-                        prompt=positive_prompt,
+                        prompt_embed=prompt_embed,
+                        negative_prompt_embed=negative_embed,
+                        pooled_embed=pooled_embed,
                         num_images_per_prompt=batch_size,
                         height=side_y,
                         width=side_x,
                         num_inference_steps=int(float(steps)),
                         denoising_end=denoising_start,
-                        negative_prompt=negative_prompt,
                         guidance_rescale=float(user_config.get('guidance_rescale', 0.3)),
                         guidance_scale=float(guidance_scale),
                         output_type=image_return_type,
@@ -236,10 +247,11 @@ class PipelineRunner:
                     ).images
                 elif "ptx0/s2" in user_config.get("model", "") or "xl-refiner" in user_config.get("model", ""):
                     preprocessed_images = pipe(
-                        prompt=positive_prompt,
+                        prompt_embed=prompt_embed,
+                        negative_prompt_embed=negative_embed,
+                        pooled_embed=pooled_embed,
                         num_images_per_prompt=batch_size,
                         num_inference_steps=int(float(steps)),
-                        negative_prompt=negative_prompt,
                         guidance_rescale=user_config.get('guidance_rescale', 0.3),
                         guidance_scale=guidance_scale,
                         generator=generator,
