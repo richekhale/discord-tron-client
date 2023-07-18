@@ -10,6 +10,7 @@ class PromptManipulation:
             self.has_dual_text_encoders(pipeline) and self.is_sdxl_refiner(pipeline)
         ):
             # SDXL Refiner and Base can both use the 2nd tokenizer/encoder.
+            logging.debug(f'Initialising Compel prompt manager with dual encoders.')
             pipe_tokenizer = self.pipeline.tokenizer_2
             pipe_text_encoder = self.pipeline.text_encoder_2
             self.compel = Compel(
@@ -31,6 +32,7 @@ class PromptManipulation:
             )
         else:
             # Any other pipeline uses the first tokenizer/encoder.
+            logging.debug(f'Initialising the Compel prompt manager with a single text encoder.')
             pipe_tokenizer = self.pipeline.tokenizer
             pipe_text_encoder = self.pipeline.text_encoder
             self.compel = Compel(
