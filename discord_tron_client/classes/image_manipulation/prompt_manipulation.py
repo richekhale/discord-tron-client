@@ -63,8 +63,8 @@ class PromptManipulation:
     def process_long_prompt(self, positive_prompt: str, negative_prompt: str):
         if self.has_dual_text_encoders(self.pipeline):
             logging.debug(f'Running dual encoder Compel pipeline.')
-            conditioning, pooled_embed = self.compel.build_conditioning_tensor(positive_prompt)
-            negative_conditioning, negative_pooled_embed = self.compel.build_conditioning_tensor(negative_prompt)
+            conditioning, pooled_embed = self.compel(positive_prompt)
+            negative_conditioning, negative_pooled_embed = self.compel(negative_prompt)
         else:
             conditioning = self.compel.build_conditioning_tensor(positive_prompt)
             negative_conditioning = self.compel.build_conditioning_tensor(negative_prompt)
