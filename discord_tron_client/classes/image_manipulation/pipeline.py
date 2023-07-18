@@ -235,9 +235,9 @@ class PipelineRunner:
                 if "ptx0/s1" in user_config.get("model", "") or "stable-diffusion-xl" in user_config.get("model", ""):
                     preprocessed_images = pipe(
                         prompt_embeds=prompt_embed,
-                        negative_prompt_embeds=negative_embed,
+                        # negative_prompt_embeds=negative_embed,
                         pooled_prompt_embeds=pooled_embed,
-                        negative_pooled_prompt_embeds=negative_pooled_embed,
+                        # negative_pooled_prompt_embeds=negative_pooled_embed,
                         num_images_per_prompt=batch_size,
                         height=side_y,
                         width=side_x,

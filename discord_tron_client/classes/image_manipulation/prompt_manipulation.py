@@ -60,10 +60,6 @@ class PromptManipulation:
                 f"Cannot use PromptManipulation on a model without a tokenizer."
             )
 
-    def process(self, prompt: str):
-        conditioning = self.compel.build_conditioning_tensor(prompt)
-        return conditioning
-
     def process_long_prompt(self, positive_prompt: str, negative_prompt: str):
         if self.has_dual_text_encoders(self.pipeline):
             logging.debug(f'Running dual encoder Compel pipeline.')
