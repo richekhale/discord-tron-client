@@ -69,18 +69,17 @@ class PromptManipulation:
             conditioning, pooled_embed = self.compel(positive_prompt)
             negative_prompt = [negative_prompt] * batch_size
             negative_conditioning, negative_pooled_embed = self.compel(negative_prompt)
-        else:
-            conditioning = self.compel.build_conditioning_tensor(positive_prompt)
-            negative_conditioning = self.compel.build_conditioning_tensor(negative_prompt)
+            logging.debug(f'Returning pooled embeds along with positive/negative conditionings.')
+            return conditioning, negative_conditioning, pooled_embed, negative_pooled_embed
+
+        conditioning = self.compel.build_conditioning_tensor(positive_prompt)
+        negative_conditioning = self.compel.build_conditioning_tensor(negative_prompt)
         [
             conditioning,
             negative_conditioning,
         ] = self.compel.pad_conditioning_tensors_to_same_length(
             [conditioning, negative_conditioning]
         )
-        if self.has_dual_text_encoders(self.pipeline):
-            logging.debug(f'Returning pooled embeds along with positive/negative conditionings.')
-            return conditioning, negative_conditioning, pooled_embed, negative_pooled_embed
         return conditioning, negative_conditioning
 
 # Path: discord_tron_client/classes/image_manipulation/diffusion.py
