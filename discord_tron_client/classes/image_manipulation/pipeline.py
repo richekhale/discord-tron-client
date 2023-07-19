@@ -485,7 +485,7 @@ class PipelineRunner:
             prompt = user_config["tile_positive"]
             negative_prompt = user_config["tile_negative"]
 
-        refiner_prompt_manager = self._get_prompt_manager(pipe, use_second_encoder=True)
+        refiner_prompt_manager = self._get_prompt_manager(pipe, use_second_encoder_only=True)
         # Generate prompt embeds.
         prompt_embed, negative_embed, pooled_embed, negative_pooled_embed = refiner_prompt_manager.process_long_prompt(
             positive_prompt=prompt, negative_prompt=negative_prompt
