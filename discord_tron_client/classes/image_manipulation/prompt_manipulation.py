@@ -1,6 +1,8 @@
 from compel import Compel, ReturnedEmbeddingsType
+from discord_tron_client.classes.app_config import AppConfig
 import logging
 
+config = AppConfig()
 # Manipulating prompts for the pipeline.
 class PromptManipulation:
     def __init__(self, pipeline, device, use_second_encoder: bool = False):
@@ -61,9 +63,13 @@ class PromptManipulation:
             )
 
     def process_long_prompt(self, positive_prompt: str, negative_prompt: str):
+        batch_size = config.maximum_batch_size()
         if self.has_dual_text_encoders(self.pipeline):
             logging.debug(f'Running dual encoder Compel pipeline.')
+            # We need to make a list of positive_prompt * batch_size count.
+            positive_prompt = [positive_prompt] * batch_size
             conditioning, pooled_embed = self.compel(positive_prompt)
+            negative_prompt = [negative_prompt] * batch_size
             negative_conditioning, negative_pooled_embed = self.compel(negative_prompt)
         else:
             conditioning = self.compel.build_conditioning_tensor(positive_prompt)
@@ -78,7 +84,5 @@ class PromptManipulation:
             logging.debug(f'Returning pooled embeds along with positive/negative conditionings.')
             return conditioning, negative_conditioning, pooled_embed, negative_pooled_embed
         return conditioning, negative_conditioning
-        
-
 
 # Path: discord_tron_client/classes/image_manipulation/diffusion.py
