@@ -494,11 +494,11 @@ class PipelineRunner:
         new_images = []
         import random
         self.pipeline_manager.to_accelerator(pipe)
+        # Reverse the bits in the seed:
+        seed_flip = int(self.seed) ^ 0xFFFFFFFF
         for image in images:
-            # Get a random int:
-            seed = random.randint(0, 2**32)
             new_images.append(pipe(
-                generator = torch.Generator(device="cpu").manual_seed(int(seed)),
+                generator = torch.Generator(device="cpu").manual_seed(int(seed_flip)),
                 prompt_embeds=prompt_embed,
                 negative_prompt_embeds=negative_embed,
                 pooled_prompt_embeds=pooled_embed,
