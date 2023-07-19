@@ -150,7 +150,8 @@ class PipelineRunner:
 
             self.gpu_power_consumption = 0.0
             generator = self._get_generator(user_config=user_config)
-
+            # Strip the user_config piece from the prompt.
+            prompt = PromptManipulation.remove_duplicate_prompts(prompt, user_config)
             prompt_embed = None
             negative_embed = None
             if not promptless_variation and self.prompt_manager.should_enable(pipe) and self.config.enable_compel():

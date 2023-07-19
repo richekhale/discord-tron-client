@@ -84,4 +84,14 @@ class PromptManipulation:
             return conditioning, negative_conditioning, pooled_embed, negative_pooled_embed
         return conditioning, negative_conditioning
 
+    @staticmethod
+    def remove_duplicate_prompts(prompt: str, user_config: dict):
+        to_remove = [
+            user_config.get('positive_prompt', ''),
+            user_config.get('negative_prompt', '')
+        ]
+        for segment in to_remove:
+            if segment in prompt:
+                prompt = prompt.replace(segment, '')
+        return prompt
 # Path: discord_tron_client/classes/image_manipulation/diffusion.py
