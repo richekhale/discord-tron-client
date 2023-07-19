@@ -20,7 +20,7 @@ class PromptManipulation:
                     self.pipeline.text_encoder,
                     self.pipeline.text_encoder_2
                 ],
-                truncate_long_prompts=False,
+                truncate_long_prompts=True,
                 device=device,
                 returned_embeddings_type=ReturnedEmbeddingsType.PENULTIMATE_HIDDEN_STATES_NON_NORMALIZED,
                 requires_pooled=[
@@ -63,7 +63,7 @@ class PromptManipulation:
     def process_long_prompt(self, positive_prompt: str, negative_prompt: str):
         batch_size = config.maximum_batch_size()
         if self.has_dual_text_encoders(self.pipeline):
-            logging.debug(f'Running dual encoder Compel pipeline.')
+            logging.debug(f'Running dual encoder Compel pipeline for batch size {batch_size}.')
             # We need to make a list of positive_prompt * batch_size count.
             positive_prompt = [positive_prompt] * batch_size
             conditioning, pooled_embed = self.compel(positive_prompt)
