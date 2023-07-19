@@ -158,6 +158,7 @@ class PipelineRunner:
                 embeddings = self.prompt_manager.process_long_prompt(
                     positive_prompt=prompt, negative_prompt=negative_prompt
                 )
+                prompt_embed = negative_embed = pooled_embed = negative_pooled_embed = None
                 if len(embeddings) == 2:
                     prompt_embed, negative_embed = embeddings
                 elif len(embeddings) == 4:
