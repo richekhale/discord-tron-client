@@ -5,10 +5,10 @@ import logging
 config = AppConfig()
 # Manipulating prompts for the pipeline.
 class PromptManipulation:
-    def __init__(self, pipeline, device, use_second_encoder: bool = False):
+    def __init__(self, pipeline, device, use_second_encoder_only: bool = False):
         self.is_valid_pipeline(pipeline)
         self.pipeline = pipeline
-        if (self.has_dual_text_encoders(pipeline)):
+        if (self.has_dual_text_encoders(pipeline) and not use_second_encoder_only):
             # SDXL Refiner and Base can both use the 2nd tokenizer/encoder.
             logging.debug(f'Initialising Compel prompt manager with dual encoders.')
             self.compel = Compel(
@@ -27,6 +27,17 @@ class PromptManipulation:
                     False,  # CLIP-L does not produce pooled embeds.
                     True    # CLIP-G produces pooled embeds.
                 ]
+            )
+        elif (self.has_dual_text_encoders(pipeline) and use_second_encoder_only):
+            # SDXL Refiner has ONLY the 2nd tokenizer/encoder, which needs to be the only one in Compel.
+            logging.debug(f'Initialising Compel prompt manager with just the 2nd text encoder.')
+            self.compel = Compel(
+                tokenizer=self.pipeline.tokenizer_2,
+                text_encoder=self.pipeline.text_encoder_2,
+                truncate_long_prompts=True,
+                device=device,
+                returned_embeddings_type=ReturnedEmbeddingsType.PENULTIMATE_HIDDEN_STATES_NON_NORMALIZED,
+                requires_pooled=True
             )
         else:
             # Any other pipeline uses the first tokenizer/encoder.

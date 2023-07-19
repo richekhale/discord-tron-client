@@ -414,13 +414,13 @@ class PipelineRunner:
         logging.info(f"Seed: {self.seed}")
         return generator
 
-    def _get_prompt_manager(self, pipe, device = "cpu"):
+    def _get_prompt_manager(self, pipe, device = "cpu", use_second_encoder_only: bool = False):
         is_gpu = next(pipe.unet.parameters()).is_cuda
         if is_gpu:
             if device == "cpu":
                 logging.warning(f'Prompt manager was requested to be placed on the CPU, but the unet is already on the GPU. We have to adjust the prompt manager, to the GPU.')
             device = "cuda"
-        return PromptManipulation(pipeline=pipe, device=device)
+        return PromptManipulation(pipeline=pipe, device=device, use_second_encoder_only=use_second_encoder_only)
 
     def _get_rescaled_resolution(self, user_config, side_x, side_y):
         resolution = {"width": side_x, "height": side_y}
@@ -485,7 +485,7 @@ class PipelineRunner:
             prompt = user_config["tile_positive"]
             negative_prompt = user_config["tile_negative"]
 
-        refiner_prompt_manager = self._get_prompt_manager(pipe)
+        refiner_prompt_manager = self._get_prompt_manager(pipe, use_second_encoder=True)
         # Generate prompt embeds.
         prompt_embed, negative_embed, pooled_embed, negative_pooled_embed = refiner_prompt_manager.process_long_prompt(
             positive_prompt=prompt, negative_prompt=negative_prompt
