@@ -484,6 +484,13 @@ class PipelineRunner:
         if prompt is None:
             prompt = user_config["tile_positive"]
             negative_prompt = user_config["tile_negative"]
+
+        refiner_prompt_manager = self._get_prompt_manager(pipe)
+        # Generate prompt embeds.
+        prompt_embed, negative_embed, pooled_embed, negative_pooled_embed = refiner_prompt_manager.process_long_prompt(
+            positive_prompt=prompt, negative_prompt=negative_prompt
+        )
+
         new_images = []
         import random
         self.pipeline_manager.to_accelerator(pipe)
@@ -492,8 +499,10 @@ class PipelineRunner:
             seed = random.randint(0, 2**32)
             new_images.append(pipe(
                 generator = torch.Generator(device="cpu").manual_seed(int(seed)),
-                prompt=prompt,
-                negative_prompt=negative_prompt,
+                prompt_embeds=prompt_embed,
+                negative_prompt_embeds=negative_embed,
+                pooled_prompt_embeds=pooled_embed,
+                negative_pooled_prompt_embeds=negative_pooled_embed,
                 image=image,
                 guidance_scale=float(user_config.get("refiner_guidance", 7.5)),
                 strength=float(user_config.get("refiner_strength", 0.5)),
