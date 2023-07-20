@@ -506,7 +506,9 @@ class PipelineRunner:
         import random
         self.pipeline_manager.to_accelerator(pipe)
         # Reverse the bits in the seed:
-        seed_flip = int(self.seed) ^ 0xFFFFFFFF
+        seed_flip = int(self.seed + 1)
+        if user_config.get('refiner_seed_flip', False):
+            seed_flip = int(self.seed) ^ 0xFFFFFFFF
         for image in images:
             new_images.append(pipe(
                 generator = torch.Generator(device="cpu").manual_seed(int(seed_flip)),
@@ -514,6 +516,8 @@ class PipelineRunner:
                 negative_prompt_embeds=negative_embed,
                 pooled_prompt_embeds=pooled_embed,
                 negative_pooled_prompt_embeds=negative_pooled_embed,
+                # prompt=prompt,
+                # negative_prompt=negative_prompt,
                 image=image,
                 guidance_scale=float(user_config.get("refiner_guidance", 7.5)),
                 strength=float(user_config.get("refiner_strength", 0.5)),
