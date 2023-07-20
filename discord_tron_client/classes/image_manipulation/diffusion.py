@@ -245,7 +245,7 @@ class DiffusionPipelineManager:
                     logging.warn(
                         f"Hardware constraints are enabling *SEQUENTIAL* CPU offload. This WILL impact performance."
                     )
-                    self.pipelines[model_id].enable_sequential_cpu_offload()
+                    self.pipelines[model_id].enable_model_cpu_offload()
                 except Exception as e:
                     logging.error(
                         f"Could not enable sequential CPU offload on the model: {e}"

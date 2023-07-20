@@ -21,7 +21,6 @@ class PromptManipulation:
                     self.pipeline.text_encoder_2
                 ],
                 truncate_long_prompts=True,
-                device=device,
                 returned_embeddings_type=ReturnedEmbeddingsType.PENULTIMATE_HIDDEN_STATES_NON_NORMALIZED,
                 requires_pooled=[
                     False,  # CLIP-L does not produce pooled embeds.
@@ -35,7 +34,6 @@ class PromptManipulation:
                 tokenizer=self.pipeline.tokenizer_2,
                 text_encoder=self.pipeline.text_encoder_2,
                 truncate_long_prompts=True,
-                device=device,
                 returned_embeddings_type=ReturnedEmbeddingsType.PENULTIMATE_HIDDEN_STATES_NON_NORMALIZED,
                 requires_pooled=True
             )
@@ -48,7 +46,6 @@ class PromptManipulation:
                 tokenizer=pipe_tokenizer,
                 text_encoder=pipe_text_encoder,
                 truncate_long_prompts=False,
-                device=device,
                 returned_embeddings_type=ReturnedEmbeddingsType.PENULTIMATE_HIDDEN_STATES_NON_NORMALIZED,
             )
     def should_enable(self, pipeline):

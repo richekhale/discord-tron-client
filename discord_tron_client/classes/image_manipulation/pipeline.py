@@ -13,7 +13,14 @@ from discord_tron_client.classes.discord_progress_bar import DiscordProgressBar
 from discord_tron_client.message.discord import DiscordMessage
 from PIL import Image
 from discord_tron_client.classes.image_manipulation.metadata import ImageMetadata
-
+from discord_tron_client.classes.image_manipulation.pipeline_runners import (
+    BasePipelineRunner,
+    Text2ImgPipelineRunner,
+    Img2ImgPipelineRunner,
+    SdxlBasePipelineRunner,
+    SdxlRefinerPipelineRunner,
+    runner_map
+)
 hardware = HardwareInfo()
 
 
@@ -235,7 +242,11 @@ class PipelineRunner:
             if not promptless_variation and image is None:
                 # text2img workflow
                 if "ptx0/s1" in user_config.get("model", "") or "stable-diffusion-xl" in user_config.get("model", ""):
-                    preprocessed_images = pipe(
+                    pipeline_runner = runner_map['sdxl_base'](pipeline=pipe)
+                    preprocessed_images = pipeline_runner(
+                        prompt=positive_prompt,
+                        negative_prompt=negative_prompt,
+                        user_config=user_config,
                         prompt_embeds=prompt_embed,
                         negative_prompt_embeds=negative_embed,
                         pooled_prompt_embeds=pooled_embed,
