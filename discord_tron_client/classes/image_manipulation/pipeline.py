@@ -260,7 +260,7 @@ class PipelineRunner:
                         guidance_scale=float(guidance_scale),
                         output_type=image_return_type,
                         generator=generator,
-                    ).images
+                    )
                 elif "ptx0/s2" in user_config.get("model", "") or "xl-refiner" in user_config.get("model", ""):
                     preprocessed_images = pipe(
                         prompt_embeds=prompt_embed,
