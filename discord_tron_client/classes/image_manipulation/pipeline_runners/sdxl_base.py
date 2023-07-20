@@ -32,7 +32,7 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
                 negative_prompt_embeds=negative_prompt_embeds,
                 pooled_prompt_embeds=pooled_prompt_embeds,
                 negative_pooled_prompt_embeds=negative_pooled_prompt_embeds,
-                num_images_per_prompt=num_images_per_prompt,
+                num_images_per_prompt=1,
                 height=height,
                 width=width,
                 num_inference_steps=int(float(num_inference_steps)),
@@ -46,7 +46,7 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
             return self.pipeline(
                 prompt=prompt,
                 negative_prompt=negative_prompt,
-                num_images_per_prompt=1,
+                num_images_per_prompt=num_images_per_prompt,
                 height=height,
                 width=width,
                 num_inference_steps=int(float(num_inference_steps)),

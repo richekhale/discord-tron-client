@@ -251,7 +251,7 @@ class PipelineRunner:
                         negative_prompt_embeds=negative_embed,
                         pooled_prompt_embeds=pooled_embed,
                         negative_pooled_prompt_embeds=negative_pooled_embed,
-                        num_images_per_prompt=1,
+                        num_images_per_prompt=batch_size,
                         height=side_y,
                         width=side_x,
                         num_inference_steps=int(float(steps)),
