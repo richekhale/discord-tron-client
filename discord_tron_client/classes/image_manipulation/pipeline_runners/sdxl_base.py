@@ -26,7 +26,7 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
         output_type,
         generator,
     ):
-        if user_config.get("prompt_weighting", False):
+        if user_config.get("prompt_weighting", True):
             return self.pipeline(
                 prompt_embeds=prompt_embeds,
                 negative_prompt_embeds=negative_prompt_embeds,
