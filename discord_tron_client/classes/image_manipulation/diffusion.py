@@ -206,11 +206,7 @@ class DiffusionPipelineManager:
             logging.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type)
             if pipe_type in ["upscaler", "prompt_variation", "text2img"]:
-                scheduler = DDIMScheduler.from_pretrained(
-                    model_id,
-                    subfolder="scheduler",
-                )
-                self.pipelines[model_id].scheduler = scheduler
+                pass
             elif pipe_type == "variation":
                 # I think this needs a specific scheduler set.
                 logging.debug(
