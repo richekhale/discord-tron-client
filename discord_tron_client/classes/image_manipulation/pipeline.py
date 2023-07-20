@@ -506,7 +506,7 @@ class PipelineRunner:
         import random
         self.pipeline_manager.to_accelerator(pipe)
         # Reverse the bits in the seed:
-        seed_flip = int(self.seed + 1)
+        seed_flip = int(self.seed) + 1
         if user_config.get('refiner_seed_flip', False):
             seed_flip = int(self.seed) ^ 0xFFFFFFFF
         for image in images:
