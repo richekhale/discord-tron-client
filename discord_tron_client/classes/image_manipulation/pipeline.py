@@ -483,6 +483,7 @@ class PipelineRunner:
                 prompt=prompt,
                 negative_prompt=negative_prompt,
                 image=image,
+                user_config=user_config,
                 guidance_scale=float(user_config.get("refiner_guidance", 7.5)),
                 strength=float(user_config.get("refiner_strength", 0.5)),
                 aesthetic_score=float(user_config.get("aesthetic_score", 10.0)),
