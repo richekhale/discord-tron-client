@@ -10,6 +10,7 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
     def __call__(self, **args):
         # Set all defaults at once
         user_config = args.get("user_config", None)
+        del args["user_config"] # This doesn't get passed to Diffusers.
         default_values = {
             "prompt": None,
             "negative_prompt": None,
