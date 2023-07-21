@@ -38,6 +38,7 @@ config = AppConfig()
 class DiffusionPipelineManager:
     PIPELINE_CLASSES = {
         "text2img": DiffusionPipeline,
+        "kandinsky-2.2": DiffusionPipeline,
         "prompt_variation": StableDiffusionXLImg2ImgPipeline,
         "variation": StableDiffusionPipeline,
         "upscaler": StableDiffusionPipeline,
@@ -180,6 +181,8 @@ class DiffusionPipelineManager:
             if upscaler
             else "text2img"
         )
+        if "kandinsky-2.2" in model_id:
+            pipe_type = "kandinsky-2.2"
         logging.info(
             f"Executing get_pipe for model {model_id} and pipe_type {pipe_type}"
         )
@@ -201,11 +204,10 @@ class DiffusionPipelineManager:
             )
             self.clear_pipeline(model_id)
 
-        move_cuda = True
         if model_id not in self.pipelines:
             logging.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type)
-            if pipe_type in ["upscaler", "prompt_variation", "text2img"]:
+            if pipe_type in ["upscaler", "prompt_variation", "text2img", "kandinsky-2.2"]:
                 pass
             elif pipe_type == "variation":
                 # I think this needs a specific scheduler set.

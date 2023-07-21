@@ -242,13 +242,14 @@ class PipelineRunner:
             self.pipeline_manager.to_accelerator(pipe)
             image_return_type = "pil"
             denoising_start = None
+            user_model = user_config.get("model", "")
             if use_latent_result:
                 image_return_type = "latent"
                 if user_config.get("refiner_strength", 0.5) > 1.0:
                     raise ValueError("refiner_strength must be between 0.0 and 1.0")
                 if "ptx0/s1" in user_config.get(
                     "model", ""
-                ) or "stable-diffusion-xl" in user_config.get("model", ""):
+                ) or "stable-diffusion-xl" in user_model:
                     # Max inference steps are an inverse relationship of the refiner strength with the base steps.
                     denoising_start = 1 - user_config.get("refiner_strength", 0.5)
                     logging.debug(
@@ -256,14 +257,12 @@ class PipelineRunner:
                     )
             if not promptless_variation and image is None:
                 # text2img workflow
-                if "ptx0/s1" in user_config.get(
-                    "model", ""
-                ) or "stable-diffusion-xl" in user_config.get("model", ""):
+                if "ptx0/s1" in user_model or "stable-diffusion-xl" in user_model:
                     pipeline_runner = runner_map["sdxl_base"](pipeline=pipe)
-                elif "ptx0/s2" in user_config.get(
-                    "model", ""
-                ) or "xl-refiner" in user_config.get("model", ""):
+                elif "ptx0/s2" in user_model or "xl-refiner" in user_model:
                     pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe)
+                elif "kandinsky-2.2" in user_model:
+                    pipeline_runner = runner_map["kandinsky_2.2"](decoder=pipe, pipeline_manager=self.pipeline_manager)
                 else:
                     pipeline_runner = runner_map["text2img"](pipeline=pipe)
                 preprocessed_images = pipeline_runner(
@@ -284,8 +283,6 @@ class PipelineRunner:
                     output_type=image_return_type,
                     generator=generator,
                 )
-                # Unload the primary pipeline before ControlNet.
-                self.pipeline_manager.to_cpu(pipe)
                 if use_latent_result:
                     preprocessed_images = self._refiner_pipeline(
                         images=preprocessed_images,
