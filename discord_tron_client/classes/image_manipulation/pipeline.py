@@ -163,7 +163,8 @@ class PipelineRunner:
             prompt_embed = None
             negative_embed = None
             if (
-                not promptless_variation
+                self.prompt_manager is not None
+                and not promptless_variation
                 and self.prompt_manager.should_enable(pipe)
                 and self.config.enable_compel()
             ):
