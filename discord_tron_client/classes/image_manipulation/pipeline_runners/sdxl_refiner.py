@@ -9,6 +9,7 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
 
     def __call__(self, **args):
         # Set all defaults at once
+        user_config = args.get('user_config', None)
         default_values = {
             "prompt": None,
             "negative_prompt": None,
@@ -28,46 +29,36 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
             "denoising_start": None,
             "denoising_end": None
         }
-        args = {
+        runtime_args = {
             **default_values,
             **args,
         }  # merge the two dictionaries, with priority on args
-        extra_args = {}
         if args["image"] is not None:
-            extra_args["image"] = args["image"]
+            runtime_args["image"] = args["image"]
         if args["width"] is not None and args["height"] is not None:
-            extra_args["width"] = args["width"]
-            extra_args["height"] = args["height"]
+            runtime_args["width"] = args["width"]
+            runtime_args["height"] = args["height"]
 
-        if args["user_config"] is not None and args["user_config"].get(
+        # Currently, it seems like the refiner's prompt weighting is broken.
+        # We are disabling it by default.
+        if user_config is not None and user_config.get(
             "refiner_prompt_weighting", False
         ):
-            # Currently, it seems like the refiner's prompt weighting is broken.
-            # We are disabling it by default.
-            args[
+            runtime_args[
                 "num_images_per_prompt"
             ] = 1  # SDXL, when using prompt embeds, only generates 1 image per prompt.
-            # We make sure we don't call pipeline with user_config
-            del args["user_config"]
             return self.pipeline(
-                **{
-                    k: v for k, v in args.items() if k not in extra_args
-                },  # Exclude extra_args
-                **extra_args  # Include extra_args
+                **runtime_args
             ).images
         else:
-            # We make sure we don't call pipeline with unwanted args
             for unwanted_arg in [
                 "prompt_embeds",
                 "negative_prompt_embeds",
                 "pooled_prompt_embeds",
                 "negative_pooled_prompt_embeds",
             ]:
-                if unwanted_arg in args:
-                    del args[unwanted_arg]
+                if unwanted_arg in runtime_args:
+                    del runtime_args[unwanted_arg]
             return self.pipeline(
-                **{
-                    k: v for k, v in args.items() if k not in extra_args
-                },  # Exclude extra_args
-                **extra_args  # Include extra_args
+                **runtime_args
             ).images
