@@ -199,7 +199,9 @@ class DiffusionPipelineManager:
             )
             self.clear_pipeline(model_id)
         if (
-            model_id in self.last_pipe_scheduler
+            scheduler_config is not None
+            and scheduler_config != {}
+            and model_id in self.last_pipe_scheduler
             and self.last_pipe_scheduler[model_id] != scheduler_config["name"]
         ):
             logging.warn(
@@ -267,7 +269,8 @@ class DiffusionPipelineManager:
         else:
             logging.info(f"Keeping existing pipeline. Not creating any new ones.")
         self.last_pipe_type[model_id] = pipe_type
-        self.last_pipe_scheduler[model_id] = scheduler_config["name"]
+        if scheduler_config is not None and scheduler_config != {}:
+            self.last_pipe_scheduler[model_id] = scheduler_config.get("name", "default")
         enable_tiling = user_config.get("enable_tiling", True)
         if hasattr(self.pipelines[model_id], 'vae') and enable_tiling:
             logging.warn(f"Enabling VAE tiling. This could cause artifacted outputs.")
