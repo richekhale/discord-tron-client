@@ -26,6 +26,7 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
         aesthetic_score,
         negative_aesthetic_score,
         generator,
+        image = None,
         denoising_start = None,
         denoising_end = None,
     ):
@@ -34,6 +35,7 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
             # We are disabling it by default.
             num_images_per_prompt = 1 # SDXL, when using prompt embeds, only generates 1 image per prompt.
             return self.pipeline(
+                image=image,
                 prompt_embeds=prompt_embeds,
                 negative_prompt_embeds=negative_prompt_embeds,
                 pooled_prompt_embeds=pooled_prompt_embeds,
@@ -51,6 +53,7 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
             ).images
         else:
             return self.pipeline(
+                image=image,
                 prompt=prompt,
                 negative_prompt=negative_prompt,
                 num_images_per_prompt=num_images_per_prompt,
