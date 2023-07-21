@@ -396,7 +396,7 @@ class PipelineRunner:
             promptless_variation,
             upscaler,
         )
-        if not promptless_variation:
+        if not promptless_variation and "kandinsky" not in model_id:
             self.prompt_manager = self._get_prompt_manager(pipe)
 
         # The final cap-off attempt to clamp memory use.
