@@ -3,7 +3,7 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners.base_runner
 )
 import logging
 
-class KandinskyTwoTwoRunner(BasePipelineRunner):
+class KandinskyTwoTwoPipelineRunner(BasePipelineRunner):
     def __init__(self, decoder, pipeline_manager):
         self.decoder = decoder
         self.prior = None
