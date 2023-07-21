@@ -300,30 +300,26 @@ class PipelineRunner:
                 # Img2Img workflow
                 # Create {batch_size} torch.Generator objects in a list:
                 torch_generators = [torch.Generator() for _ in range(batch_size)]
-                if "ptx0/s" in user_config.get("model", ""):
-                    alt_weight_algorithm = False
-                if not alt_weight_algorithm:
-                    new_image = pipe(
+                new_image = pipe(
+                    prompt=positive_prompt,
+                    negative_prompt=negative_prompt,
+                    num_images_per_prompt=batch_size,
+                    image=image,
+                    strength=user_config["strength"],
+                    num_inference_steps=user_config.get('steps', 20),
+                    denoising_end=0.8 if use_latent_result else None,
+                    generator=torch_generators,
+                    output_type=image_return_type,
+                    guidance_scale=7.5,
+                ).images
+                if use_latent_result:
+                    new_image = self._refiner_pipeline(
+                        images=new_image,
+                        user_config=user_config,
                         prompt=positive_prompt,
                         negative_prompt=negative_prompt,
-                        num_images_per_prompt=batch_size,
-                        image=image,
-                        strength=user_config["strength"],
-                        num_inference_steps=20,
-                        guidance_scale=5.4,
-                    ).images
-                else:
-                    new_image = pipe(
-                        prompt_embeds=prompt_embed,
-                        num_images_per_prompt=batch_size,
-                        image=image,
-                        strength=user_config["strength"],
-                        negative_prompt_embeds=negative_embed,
-                        num_inference_steps=20,
-                        guidance_scale=5.4,
-                        guidance_rescale=user_config.get('guidance_rescale', 0.3),
-                        generator=torch_generators,
-                    ).images
+                        denoising_start=0.8,
+                    )
             elif promptless_variation:
                 new_image = self._controlnet_pipeline(image=image, user_config=user_config, pipe=pipe, generator=generator, prompt=positive_prompt, negative_prompt=negative_prompt)
             elif upscaler:
