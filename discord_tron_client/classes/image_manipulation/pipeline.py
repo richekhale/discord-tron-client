@@ -298,6 +298,7 @@ class PipelineRunner:
                 new_image = self._controlnet_all_images(preprocessed_images=preprocessed_images, user_config=user_config, generator=generator)
             elif not upscaler and not promptless_variation and image is not None:
                 # Img2Img workflow
+                guidance_scale = 7.5
                 new_image = pipe(
                     prompt=positive_prompt,
                     negative_prompt=negative_prompt,
@@ -307,7 +308,7 @@ class PipelineRunner:
                     num_inference_steps=user_config.get('steps', 20),
                     denoising_end=0.8 if use_latent_result else None,
                     output_type=image_return_type,
-                    guidance_scale=7.5,
+                    guidance_scale=guidance_scale,
                 ).images
                 if use_latent_result:
                     new_image = self._refiner_pipeline(
@@ -354,7 +355,7 @@ class PipelineRunner:
         if should_upscale:
             logging.info('Upscaling image using Real-ESRGAN!')
             new_image = self.pipeline_manager.upscale_image(new_image)
-        image_params = { "seed": self.seed }
+        image_params = { "seed": self.seed, "guidance_scaling": guidance_scale, "strength": user_config.get("strength", 0.5) }
         return self._encode_output(new_image, positive_prompt, user_config, image_params)
 
     async def generate_image(
@@ -543,6 +544,7 @@ class PipelineRunner:
         attributes = {
             "prompt": prompt,
             "original_user": str(user_config["user_id"]),
+            "guidance_scaling": str(image_params.get("guidance_scaling", 7.5)),
             "seed": str(image_params['seed']),
         }
         if not user_config.get("encode_metadata", True):
