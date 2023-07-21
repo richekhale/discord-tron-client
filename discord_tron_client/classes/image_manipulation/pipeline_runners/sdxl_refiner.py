@@ -9,7 +9,7 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
 
     def __call__(self, **args):
         # Set all defaults at once
-        user_config = args.get('user_config', None)
+        user_config = args.get("user_config", None)
         default_values = {
             "prompt": None,
             "negative_prompt": None,
@@ -27,7 +27,7 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
             "negative_pooled_prompt_embeds": None,
             "strength": None,
             "denoising_start": None,
-            "denoising_end": None
+            "denoising_end": None,
         }
         runtime_args = {
             **default_values,
@@ -35,7 +35,12 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
         }  # merge the two dictionaries, with priority on args
         if args["image"] is not None:
             runtime_args["image"] = args["image"]
-        if args["width"] is not None and args["height"] is not None:
+        if (
+            "width" in args
+            and args["width"] is not None
+            and "height" in args
+            and args["height"] is not None
+        ):
             runtime_args["width"] = args["width"]
             runtime_args["height"] = args["height"]
 
@@ -47,9 +52,7 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
             runtime_args[
                 "num_images_per_prompt"
             ] = 1  # SDXL, when using prompt embeds, only generates 1 image per prompt.
-            return self.pipeline(
-                **runtime_args
-            ).images
+            return self.pipeline(**runtime_args).images
         else:
             for unwanted_arg in [
                 "prompt_embeds",
@@ -59,6 +62,4 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
             ]:
                 if unwanted_arg in runtime_args:
                     del runtime_args[unwanted_arg]
-            return self.pipeline(
-                **runtime_args
-            ).images
+            return self.pipeline(**runtime_args).images
