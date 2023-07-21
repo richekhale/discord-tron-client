@@ -298,8 +298,6 @@ class PipelineRunner:
                 new_image = self._controlnet_all_images(preprocessed_images=preprocessed_images, user_config=user_config, generator=generator)
             elif not upscaler and not promptless_variation and image is not None:
                 # Img2Img workflow
-                # Create {batch_size} torch.Generator objects in a list:
-                torch_generators = [torch.Generator() for _ in range(batch_size)]
                 new_image = pipe(
                     prompt=positive_prompt,
                     negative_prompt=negative_prompt,
@@ -308,7 +306,6 @@ class PipelineRunner:
                     strength=user_config["strength"],
                     num_inference_steps=user_config.get('steps', 20),
                     denoising_end=0.8 if use_latent_result else None,
-                    generator=torch_generators,
                     output_type=image_return_type,
                     guidance_scale=7.5,
                 ).images
