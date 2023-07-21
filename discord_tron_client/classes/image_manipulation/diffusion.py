@@ -87,7 +87,7 @@ class DiffusionPipelineManager:
             except Exception as e:
                 logging.error(f"Error when deleting pipe: {e}")
 
-    def create_pipeline(self, model_id: str, pipe_type: str) -> Pipeline:
+    def create_pipeline(self, model_id: str, pipe_type: str, use_safetensors: bool = True) -> Pipeline:
         pipeline_class = self.PIPELINE_CLASSES[pipe_type]
         if pipe_type in ["variation", "upscaler"]:
             # Variation uses ControlNet stuff.
@@ -106,7 +106,7 @@ class DiffusionPipelineManager:
                 feature_extractor=None,
                 safety_checker=None,
                 requires_safety_checker=None,
-                use_safetensors=True,
+                use_safetensors=use_safetensors,
             )
         elif pipe_type in ["prompt_variation"]:
             # Use the long prompt weighting pipeline.
@@ -117,7 +117,7 @@ class DiffusionPipelineManager:
                 feature_extractor=None,
                 safety_checker=None,
                 requires_safety_checker=None,
-                use_safetensors=True,
+                use_safetensors=use_safetensors,
             )
         elif pipe_type in ["text2img"]:
             logging.debug(f"Creating a txt2img pipeline for {model_id}")
@@ -127,7 +127,7 @@ class DiffusionPipelineManager:
                 feature_extractor=None,
                 safety_checker=None,
                 requires_safety_checker=None,
-                use_safetensors=True,
+                use_safetensors=use_safetensors,
                 use_auth_token=config.get_huggingface_api_key(),
             )
             logging.debug(f"Model config: {pipeline.config}")
@@ -181,7 +181,9 @@ class DiffusionPipelineManager:
             if upscaler
             else "text2img"
         )
+        use_safetensors = True
         if "kandinsky-2-2" in model_id:
+            use_safetensors = False
             pipe_type = "kandinsky-2.2"
         logging.info(
             f"Executing get_pipe for model {model_id} and pipe_type {pipe_type}"
@@ -206,7 +208,7 @@ class DiffusionPipelineManager:
 
         if model_id not in self.pipelines:
             logging.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
-            self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type)
+            self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type, use_safetensors=use_safetensors)
             if pipe_type in ["upscaler", "prompt_variation", "text2img", "kandinsky-2.2"]:
                 pass
             elif pipe_type == "variation":
