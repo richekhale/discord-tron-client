@@ -19,6 +19,7 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners import (
     Img2ImgPipelineRunner,
     SdxlBasePipelineRunner,
     SdxlRefinerPipelineRunner,
+    KandinskyTwoTwoPipelineRunner,
     runner_map,
 )
 
