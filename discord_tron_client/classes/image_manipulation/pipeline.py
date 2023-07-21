@@ -550,7 +550,7 @@ class PipelineRunner:
                     ),
                     num_inference_steps=int(user_config.get("steps", 20)),
                     denoising_start=denoising_start,
-                ).images[0]
+                )[0]
             )
         self.pipeline_manager.to_cpu(pipe)
         return new_images
