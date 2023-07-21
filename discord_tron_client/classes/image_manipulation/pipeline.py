@@ -19,8 +19,9 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners import (
     Img2ImgPipelineRunner,
     SdxlBasePipelineRunner,
     SdxlRefinerPipelineRunner,
-    runner_map
+    runner_map,
 )
+
 hardware = HardwareInfo()
 
 
@@ -161,15 +162,26 @@ class PipelineRunner:
             prompt = PromptManipulation.remove_duplicate_prompts(prompt, user_config)
             prompt_embed = None
             negative_embed = None
-            if not promptless_variation and self.prompt_manager.should_enable(pipe) and self.config.enable_compel():
+            if (
+                not promptless_variation
+                and self.prompt_manager.should_enable(pipe)
+                and self.config.enable_compel()
+            ):
                 embeddings = self.prompt_manager.process_long_prompt(
                     positive_prompt=prompt, negative_prompt=negative_prompt
                 )
-                prompt_embed = negative_embed = pooled_embed = negative_pooled_embed = None
+                prompt_embed = (
+                    negative_embed
+                ) = pooled_embed = negative_pooled_embed = None
                 if len(embeddings) == 2:
                     prompt_embed, negative_embed = embeddings
                 elif len(embeddings) == 4:
-                    prompt_embed, negative_embed, pooled_embed, negative_pooled_embed = embeddings
+                    (
+                        prompt_embed,
+                        negative_embed,
+                        pooled_embed,
+                        negative_pooled_embed,
+                    ) = embeddings
                 else:
                     raise ValueError(
                         f"Unexpected number of embeddings returned: {len(embeddings)}"
@@ -220,13 +232,13 @@ class PipelineRunner:
         positive_prompt="",
         negative_prompt="",
         pooled_embed=None,
-        negative_pooled_embed=None
+        negative_pooled_embed=None,
     ):
         original_stderr = sys.stderr
         sys.stderr = self.tqdm_capture
         batch_size = self.config.maximum_batch_size()
         try:
-            use_latent_result = user_config.get('latent_refiner', True)
+            use_latent_result = user_config.get("latent_refiner", True)
             self.pipeline_manager.to_accelerator(pipe)
             image_return_type = "pil"
             denoising_start = None
@@ -234,18 +246,26 @@ class PipelineRunner:
                 image_return_type = "latent"
                 if user_config.get("refiner_strength", 0.5) > 1.0:
                     raise ValueError("refiner_strength must be between 0.0 and 1.0")
-                if "ptx0/s1" in user_config.get("model", "") or "stable-diffusion-xl" in user_config.get("model", ""):
+                if "ptx0/s1" in user_config.get(
+                    "model", ""
+                ) or "stable-diffusion-xl" in user_config.get("model", ""):
                     # Max inference steps are an inverse relationship of the refiner strength with the base steps.
                     denoising_start = 1 - user_config.get("refiner_strength", 0.5)
-                    logging.debug(f'Final inference step: {denoising_start}, steps: {steps}')
+                    logging.debug(
+                        f"Final inference step: {denoising_start}, steps: {steps}"
+                    )
             if not promptless_variation and image is None:
                 # text2img workflow
-                if "ptx0/s1" in user_config.get("model", "") or "stable-diffusion-xl" in user_config.get("model", ""):
-                    pipeline_runner = runner_map['sdxl_base'](pipeline=pipe)
-                elif "ptx0/s2" in user_config.get("model", "") or "xl-refiner" in user_config.get("model", ""):
-                    pipeline_runner = runner_map['sdxl_refiner'](pipeline=pipe)
+                if "ptx0/s1" in user_config.get(
+                    "model", ""
+                ) or "stable-diffusion-xl" in user_config.get("model", ""):
+                    pipeline_runner = runner_map["sdxl_base"](pipeline=pipe)
+                elif "ptx0/s2" in user_config.get(
+                    "model", ""
+                ) or "xl-refiner" in user_config.get("model", ""):
+                    pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe)
                 else:
-                    pipeline_runner = runner_map['text2img'](pipeline=pipe)
+                    pipeline_runner = runner_map["text2img"](pipeline=pipe)
                 preprocessed_images = pipeline_runner(
                     prompt=positive_prompt,
                     negative_prompt=negative_prompt,
@@ -259,7 +279,7 @@ class PipelineRunner:
                     width=side_x,
                     num_inference_steps=int(float(steps)),
                     denoising_end=denoising_start,
-                    guidance_rescale=float(user_config.get('guidance_rescale', 0.3)),
+                    guidance_rescale=float(user_config.get("guidance_rescale", 0.3)),
                     guidance_scale=float(guidance_scale),
                     output_type=image_return_type,
                     generator=generator,
@@ -274,7 +294,11 @@ class PipelineRunner:
                         negative_prompt=negative_prompt,
                         denoising_start=denoising_start,
                     )
-                new_image = self._controlnet_all_images(preprocessed_images=preprocessed_images, user_config=user_config, generator=generator)
+                new_image = self._controlnet_all_images(
+                    preprocessed_images=preprocessed_images,
+                    user_config=user_config,
+                    generator=generator,
+                )
             elif not upscaler and not promptless_variation and image is not None:
                 # Img2Img workflow
                 guidance_scale = 7.5
@@ -284,7 +308,7 @@ class PipelineRunner:
                     num_images_per_prompt=batch_size,
                     image=image,
                     strength=user_config["strength"],
-                    num_inference_steps=user_config.get('steps', 20),
+                    num_inference_steps=user_config.get("steps", 20),
                     denoising_end=0.8 if use_latent_result else None,
                     output_type=image_return_type,
                     guidance_scale=guidance_scale,
@@ -298,9 +322,16 @@ class PipelineRunner:
                         denoising_start=0.8,
                     )
             elif promptless_variation:
-                new_image = self._controlnet_pipeline(image=image, user_config=user_config, pipe=pipe, generator=generator, prompt=positive_prompt, negative_prompt=negative_prompt)
+                new_image = self._controlnet_pipeline(
+                    image=image,
+                    user_config=user_config,
+                    pipe=pipe,
+                    generator=generator,
+                    prompt=positive_prompt,
+                    negative_prompt=negative_prompt,
+                )
             elif upscaler:
-                logging.info('Upscaling image using Real-ESRGAN!')
+                logging.info("Upscaling image using Real-ESRGAN!")
                 new_image = self.pipeline_manager.upscale_image(new_image)
             else:
                 raise Exception(
@@ -322,20 +353,26 @@ class PipelineRunner:
             # This should help with sporadic GPU memory errors.
             # https://github.com/damian0815/compel/issues/24
             try:
-                    del prompt_embed
-                    del negative_embed
-                    self.pipeline_manager.to_cpu(pipe)
-                    gc.collect()
+                del prompt_embed
+                del negative_embed
+                self.pipeline_manager.to_cpu(pipe)
+                gc.collect()
             except Exception as e:
-                logging.warn(f'Could not cleanly clear the GC: {e}')
+                logging.warn(f"Could not cleanly clear the GC: {e}")
 
         # Now we upscale using Real-ESRGAN.
-        should_upscale = user_config.get('hires_fix', False)
+        should_upscale = user_config.get("hires_fix", False)
         if should_upscale:
-            logging.info('Upscaling image using Real-ESRGAN!')
+            logging.info("Upscaling image using Real-ESRGAN!")
             new_image = self.pipeline_manager.upscale_image(new_image)
-        image_params = { "seed": self.seed, "guidance_scaling": guidance_scale, "strength": user_config.get("strength", 0.5) }
-        return self._encode_output(new_image, positive_prompt, user_config, image_params)
+        image_params = {
+            "seed": self.seed,
+            "guidance_scaling": guidance_scale,
+            "strength": user_config.get("strength", 0.5),
+        }
+        return self._encode_output(
+            new_image, positive_prompt, user_config, image_params
+        )
 
     async def generate_image(
         self,
@@ -398,13 +435,21 @@ class PipelineRunner:
         logging.info(f"Seed: {self.seed}")
         return generator
 
-    def _get_prompt_manager(self, pipe, device = "cpu", use_second_encoder_only: bool = False):
+    def _get_prompt_manager(
+        self, pipe, device="cpu", use_second_encoder_only: bool = False
+    ):
         is_gpu = next(pipe.unet.parameters()).is_cuda
         if is_gpu:
             if device == "cpu":
-                logging.warning(f'Prompt manager was requested to be placed on the CPU, but the unet is already on the GPU. We have to adjust the prompt manager, to the GPU.')
+                logging.warning(
+                    f"Prompt manager was requested to be placed on the CPU, but the unet is already on the GPU. We have to adjust the prompt manager, to the GPU."
+                )
             device = "cuda"
-        return PromptManipulation(pipeline=pipe, device=device, use_second_encoder_only=use_second_encoder_only)
+        return PromptManipulation(
+            pipeline=pipe,
+            device=device,
+            use_second_encoder_only=use_second_encoder_only,
+        )
 
     def _get_rescaled_resolution(self, user_config, side_x, side_y):
         resolution = {"width": side_x, "height": side_y}
@@ -424,18 +469,22 @@ class PipelineRunner:
         img = input_image.resize((W, H), resample=Image.BICUBIC)
         return img
 
-    def _controlnet_pipeline(self, image: Image, user_config: dict, pipe, generator, prompt: str = None, negative_prompt: str = None):
+    def _controlnet_pipeline(
+        self,
+        image: Image,
+        user_config: dict,
+        pipe,
+        generator,
+        prompt: str = None,
+        negative_prompt: str = None,
+    ):
         # Get the image width/height from 'image' if it's provided
-        logging.info(
-            f"Running promptless variation with image.size {image.size}."
-        )
+        logging.info(f"Running promptless variation with image.size {image.size}.")
         width, height = image.size
         if width != 1024 and height != 1024:
             # If neither width nor height is 1024, resize the image so that one is, while
             # maintaining the aspect ratio.
-            image = self._resize_for_condition_image(
-                input_image=image, resolution=1024
-            )
+            image = self._resize_for_condition_image(input_image=image, resolution=1024)
         if prompt is None:
             prompt = user_config["tile_positive"]
             negative_prompt = user_config["tile_negative"]
@@ -455,17 +504,22 @@ class PipelineRunner:
             generator=generator,
             num_inference_steps=user_config.get("tile_steps", 32),
         ).images[0]
-        self.pipeline_manager.to_cpu(pipe, user_config['model_id'])                    
+        self.pipeline_manager.to_cpu(pipe, user_config["model_id"])
         return new_image
 
-    def _refiner_pipeline(self, images: Image, user_config: dict, prompt: str = None, negative_prompt: str = None, random_seed = False, denoising_start = None):
-        
+    def _refiner_pipeline(
+        self,
+        images: Image,
+        user_config: dict,
+        prompt: str = None,
+        negative_prompt: str = None,
+        random_seed=False,
+        denoising_start=None,
+    ):
         # Get the image width/height from 'image' if it's provided
-        logging.info(
-            f"Running SDXL Refiner.."
-        )
+        logging.info(f"Running SDXL Refiner..")
         pipe = self.pipeline_manager.get_sdxl_refiner_pipe()
-        pipeline_runner = runner_map['sdxl_refiner'](pipeline=pipe)
+        pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe)
 
         # Generate prompt embeds. Currently disabled/broken.
         # refiner_prompt_manager = self._get_prompt_manager(pipe, use_second_encoder_only=True)
@@ -478,25 +532,33 @@ class PipelineRunner:
         # Reverse the bits in the seed:
         seed_flip = int(self.seed) ^ 0xFFFFFFFF
         for image in images:
-            new_images.append(pipeline_runner(
-                generator = torch.Generator(device="cpu").manual_seed(int(seed_flip)),
-                prompt=prompt,
-                negative_prompt=negative_prompt,
-                image=image,
-                user_config=user_config,
-                guidance_scale=float(user_config.get("refiner_guidance", 7.5)),
-                strength=float(user_config.get("refiner_strength", 0.5)),
-                aesthetic_score=float(user_config.get("aesthetic_score", 10.0)),
-                negative_aesthetic_score=float(user_config.get("negative_aesthetic_score", 1.0)),
-                num_inference_steps=int(user_config.get("steps", 20)),
-                denoising_start=denoising_start
-            ).images[0])
+            new_images.append(
+                pipeline_runner(
+                    generator=torch.Generator(device="cpu").manual_seed(int(seed_flip)),
+                    prompt=prompt,
+                    negative_prompt=negative_prompt,
+                    image=image,
+                    user_config=user_config,
+                    output_type="pil",
+                    num_images_per_prompt=1,
+                    guidance_scale=float(user_config.get("refiner_guidance", 7.5)),
+                    guidance_rescale=float(user_config.get("refiner_guidance_rescale", 0.0)),
+                    strength=float(user_config.get("refiner_strength", 0.5)),
+                    aesthetic_score=float(user_config.get("aesthetic_score", 10.0)),
+                    negative_aesthetic_score=float(
+                        user_config.get("negative_aesthetic_score", 1.0)
+                    ),
+                    num_inference_steps=int(user_config.get("steps", 20)),
+                    denoising_start=denoising_start,
+                ).images[0]
+            )
         self.pipeline_manager.to_cpu(pipe)
         return new_images
 
-
-    def _controlnet_all_images(self, preprocessed_images: list, user_config: dict, generator):
-        if float(user_config.get('tile_strength', 0.3)) == 0.0:
+    def _controlnet_all_images(
+        self, preprocessed_images: list, user_config: dict, generator
+    ):
+        if float(user_config.get("tile_strength", 0.3)) == 0.0:
             # Zero strength = Zero CTU.
             return preprocessed_images
 
@@ -504,32 +566,43 @@ class PipelineRunner:
         controlnet_pipe = self.pipeline_manager.get_controlnet_pipe()
         self.pipeline_manager.to_accelerator(controlnet_pipe)
         for image in preprocessed_images:
-            preprocessed_images[idx] = self._controlnet_pipeline(image=image, user_config=user_config, pipe=controlnet_pipe, generator=generator)
+            preprocessed_images[idx] = self._controlnet_pipeline(
+                image=image,
+                user_config=user_config,
+                pipe=controlnet_pipe,
+                generator=generator,
+            )
             gc.collect()
             idx += 1
         del controlnet_pipe
         self.pipeline_manager.to_cpu(controlnet_pipe)
         return preprocessed_images
-    
+
     def _encode_image_metadata(self, image: Image, prompt, user_config, image_params):
         attributes = {
             "prompt": prompt,
             "original_user": str(user_config["user_id"]),
             "guidance_scaling": str(image_params.get("guidance_scaling", 7.5)),
-            "seed": str(image_params['seed']),
+            "seed": str(image_params["seed"]),
         }
         if not user_config.get("encode_metadata", True):
             return image
         return ImageMetadata.encode(image, user_config, attributes)
-    
-    def _encode_images_metadata(self, images: list, prompt, user_config, image_params: dict = {}):
+
+    def _encode_images_metadata(
+        self, images: list, prompt, user_config, image_params: dict = {}
+    ):
         idx = 0
         for image in images:
-            images[idx] = self._encode_image_metadata(image, prompt, user_config, image_params)
+            images[idx] = self._encode_image_metadata(
+                image, prompt, user_config, image_params
+            )
             idx += 1
         return images
-    
+
     def _encode_output(self, output, prompt, user_config, image_params: dict = {}):
         if type(output) == list:
-            return self._encode_images_metadata(output, prompt, user_config, image_params)
+            return self._encode_images_metadata(
+                output, prompt, user_config, image_params
+            )
         return self._encode_image_metadata(output, prompt, user_config, image_params)
