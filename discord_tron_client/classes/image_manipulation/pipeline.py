@@ -261,7 +261,7 @@ class PipelineRunner:
                     pipeline_runner = runner_map["sdxl_base"](pipeline=pipe)
                 elif "ptx0/s2" in user_model or "xl-refiner" in user_model:
                     pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe)
-                elif "kandinsky-2.2" in user_model:
+                elif "kandinsky-2-2" in user_model:
                     pipeline_runner = runner_map["kandinsky_2.2"](decoder=pipe, pipeline_manager=self.pipeline_manager)
                 else:
                     pipeline_runner = runner_map["text2img"](pipeline=pipe)

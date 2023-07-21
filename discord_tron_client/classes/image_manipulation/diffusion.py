@@ -181,7 +181,7 @@ class DiffusionPipelineManager:
             if upscaler
             else "text2img"
         )
-        if "kandinsky-2.2" in model_id:
+        if "kandinsky-2-2" in model_id:
             pipe_type = "kandinsky-2.2"
         logging.info(
             f"Executing get_pipe for model {model_id} and pipe_type {pipe_type}"
