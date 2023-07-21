@@ -31,6 +31,8 @@ class KandinskyTwoTwoPipelineRunner(BasePipelineRunner):
         prompt = args.get('prompt', '')
         negative_prompt = args.get('negative_prompt', '')
         image_embeds, negative_image_embeds = self.prior(prompt, negative_prompt, guidance_scale=1.0).to_tuple()
+        del self.prior
+        self.clear_cuda_cache()
         return self.decoder(
             image_embeds=image_embeds,
             negative_image_embeds=negative_image_embeds,
