@@ -9,6 +9,7 @@ from diffusers import (
     AutoencoderKL,
     DDIMScheduler,
     UniPCMultistepScheduler,
+    KandinskyV22Pipeline,
     StableDiffusionXLImg2ImgPipeline,
 )
 from diffusers import DiffusionPipeline as Pipeline

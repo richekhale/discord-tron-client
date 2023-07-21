@@ -49,6 +49,9 @@ class PromptManipulation:
                 returned_embeddings_type=ReturnedEmbeddingsType.LAST_HIDDEN_STATES_NORMALIZED,
             )
     def should_enable(self, pipeline):
+        if (type(pipeline).__name__ == "KandinskyV22Pipeline"):
+            # KandinskyV22Pipeline doesn't use the prompt manager.
+            return False
         return True
 
     def has_dual_text_encoders(self, pipeline):
