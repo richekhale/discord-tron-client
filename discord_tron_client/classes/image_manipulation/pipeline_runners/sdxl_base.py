@@ -27,12 +27,13 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
         generator,
     ):
         if user_config.get("prompt_weighting", True):
+            num_images_per_prompt = 1 # SDXL, when using prompt embeds, only generates 1 image per prompt.
             return self.pipeline(
                 prompt_embeds=prompt_embeds,
                 negative_prompt_embeds=negative_prompt_embeds,
                 pooled_prompt_embeds=pooled_prompt_embeds,
                 negative_pooled_prompt_embeds=negative_pooled_prompt_embeds,
-                num_images_per_prompt=1,
+                num_images_per_prompt=num_images_per_prompt,
                 height=height,
                 width=width,
                 num_inference_steps=int(float(num_inference_steps)),

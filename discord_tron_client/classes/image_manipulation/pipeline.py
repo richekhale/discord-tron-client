@@ -226,7 +226,6 @@ class PipelineRunner:
         sys.stderr = self.tqdm_capture
         batch_size = self.config.maximum_batch_size()
         try:
-            alt_weight_algorithm = user_config.get("alt_weight_algorithm", False)
             use_latent_result = user_config.get('latent_refiner', True)
             self.pipeline_manager.to_accelerator(pipe)
             image_return_type = "pil"
@@ -243,48 +242,28 @@ class PipelineRunner:
                 # text2img workflow
                 if "ptx0/s1" in user_config.get("model", "") or "stable-diffusion-xl" in user_config.get("model", ""):
                     pipeline_runner = runner_map['sdxl_base'](pipeline=pipe)
-                    preprocessed_images = pipeline_runner(
-                        prompt=positive_prompt,
-                        negative_prompt=negative_prompt,
-                        user_config=user_config,
-                        prompt_embeds=prompt_embed,
-                        negative_prompt_embeds=negative_embed,
-                        pooled_prompt_embeds=pooled_embed,
-                        negative_pooled_prompt_embeds=negative_pooled_embed,
-                        num_images_per_prompt=batch_size,
-                        height=side_y,
-                        width=side_x,
-                        num_inference_steps=int(float(steps)),
-                        denoising_end=denoising_start,
-                        guidance_rescale=float(user_config.get('guidance_rescale', 0.3)),
-                        guidance_scale=float(guidance_scale),
-                        output_type=image_return_type,
-                        generator=generator,
-                    )
                 elif "ptx0/s2" in user_config.get("model", "") or "xl-refiner" in user_config.get("model", ""):
-                    preprocessed_images = pipe(
-                        prompt_embeds=prompt_embed,
-                        negative_prompt_embeds=negative_embed,
-                        pooled_prompt_embeds=pooled_embed,
-                        negative_pooled_prompt_embeds=negative_pooled_embed,
-                        num_images_per_prompt=1,
-                        num_inference_steps=int(float(steps)),
-                        guidance_rescale=user_config.get('guidance_rescale', 0.3),
-                        guidance_scale=guidance_scale,
-                        generator=generator,
-                    ).images
+                    pipeline_runner = runner_map['sdxl_refiner'](pipeline=pipe)
                 else:
-                    preprocessed_images = pipe(
-                        prompt_embeds=prompt_embed,
-                        num_images_per_prompt=batch_size,
-                        height=side_y,
-                        width=side_x,
-                        num_inference_steps=int(float(steps)),
-                        negative_prompt_embeds=negative_embed,
-                        guidance_scale=guidance_scale,
-                        generator=generator,
-                        guidance_rescale=user_config.get('guidance_rescale', 0.3),
-                    ).images
+                    pipeline_runner = runner_map['text2img'](pipeline=pipe)
+                preprocessed_images = pipeline_runner(
+                    prompt=positive_prompt,
+                    negative_prompt=negative_prompt,
+                    user_config=user_config,
+                    prompt_embeds=prompt_embed,
+                    negative_prompt_embeds=negative_embed,
+                    pooled_prompt_embeds=pooled_embed,
+                    negative_pooled_prompt_embeds=negative_pooled_embed,
+                    num_images_per_prompt=batch_size,
+                    height=side_y,
+                    width=side_x,
+                    num_inference_steps=int(float(steps)),
+                    denoising_end=denoising_start,
+                    guidance_rescale=float(user_config.get('guidance_rescale', 0.3)),
+                    guidance_scale=float(guidance_scale),
+                    output_type=image_return_type,
+                    generator=generator,
+                )
                 # Unload the primary pipeline before ControlNet.
                 self.pipeline_manager.to_cpu(pipe)
                 if use_latent_result:
@@ -486,30 +465,21 @@ class PipelineRunner:
             f"Running SDXL Refiner.."
         )
         pipe = self.pipeline_manager.get_sdxl_refiner_pipe()
-        if prompt is None:
-            prompt = user_config["tile_positive"]
-            negative_prompt = user_config["tile_negative"]
+        pipeline_runner = runner_map['sdxl_refiner'](pipeline=pipe)
 
-        refiner_prompt_manager = self._get_prompt_manager(pipe, use_second_encoder_only=True)
-        # Generate prompt embeds.
-        prompt_embed, negative_embed, pooled_embed, negative_pooled_embed = refiner_prompt_manager.process_long_prompt(
-            positive_prompt=prompt, negative_prompt=negative_prompt
-        )
+        # Generate prompt embeds. Currently disabled/broken.
+        # refiner_prompt_manager = self._get_prompt_manager(pipe, use_second_encoder_only=True)
+        # prompt_embed, negative_embed, pooled_embed, negative_pooled_embed = refiner_prompt_manager.process_long_prompt(
+        #     positive_prompt=prompt, negative_prompt=negative_prompt
+        # )
 
         new_images = []
-        import random
         self.pipeline_manager.to_accelerator(pipe)
         # Reverse the bits in the seed:
-        seed_flip = int(self.seed) + 1
-        if user_config.get('refiner_seed_flip', False):
-            seed_flip = int(self.seed) ^ 0xFFFFFFFF
+        seed_flip = int(self.seed) ^ 0xFFFFFFFF
         for image in images:
-            new_images.append(pipe(
+            new_images.append(pipeline_runner(
                 generator = torch.Generator(device="cpu").manual_seed(int(seed_flip)),
-                # prompt_embeds=prompt_embed,
-                # negative_prompt_embeds=negative_embed,
-                # pooled_prompt_embeds=pooled_embed,
-                # negative_pooled_prompt_embeds=negative_pooled_embed,
                 prompt=prompt,
                 negative_prompt=negative_prompt,
                 image=image,
