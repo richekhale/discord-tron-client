@@ -62,6 +62,7 @@ class PipelineRunner:
         self.tqdm_capture = TqdmCapture(self.progress_bar, main_loop)
         self.websocket = websocket
         self.model_config = model_config
+        self.prompt_manager = None
 
     async def _prepare_pipe_async(
         self,
