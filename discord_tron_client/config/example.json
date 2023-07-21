@@ -24,5 +24,7 @@
     "llama_model_default": "7B",
     "enable_llama": false,
     "enable_stablelm": false,
-    "enable_stablevicuna": false
+    "enable_stablevicuna": false,
+    "enable_sequential_offload": false,
+    "enable_offload": false
 }

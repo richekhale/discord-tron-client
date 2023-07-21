@@ -43,8 +43,12 @@ class HardwareInfo:
         return HardwareInfo.identifier
 
     def should_offload(self):
+        if not config.enable_offload():
+            return False
         return self.get_video_memory_info() == 'Unknown' or self.video_memory_amount < 48
     def should_sequential_offload(self):
+        if not config.enable_offload() or not config.enable_sequential_offload():
+            return False
         return self.should_offload() and self.video_memory_amount < 10
 
     def get_system_capabilities(self):
