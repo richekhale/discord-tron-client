@@ -46,7 +46,7 @@ class PromptManipulation:
                 tokenizer=pipe_tokenizer,
                 text_encoder=pipe_text_encoder,
                 truncate_long_prompts=False,
-                returned_embeddings_type=ReturnedEmbeddingsType.PENULTIMATE_HIDDEN_STATES_NON_NORMALIZED,
+                returned_embeddings_type=ReturnedEmbeddingsType.LAST_HIDDEN_STATES_NORMALIZED,
             )
     def should_enable(self, pipeline):
         return True
