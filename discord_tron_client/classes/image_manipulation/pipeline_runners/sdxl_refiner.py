@@ -8,20 +8,20 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
         self.pipeline = pipeline
 
     def __call__(self, **args):
-        # Set all defaults at once
         user_config = args.get("user_config", None)
-        del args["user_config"] # This doesn't get passed to Diffusers.
+        del args["user_config"]  # This doesn't get passed to Diffusers.
 
         # Currently, it seems like the refiner's prompt weighting is broken.
         # We are disabling it by default.
-        if user_config is not None and user_config.get(
-            "refiner_prompt_weighting", False
-        ):
-            args[
-                "num_images_per_prompt"
-            ] = 1  # SDXL, when using prompt embeds, only generates 1 image per prompt.
-            return self.pipeline(**args).images
+        if user_config is not None and user_config.get("refiner_prompt_weighting", False):
+            # SDXL, when using prompt embeds, must be instructed to only generate 1 image per prompt.
+            args["num_images_per_prompt"] = 1
+            # We don't pass the text prompts in, when using embeds.
+            for unwanted_arg in ["prompt", "negative_prompt"]:
+                if unwanted_arg in args:
+                    del args[unwanted_arg]
         else:
+            # If we're not using prompt embeds, delete them from the arguments.
             for unwanted_arg in [
                 "prompt_embeds",
                 "negative_prompt_embeds",
@@ -30,4 +30,5 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
             ]:
                 if unwanted_arg in args:
                     del args[unwanted_arg]
-            return self.pipeline(**args).images
+        
+        return self.pipeline(**args).images
