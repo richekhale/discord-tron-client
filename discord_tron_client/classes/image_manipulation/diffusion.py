@@ -287,11 +287,11 @@ class DiffusionPipelineManager:
         for model_id in list(self.pipelines.keys()):
             if len(self.pipelines) > total_allowed_concurrent and keep_model is None or keep_model != model_id:
                 logging.info(f'Deleting pipe for model {model_id}, as we had {len(self.pipelines)} pipes, and only {total_allowed_concurrent} are allowed.')
-                self.pipelines.remove(model_id)
+                del self.pipelines[model_id]
                 if model_id in self.last_pipe_scheduler:
-                    self.last_pipe_scheduler.remove(model_id)
+                    del self.last_pipe_scheduler[model_id]
                 if model_id in self.last_pipe_type:
-                    self.last_pipe_type.remove(model_id)
+                    del self.last_pipe_type[model_id]
         self.clear_cuda_cache()
 
     def clear_cuda_cache(self):
