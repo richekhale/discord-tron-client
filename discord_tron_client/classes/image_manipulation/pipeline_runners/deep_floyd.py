@@ -74,7 +74,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             output_type=output_type,
             width=s2_width,
             height=s2_height,
-            num_images_per_prompt=4,
+            num_images_per_prompt=1,
             guidance_scale=user_config.get("df_guidance_scale_2", 5.7),
         ).images
         logging.debug(f'Result: {type(stage2_result)}')
