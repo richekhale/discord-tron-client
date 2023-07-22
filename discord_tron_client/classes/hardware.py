@@ -163,6 +163,7 @@ class HardwareInfo:
             # We have 12GiB per model, essentially.
             return 1
         pipe_count = int(gb / 12)
+        logging.debug(f'HardwareInfo: {pipe_count} concurrent pipes allowed via {gb}GiB VRAM and 12GiB allocated per pipe.')
         return pipe_count
 
     def get_gpu_power_consumption(self):
