@@ -155,7 +155,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         prompt = args.get("prompt", "")
         negative_prompt = args.get("negative_prompt", "")
         prompt_embeds, negative_embeds = self._embeds(
-            prompt, negative_prompt
+            [prompt] * 4, [negative_prompt] * 4
         )
         try:
             logging.debug(f"Generating stage 1 output.")
