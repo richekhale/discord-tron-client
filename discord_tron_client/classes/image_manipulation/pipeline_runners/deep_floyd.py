@@ -107,14 +107,21 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
     def _invoke_stage1(
         self, prompt_embed, negative_prompt_embed, user_config: dict, width=64, height=64
     ):
+        # Create four generators with a seed based on user_config['seed']. Increment for each generator.
+        generators = 
+        [
+            self.diffusion_manager._get_generator(user_config, override_seed=int(user_config.get('seed', 0) + i))
+            for i in range(4)
+        ]
         return self.stage1(
             prompt_embeds=prompt_embed,
             negative_prompt_embeds=negative_prompt_embed,
-            generator=self.diffusion_manager._get_generator(user_config),
+            generator=generators,
             guidance_scale=user_config.get('df_guidance_scale_1', 9.2),
             output_type="pt",
             width=width,
             height=height,
+            num_images_per_prompt=4,
         ).images
 
     def _embeds(self, prompt: str, negative_prompt: str):
