@@ -44,7 +44,6 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             scheduler_config=scheduler_config,
             custom_text_encoder=-1
         )
-        self.stage2.enable_model_cpu_offload()
         return
 
     def _invoke_stage2(
@@ -140,42 +139,45 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         prompt_embeds, negative_embeds = self._embeds(
             args.get("prompt", ""), args.get("negative_prompt", "")
         )
-
-        logging.debug(f"Generating stage 1 output.")
-        width, height = self._get_stage1_resolution(user_config)
-        stage1_output = self._invoke_stage1(
-            prompt_embed=prompt_embeds,
-            negative_prompt_embed=negative_embeds,
-            width=width,
-            height=height,
-            user_config=user_config,
-        )
-        logging.debug(f"Generating DeepFloyd Stage2 output.")
-        stage2_output = self._invoke_stage2(
-            image=stage1_output,
-            user_config=user_config,
-            prompt_embeds=prompt_embeds,
-            negative_embeds=negative_embeds,
-            width=width,
-            height=height,
-        )
-        use_x4_upscaler = user_config.get("use_df_x4_upscaler", False)
-        if use_x4_upscaler:
-            logging.debug(f"Generating DeepFloyd Stage3 output using x4 upscaler.")
-            stage3_output = self._invoke_stage3(
-                prompt=args.get("prompt", ""),
-                negative_prompt=args.get("negative_prompt", ""),
-                image=stage2_output,
-                user_config=user_config,
+        try:
+            logging.debug(f"Generating stage 1 output.")
+            width, height = self._get_stage1_resolution(user_config)
+            stage1_output = self._invoke_stage1(
+                prompt_embed=prompt_embeds,
+                negative_prompt_embed=negative_embeds,
                 width=width,
-                height=height
+                height=height,
+                user_config=user_config,
             )
-            return stage3_output
-        elif user_config.get('latent_refiner', True):
-            logging.debug(f"Generating DeepFloyd Stage3 output using latent refiner.")
-            stage3_output = self._invoke_sdxl(
-                prompt=args.get("prompt", ""),
-                image=stage2_output,
-                user_config=user_config
+            logging.debug(f"Generating DeepFloyd Stage2 output.")
+            stage2_output = self._invoke_stage2(
+                image=stage1_output,
+                user_config=user_config,
+                prompt_embeds=prompt_embeds,
+                negative_embeds=negative_embeds,
+                width=width,
+                height=height,
             )
-            return stage3_output
+            use_x4_upscaler = user_config.get("use_df_x4_upscaler", False)
+            if use_x4_upscaler:
+                logging.debug(f"Generating DeepFloyd Stage3 output using x4 upscaler.")
+                stage3_output = self._invoke_stage3(
+                    prompt=args.get("prompt", ""),
+                    negative_prompt=args.get("negative_prompt", ""),
+                    image=stage2_output,
+                    user_config=user_config,
+                    width=width,
+                    height=height
+                )
+                return stage3_output
+            elif user_config.get('latent_refiner', True):
+                logging.debug(f"Generating DeepFloyd Stage3 output using latent refiner.")
+                stage3_output = self._invoke_sdxl(
+                    prompt=args.get("prompt", ""),
+                    image=stage2_output,
+                    user_config=user_config
+                )
+                return stage3_output
+        except Exception as e:
+            logging.error(f"DeepFloyd pipeline failed: {e}, traceback: {e.__traceback__}")
+            raise e
