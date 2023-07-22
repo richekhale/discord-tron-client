@@ -20,6 +20,7 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners import (
     SdxlBasePipelineRunner,
     SdxlRefinerPipelineRunner,
     KandinskyTwoTwoPipelineRunner,
+    DeepFloydPipelineRunner,
     runner_map,
 )
 
@@ -265,6 +266,10 @@ class PipelineRunner:
                     pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe)
                 elif "kandinsky-2-2" in user_model:
                     pipeline_runner = runner_map["kandinsky_2.2"](decoder=pipe, pipeline_manager=self.pipeline_manager)
+                elif "DeepFloyd" in user_model:
+                    pipeline_runner = runner_map["deep_floyd"](stage1=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+                    # DeepFloyd pipeline handles all of this.
+                    use_latent_result = False
                 else:
                     pipeline_runner = runner_map["text2img"](pipeline=pipe)
                 preprocessed_images = pipeline_runner(
@@ -420,8 +425,11 @@ class PipelineRunner:
 
         return new_image
 
-    def _get_generator(self, user_config: dict):
-        self.seed = user_config.get("seed", None)
+    def _get_generator(self, user_config: dict, override_seed: int = None):
+        if override_seed is None:
+            self.seed = user_config.get("seed", None)
+        else:
+            self.seed = override_seed
         import random
 
         if self.seed is None or int(self.seed) == 0:
