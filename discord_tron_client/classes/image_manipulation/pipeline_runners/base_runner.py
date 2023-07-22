@@ -23,7 +23,7 @@ class BasePipelineRunner:
     def run(self) -> Image:
         raise NotImplementedError
     
-    def _cleanup_pipes(self, keep_model; str = None):
+    def _cleanup_pipes(self, keep_model: str = None):
         logging.debug(f'Removing pipes from pipeline manager, via BasePipelineRunner._cleanup_pipes(keep_model={keep_model})')
         return self.diffusion_manager.delete_pipes(keep_model=keep_model)
 
