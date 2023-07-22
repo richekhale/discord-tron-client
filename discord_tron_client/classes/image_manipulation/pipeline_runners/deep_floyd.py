@@ -19,16 +19,19 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             "watermarker": None,
         }
 
-    def _invoke_sdxl(self, user_config: dict, prompt: str, negative_prompt: str, image: Image):
+    def _invoke_sdxl(self, user_config: dict, prompt: str, negative_prompt: str, images: Image):
         logging.debug(f'Upscaling DeepFloyd output using SDXL refiner.')
         # Upscale using PIL, by 4:
-        width = image.width * 4
-        height = image.height * 4
-        image = image.resize((width, height), Image.LANCZOS)
+        if type(images) != list:
+            images = [images]
+        idx = 0
+        for image in images:
+            width = image.width * 4
+            height = image.height * 4
+            images[idx] = image.resize((width, height), Image.LANCZOS)
+            idx += 1
         return self.diffusion_manager._refiner_pipeline(
-            images=[
-                image
-            ],
+            images=images,
             user_config=user_config,
             prompt=prompt,
             negative_prompt=negative_prompt,
