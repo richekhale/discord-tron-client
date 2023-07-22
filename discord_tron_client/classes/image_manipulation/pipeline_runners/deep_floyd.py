@@ -81,12 +81,13 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         self.stage3.enable_model_cpu_offload()
         return
 
-    def _invoke_stage3(self, prompt: str, image: Image, user_config: dict, width: int, height: int):
+    def _invoke_stage3(self, prompt: str, negative_prompt: str, image: Image, user_config: dict, width: int, height: int):
         user_strength = user_config.get("deepfloyd_stage3_strength", 1.0)
         s3_width = width * 4 * 4
         s3_height = height * 4 * 4
         return self.stage3(
             prompt=prompt,
+            negative_prompt=negative_prompt,
             image=image,
             width=s3_width,
             height=s3_height,
@@ -150,7 +151,6 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         )
         logging.debug(f"Generating DeepFloyd Stage2 output.")
         stage2_output = self._invoke_stage2(
-            prompt=args.get("prompt", ""),
             image=stage1_output,
             user_config=user_config,
             prompt_embeds=prompt_embeds,
@@ -163,6 +163,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             logging.debug(f"Generating DeepFloyd Stage3 output using x4 upscaler.")
             stage3_output = self._invoke_stage3(
                 prompt=args.get("prompt", ""),
+                negative_prompt=args.get("negative_prompt", ""),
                 image=stage2_output,
                 user_config=user_config,
                 width=width,
