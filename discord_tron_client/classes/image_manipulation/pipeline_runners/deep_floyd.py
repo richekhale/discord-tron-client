@@ -74,6 +74,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             output_type=output_type,
             width=s2_width,
             height=s2_height,
+            num_images_per_prompt=4
         ).images
         logging.debug(f'Result: {type(stage2_result)}')
         return stage2_result
@@ -186,7 +187,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                 return stage3_output
             logging.debug(f"Generating DeepFloyd Stage3 output using latent refiner.")
             stage3_output = self._invoke_sdxl(
-                image=stage2_output,
+                images=stage2_output,
                 user_config=user_config,
                 prompt=prompt,
                 negative_prompt=negative_prompt
