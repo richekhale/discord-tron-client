@@ -111,7 +111,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         logging.debug(f'Retrieving DeepFloyd Stage III pipeline has completed.')
         return
 
-    def _invoke_stage3(self, prompt: str, negative_prompt: str, image: Image, user_config: dict):
+    def _invoke_stage3(self, prompt: str, negative_prompt: str, image: Image, user_config: dict, output_type: str = "pil"):
         self._setup_stage3(user_config)
         user_strength = user_config.get("deepfloyd_stage3_strength", 1.0)
         logging.debug(f'Generating DeepFloyd Stage3 output.')
@@ -121,6 +121,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             image=image,
             noise_level=(100 * user_strength),
             guidance_scale=user_config.get("df_guidance_scale_3", 5.6),
+            output_type=output_type
         ).images
         logging.debug(f'Generating DeepFloyd Stage3 output has completed.')
         self._cleanup_pipes()
