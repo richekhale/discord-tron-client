@@ -25,7 +25,7 @@ class BasePipelineRunner:
     
     def _cleanup_pipes(self, keep_model: str = None):
         logging.debug(f'Removing pipes from pipeline manager, via BasePipelineRunner._cleanup_pipes(keep_model={keep_model})')
-        return self.diffusion_manager.delete_pipes(keep_model=keep_model)
+        return self.pipeline_manager.delete_pipes(keep_model=keep_model)
 
     def clear_cuda_cache(self):
         gc.collect()
