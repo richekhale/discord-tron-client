@@ -176,8 +176,6 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             stage3_output = self._invoke_sdxl(
                 prompt=args.get("prompt", ""),
                 image=stage2_output,
-                user_config=user_config,
-                width=width,
-                height=height
+                user_config=user_config
             )
             return stage3_output
