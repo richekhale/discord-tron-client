@@ -21,6 +21,10 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
 
     def _invoke_sdxl(self, user_config: dict, prompt: str, negative_prompt: str, image: Image):
         logging.debug(f'Upscaling DeepFloyd output using SDXL refiner.')
+        # Upscale using PIL, by 4:
+        width = image.width * 4
+        height = image.height * 4
+        image = image.resize((width, height), Image.LANCZOS)
         return self.diffusion_manager._refiner_pipeline(
             images=[
                 image
@@ -88,7 +92,6 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         user_strength = user_config.get("deepfloyd_stage3_strength", 1.0)
         s3_width = width * 4 * 4
         s3_height = height * 4 * 4
-        image = image.resize((s3_width, s3_height), Image.LANCZOS)
         return self.stage3(
             prompt=prompt,
             negative_prompt=negative_prompt,
