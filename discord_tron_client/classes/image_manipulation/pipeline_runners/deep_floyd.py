@@ -231,7 +231,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                 negative_embeds=negative_embeds,
                 width=width,
                 height=height,
-                output_type="pil" if not user_config.get("use_df_x4_upscaler", False) else "pt"
+                output_type="pil" if not user_config.get("use_df_x4_upscaler", True) else "pt"
             )
             use_x4_upscaler = user_config.get("use_df_x4_upscaler", True)
             if use_x4_upscaler:

@@ -270,6 +270,7 @@ class PipelineRunner:
                     pipeline_runner = runner_map["deep_floyd"](stage1=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
                     # DeepFloyd pipeline handles all of this.
                     use_latent_result = False
+                    image_return_type = "pil"
                 else:
                     pipeline_runner = runner_map["text2img"](pipeline=pipe)
                 preprocessed_images = pipeline_runner(
