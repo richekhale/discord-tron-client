@@ -9,13 +9,13 @@ class BasePipelineRunner:
         self.pipeline_manager = None
         self.diffusion_manager = None
         if 'pipeline' in kwargs:
-            self.pipeline = kwargs.pipeline
+            self.pipeline = kwargs['pipeline']
         if 'pipeline_manager' in kwargs:
-            self.pipeline_manager = kwargs.pipeline_manager
+            self.pipeline_manager = kwargs['pipeline_manager']
         else:
             raise ValueError('Pipeline manager is required for pipeline runners.')
         if 'diffusion_manager' in kwargs:
-            self.diffusion_manager = kwargs.diffusion_manager
+            self.diffusion_manager = kwargs['diffusion_manager']
         else:
             raise ValueError('Pipeline manager is required for pipeline runners.')
 
