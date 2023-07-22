@@ -58,6 +58,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         negative_embeds,
         width=64,
         height=64,
+        output_type="pt",
     ):
         self._setup_stage2(user_config)
         s2_width = width * 4
@@ -67,7 +68,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             image=image,
             prompt_embeds=prompt_embeds,
             negative_prompt_embeds=negative_embeds,
-            output_type="pt",
+            output_type=output_type,
             width=s2_width,
             height=s2_height,
         ).images
@@ -166,6 +167,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                 negative_embeds=negative_embeds,
                 width=width,
                 height=height,
+                output_type="pil" if not user_config.get("use_df_x4_upscaler", False) else "pt"
             )
             use_x4_upscaler = user_config.get("use_df_x4_upscaler", False)
             if use_x4_upscaler:
