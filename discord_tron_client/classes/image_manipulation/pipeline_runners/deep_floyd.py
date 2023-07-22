@@ -34,9 +34,10 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
 
     def _setup_stage2(self, user_config):
         stage2_model = "DeepFloyd/IF-II-L-v1.0"
+        logging.debug(f'Configuring DF-IF Stage II Pipeline: {stage2_model}')
         scheduler_config = {}  # This isn't really used anymore.
         if self.stage2 is not None:
-            logging.info(f"Keeping existing {stage2_model} model.")
+            logging.info(f"Keeping existing {stage2_model} model with {type(self.stage2)} pipeline.")
             return
         self.stage2 = self.pipeline_manager.get_pipe(
             model_id=stage2_model,
@@ -44,7 +45,6 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             scheduler_config=scheduler_config,
             custom_text_encoder=-1
         )
-        return
 
     def _invoke_stage2(
         self,
@@ -58,7 +58,8 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         self._setup_stage2(user_config)
         s2_width = width * 4
         s2_height = height * 4
-        return self.stage2(
+        logging.debug(f'Generating DeepFloyd Stage2 output at {s2_width}x{s2_height}.')
+        stage2_result = self.stage2(
             image=image,
             prompt_embeds=prompt_embeds,
             negative_prompt_embeds=negative_embeds,
@@ -66,6 +67,8 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             width=s2_width,
             height=s2_height,
         ).images
+        logging.debug(f'Result: {type(stage2_result)}')
+        return stage2_result
 
     def _setup_stage3(self, user_config):
         stage3_model = "stabilityai/stable-diffusion-x4-upscaler"

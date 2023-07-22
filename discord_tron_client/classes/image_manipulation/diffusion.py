@@ -249,19 +249,6 @@ class DiffusionPipelineManager:
                     self.pipelines[model_id].enable_model_cpu_offload()
                 except Exception as e:
                     logging.error(f"Could not enable CPU offload on the model: {e}")
-            elif (
-                hasattr(self.pipelines[model_id], "enable_sequential_cpu_offload")
-                and hardware.should_sequential_offload()
-            ):
-                try:
-                    logging.warn(
-                        f"Hardware constraints are enabling *SEQUENTIAL* CPU offload. This WILL impact performance."
-                    )
-                    self.pipelines[model_id].enable_model_cpu_offload()
-                except Exception as e:
-                    logging.error(
-                        f"Could not enable sequential CPU offload on the model: {e}"
-                    )
             else:
                 logging.info(
                     f"Moving pipe to CUDA early, because no offloading is being used."
