@@ -93,17 +93,13 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         self.stage3.enable_model_cpu_offload()
         return
 
-    def _invoke_stage3(self, prompt: str, negative_prompt: str, image: Image, user_config: dict, width: int, height: int):
+    def _invoke_stage3(self, prompt: str, negative_prompt: str, image: Image, user_config: dict):
         self._setup_stage3(user_config)
         user_strength = user_config.get("deepfloyd_stage3_strength", 1.0)
-        s3_width = width * 4 * 4
-        s3_height = height * 4 * 4
         return self.stage3(
             prompt=prompt,
             negative_prompt=negative_prompt,
             image=image,
-            width=s3_width,
-            height=s3_height,
             noise_level=(100 * user_strength),
         ).images
 
@@ -182,8 +178,6 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                     negative_prompt=args.get("negative_prompt", ""),
                     image=stage2_output,
                     user_config=user_config,
-                    width=width,
-                    height=height
                 )
                 return stage3_output
             logging.debug(f"Generating DeepFloyd Stage3 output using latent refiner.")
