@@ -80,6 +80,11 @@ class AppConfig:
     def get_pipeline_manager(cls):
         return cls.main_pipelinemanager
 
+    def get_config_value(self, key, default_value=None):
+        # Always ensure we get up-to-date values.
+        self.reload_config()
+        return self.config.get(key, default_value)
+
     def get_nfixer_path(self):
         return self.parent + "/" + "nfixer.pt"
 
@@ -99,7 +104,7 @@ class AppConfig:
         return (
             self.parent
             + "/"
-            + self.config.get("websocket_hub", {}).get(
+            + self.get_config_value("websocket_hub", {}).get(
                 "server_key_path", "config/server_key.pem"
             )
         )
@@ -108,25 +113,25 @@ class AppConfig:
         return (
             self.parent
             + "/"
-            + self.config.get("websocket_hub", {}).get(
+            + self.get_config_value("websocket_hub", {}).get(
                 "server_pem_path", "config/server_cert.pem"
             )
         )
 
     def get_master_api_key(self):
-        return self.config.get("master_api_key", None)
+        return self.get_config_value("master_api_key", None)
 
     def get_concurrent_slots(self):
-        return self.config.get("concurrent_slots", 1)
+        return self.get_config_value("concurrent_slots", 1)
 
     def get_command_prefix(self):
-        return self.config.get("cmd_prefix", "+")
+        return self.get_config_value("cmd_prefix", "+")
 
     def get_friendly_name(self):
-        return self.config.get("friendly_name", False)
+        return self.get_config_value("friendly_name", False)
 
     def get_max_resolution_by_aspect_ratio(self, aspect_ratio: str):
-        return self.config.get("maxres", {}).get(
+        return self.get_config_value("maxres", {}).get(
             aspect_ratio,
             {
                 "width": self.get_max_resolution_width(aspect_ratio=aspect_ratio),
@@ -135,36 +140,36 @@ class AppConfig:
         )
 
     def get_max_resolution_width(self, aspect_ratio: str):
-        return self.config.get("maxres", {}).get(aspect_ratio, {}).get("width", 3840)
+        return self.get_config_value("maxres", {}).get(aspect_ratio, {}).get("width", 3840)
 
     def get_max_resolution_height(self, aspect_ratio: str):
-        return self.config.get("maxres", {}).get(aspect_ratio, {}).get("height", 2160)
+        return self.get_config_value("maxres", {}).get(aspect_ratio, {}).get("height", 2160)
 
     def get_precision_bits(self):
-        return self.config.get("precision_bits", 16)
+        return self.get_config_value("precision_bits", 16)
 
     def get_cuda_cache_clear_toggle(self):
-        return self.config.get("cuda_cache_clear", True)
+        return self.get_config_value("cuda_cache_clear", True)
 
     def get_web_root(self):
-        return self.config.get("web_root", "/var/www/localhost/htdocs")
+        return self.get_config_value("web_root", "/var/www/localhost/htdocs")
 
     def get_master_url(self):
         hostname = str(self.get_websocket_hub_host())
         logging.debug("Websucket hub host: " + hostname)
-        return self.config.get("master_url", "https://" + hostname + ":5000")
+        return self.get_config_value("master_url", "https://" + hostname + ":5000")
 
     def verify_master_ssl(self):
-        return self.config.get("websocket_hub", {}).get("verify_ssl", False)
+        return self.get_config_value("websocket_hub", {}).get("verify_ssl", False)
 
     def get_websocket_hub_host(self):
-        return self.config.get("websocket_hub", {}).get("host", "localhost")
+        return self.get_config_value("websocket_hub", {}).get("host", "localhost")
 
     def get_websocket_hub_port(self):
-        return self.config.get("websocket_hub", {}).get("port", 6789)
+        return self.get_config_value("websocket_hub", {}).get("port", 6789)
 
     def get_websocket_hub_tls(self):
-        return self.config.get("websocket_hub", {}).get("tls", False)
+        return self.get_config_value("websocket_hub", {}).get("tls", False)
 
     def get_websocket_config(self):
         protocol = "ws"
@@ -180,13 +185,13 @@ class AppConfig:
         }
 
     def get_max_concurrent_uploads(self):
-        return self.config.get("max_concurrent_uploads", 8)
+        return self.get_config_value("max_concurrent_uploads", 8)
 
     def image_upload_toggle(self):
-        return self.config.get("enable_image_uploads", True)
+        return self.get_config_value("enable_image_uploads", True)
 
     def get_huggingface_api_key(self):
-        result = self.config.get("huggingface_api", {}).get("api_key", None)
+        result = self.get_config_value("huggingface_api", {}).get("api_key", None)
         if result is None:
             # Does self.get_huggingface_model_path() . '/../token' exist? If so, use that contents:
             token_path = self.get_huggingface_model_path() + "/../token"
@@ -196,16 +201,16 @@ class AppConfig:
         return result
 
     def get_huggingface_model_path(self):
-        return self.config.get("model_path", "/root/.cache/huggingface/hub")
+        return self.get_config_value("model_path", "/root/.cache/huggingface/hub")
 
     def get_discord_api_key(self):
-        return self.config.get("discord", {}).get("api_key", None)
+        return self.get_config_value("discord", {}).get("api_key", None)
 
     def get_local_model_path(self):
-        return self.config["huggingface"].get("local_model_path", None)
+        return self.get_config_value('huggingface', {}).get("local_model_path", None)
 
     def get_user_config(self, user_id):
-        return self.config["users"].get(str(user_id), {})
+        return self.get_config_value('users', {}).get(str(user_id), {})
 
     def set_user_config(self, user_id, user_config):
         self.config["users"][str(user_id)] = user_config
@@ -222,70 +227,70 @@ class AppConfig:
 
     def get_user_setting(self, user_id, setting_key, default_value=None):
         user_id = str(user_id)
-        return self.config["users"].get(user_id, {}).get(setting_key, default_value)
+        return self.get_config_value('users', {}).get(user_id, {}).get(setting_key, default_value)
 
     def get_mysql_user(self):
-        return self.config.get("mysql", {}).get("user", "diffusion")
+        return self.get_config_value("mysql", {}).get("user", "diffusion")
 
     def get_mysql_password(self):
-        return self.config.get("mysql", {}).get("password", "diffusion_pwd")
+        return self.get_config_value("mysql", {}).get("password", "diffusion_pwd")
 
     def get_mysql_hostname(self):
-        return self.config.get("mysql", {}).get("hostname", "localhost")
+        return self.get_config_value("mysql", {}).get("hostname", "localhost")
 
     def get_mysql_dbname(self):
-        return self.config.get("mysql", {}).get("dbname", "diffusion_master")
+        return self.get_config_value("mysql", {}).get("dbname", "diffusion_master")
 
     def is_llama_enabled(self):
-        return self.config.get("enable_llama", False)
+        return self.get_config_value("enable_llama", False)
 
     def llama_subsystem_type(self):
-        return self.config.get("llama_subsystem", "llama.cpp")
+        return self.get_config_value("llama_subsystem", "llama.cpp")
 
     def llama_model_path(self):
-        return self.config.get("llama_model_path", "/models/LLaMA")
+        return self.get_config_value("llama_model_path", "/models/LLaMA")
 
     def llama_model_default(self):
-        return self.config.get("llama_model_default", "7B")
+        return self.get_config_value("llama_model_default", "7B")
 
     def llama_model_filename(self):
-        return self.config.get("llama_model_filename", "ggml-model-f16.bin")
+        return self.get_config_value("llama_model_filename", "ggml-model-f16.bin")
 
     def is_stablelm_enabled(self):
-        return self.config.get("enable_stablelm", False)
+        return self.get_config_value("enable_stablelm", False)
 
     def stablelm_subsystem_type(self):
-        return self.config.get("stablelm_subsystem", "stablelm.py")
+        return self.get_config_value("stablelm_subsystem", "stablelm.py")
 
     def stablelm_model_default(self):
-        return self.config.get(
+        return self.get_config_value(
             "stablelm_model_default", "7b"
         )  # Possibilities include 3b, 7b. WIP are 15b, 30b, 65b, and planned is 175b.
 
     def is_stablevicuna_enabled(self):
-        return self.config.get("enable_stablevicuna", True)
+        return self.get_config_value("enable_stablevicuna", True)
 
     def stablevicuna_subsystem_type(self):
-        return self.config.get("stablevicuna_subsystem", "stablevicuna")
+        return self.get_config_value("stablevicuna_subsystem", "stablevicuna")
 
     def stablevicuna_model_default(self):
-        return self.config.get(
+        return self.get_config_value(
             "stablevicuna_model_default", "TheBloke/stable-vicuna-13B-HF"
         )
 
     def is_bark_enabled(self):
-        return self.config.get("enable_bark", True)
+        return self.get_config_value("enable_bark", True)
 
     def bark_subsystem_type(self):
-        return self.config.get("bark_subsystem", "torch")
+        return self.get_config_value("bark_subsystem", "torch")
 
     def enable_compel(self):
-        return self.config.get("use_compel_prompt_weighting", True)
+        return self.get_config_value("use_compel_prompt_weighting", True)
     def enable_compile(self):
-        return self.config.get('enable_torch_compile', True)
+        return self.get_config_value('enable_torch_compile', True)
     def enable_offload(self):
-        return self.config.get('enable_offload', False)
+        return self.get_config_value('enable_offload', False)
     def enable_sequential_offload(self):
-        return self.config.get('enable_sequential_offload', False)
+        return self.get_config_value('enable_sequential_offload', False)
     def maximum_batch_size(self):
-        return max(self.config.get('maximum_batch_size', 4), 1)
+        return max(self.get_config_value('maximum_batch_size', 4), 1)
