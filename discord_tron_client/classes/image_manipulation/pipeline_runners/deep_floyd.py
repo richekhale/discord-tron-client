@@ -97,7 +97,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         self._setup_stage3(user_config)
         user_strength = user_config.get("deepfloyd_stage3_strength", 1.0)
         return self.stage3(
-            prompt=prompt,
+            prompt=[prompt] * len(image),
             negative_prompt=negative_prompt,
             image=image,
             noise_level=(100 * user_strength),
