@@ -592,7 +592,9 @@ class PipelineRunner:
             "guidance_scaling": str(image_params.get("guidance_scaling", 7.5)),
             "seed": str(image_params["seed"]),
         }
-        if not user_config.get("encode_metadata", True):
+        if not user_config.get("encode_metadata", True) or not hasattr(
+            image, "save"
+        ):
             return image
         return ImageMetadata.encode(image, user_config, attributes)
 
