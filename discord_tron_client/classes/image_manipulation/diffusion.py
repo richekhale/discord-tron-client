@@ -277,6 +277,7 @@ class DiffusionPipelineManager:
                     )
         else:
             logging.info(f"Keeping existing pipeline. Not creating any new ones.")
+            self.pipelines[model_id].to(self.device)
         self.last_pipe_type[model_id] = pipe_type
         if scheduler_config is not None and scheduler_config != {}:
             self.last_pipe_scheduler[model_id] = scheduler_config.get("name", "default")
