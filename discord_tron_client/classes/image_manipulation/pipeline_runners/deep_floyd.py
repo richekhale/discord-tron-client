@@ -8,11 +8,14 @@ import logging, random
 
 class DeepFloydPipelineRunner(BasePipelineRunner):
     def __init__(self, stage1, pipeline_manager, diffusion_manager):
+        super().__init__(
+            pipeline=None,
+            pipeline_manager=pipeline_manager,
+            diffusion_manager=diffusion_manager,
+        )
         self.stage1 = stage1  # DeepFloyd/IF-I-XL-v1.0
         self.stage2 = None  # DeepFloyd/IF-II-L-v1.0
         self.stage3 = None  # Upscaler
-        self.pipeline_manager = pipeline_manager
-        self.diffusion_manager = diffusion_manager
         self.safety_modules = {
             "feature_extractor": self.stage1.feature_extractor,
             "safety_checker": None,
@@ -30,7 +33,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             height = image.height * 4
             images[idx] = image.resize((width, height), Image.LANCZOS)
             idx += 1
-        return self.diffusion_manager._refiner_pipeline(
+        output = self.diffusion_manager._refiner_pipeline(
             images=images,
             user_config=user_config,
             prompt=prompt,
@@ -38,6 +41,8 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             random_seed=False,
             denoising_start=None
         )
+        self._cleanup_pipes()
+        return output
 
     def _setup_stage2(self, user_config):
         stage2_model = "DeepFloyd/IF-II-L-v1.0"
@@ -77,7 +82,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             num_images_per_prompt=1,
             guidance_scale=user_config.get("df_guidance_scale_2", 5.7),
         ).images
-        del self.stage2
+        self._cleanup_pipes()
         logging.debug(f'Result: {type(stage2_result)}')
         return stage2_result
 
@@ -91,6 +96,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             model_id=stage3_model,
             user_config=user_config,
             scheduler_config=scheduler_config,
+            safety_modules=self.safety_modules
         )
         return
 
@@ -104,7 +110,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             noise_level=(100 * user_strength),
             guidance_scale=user_config.get("df_guidance_scale_3", 5.6),
         ).images
-        del self.stage3
+        self._cleanup_pipes()
         return output
 
     def _invoke_stage1(
@@ -127,7 +133,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             height=height,
             num_images_per_prompt=1,
         ).images
-        del self.stage1
+        self._cleanup_pipes()
         return output
 
     def _embeds(self, prompt: str, negative_prompt: str):
