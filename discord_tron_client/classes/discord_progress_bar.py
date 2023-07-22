@@ -17,6 +17,8 @@ class DiscordProgressBar:
         self.total_steps = progress_bar_steps
         self.progress_bar_length = progress_bar_length
         self.current_step = 0
+        self.current_stage = 1
+        self.current_stage_msg = None
         self.websocket_msg = websocket_message
         self.websocket = websocket
         self.discord_first_message = discord_first_message
@@ -24,6 +26,10 @@ class DiscordProgressBar:
         self.last_update = time.time()
 
     async def update_progress_bar(self, step: int):
+        if step == 0 and self.current_step == 100:
+            # We might be onto stage two of a multi-stage operation..
+            self.current_stage += 1
+            self.current_stage_msg = ' (Stage ' + str(self.current_stage) + ')'
         if step < self.current_step:
             logging.warn(
                 f"Step {step} is less than current step {self.current_step}. This means the progress bar tried updating to the same state more than once."
@@ -43,7 +49,7 @@ class DiscordProgressBar:
             logging.info("Sending progress bar to websocket!")
             try:
                 # Update the websocket message template
-                self.websocket_msg.update(arguments={"message": progress_text})
+                self.websocket_msg.update(arguments={"message": progress_text + self.current_stage_msg})
                 to_send = self.websocket_msg.to_json()
                 logging.debug(f"Sending data: {to_send}")
                 self.websocket = AppConfig.get_websocket()
