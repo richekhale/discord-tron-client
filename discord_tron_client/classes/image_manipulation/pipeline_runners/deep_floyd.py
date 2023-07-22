@@ -173,7 +173,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                 height=height,
                 output_type="pil" if not user_config.get("use_df_x4_upscaler", False) else "pt"
             )
-            use_x4_upscaler = user_config.get("use_df_x4_upscaler", False)
+            use_x4_upscaler = user_config.get("use_df_x4_upscaler", True)
             if use_x4_upscaler:
                 logging.debug(f"Generating DeepFloyd Stage3 output using x4 upscaler.")
                 stage3_output = self._invoke_stage3(
