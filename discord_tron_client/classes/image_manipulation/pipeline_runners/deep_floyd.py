@@ -59,7 +59,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         self._setup_stage2(user_config)
         s2_width = width * 4
         s2_height = height * 4
-        return self.stage_2(
+        return self.stage2(
             image=image,
             prompt_embeds=prompt_embeds,
             negative_prompt_embeds=negative_embeds,
