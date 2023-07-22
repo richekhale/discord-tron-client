@@ -2,7 +2,10 @@ from PIL import Image
 from diffusers import DiffusionPipeline
 import torch, logging, gc
 from discord_tron_client.classes.app_config import AppConfig
+from discord_tron_client.classes.hardware import HardwareInfo
 config = AppConfig()
+hardware_info = HardwareInfo()
+
 class BasePipelineRunner:
     def __init__(self, **kwargs):
         self.pipeline = None
@@ -37,3 +40,5 @@ class BasePipelineRunner:
             logging.debug(
                 f"NOT clearing CUDA cache. Config option `cuda_cache_clear` is not set, or is False."
             )
+    def should_offload(self):
+        return hardware_info.should_offload() or hardware_info.should_sequential_offload()

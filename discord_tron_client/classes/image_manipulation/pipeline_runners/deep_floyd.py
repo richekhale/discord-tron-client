@@ -5,6 +5,11 @@ from diffusers import DiffusionPipeline
 from PIL import Image
 import logging, random
 
+from discord_tron_client.classes.app_config import AppConfig
+from discord_tron_client.classes.hardware import HardwareInfo
+
+hardware_info = HardwareInfo()
+config = AppConfig()
 
 class DeepFloydPipelineRunner(BasePipelineRunner):
     def __init__(self, stage1, pipeline_manager, diffusion_manager):
@@ -13,9 +18,9 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             pipeline_manager=pipeline_manager,
             diffusion_manager=diffusion_manager,
         )
-        self.stage1 = stage1  # DeepFloyd/IF-I-XL-v1.0
-        self.stage2 = None  # DeepFloyd/IF-II-L-v1.0
-        self.stage3 = None  # Upscaler
+        self.stage1 = stage1                        # DeepFloyd/IF-I-XL-v1.0
+        self.stage2 = None                          # DeepFloyd/IF-II-L-v1.0
+        self.stage3 = None                          # Upscaler
         self.safety_modules = {
             "feature_extractor": self.stage1.feature_extractor,
             "safety_checker": None,
@@ -153,8 +158,28 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         self._cleanup_pipes()
         return output
 
+    def _setup_text_encoder(self):
+        if self.stage1.text_encoder is not None:
+            return
+        model_id = "DeepFloyd/IF-I-XL-v1.0"
+        import transformers
+        self.stage1.text_encoder = transformers.T5EncoderModel.from_pretrained(
+            model_id, subfolder="text_encoder", device_map="auto", load_in_8bit=False, variant="fp16", torch_dtype=self.diffusion_manager.torch_dtype
+        )
+        
+
     def _embeds(self, prompt: str, negative_prompt: str):
-        return self.stage1.encode_prompt(prompt, negative_prompt)
+        # DeepFloyd stage 1 can use a more efficient text encoder config.
+        logging.debug(f'Configuring DeepFloyd text encoder via stage1 pipeline.')
+        self._setup_text_encoder()
+        logging.debug(f'Generating DeepFloyd text embeds, using stage1 text_encoder.')
+        embeds = self.stage1.encode_prompt(prompt, negative_prompt)
+        logging.debug(f'Generating DeepFloyd text embeds has completed.')
+        if self.should_offload():
+            # Clean up the text encoder to save VRAM.
+            self.stage1.text_encoder = None
+            self.clear_cuda_cache()
+        return embeds
 
     def _get_stage1_resolution(self, user_config: dict):
         # Grab the aspect ratio of the user_config['resolution']['width']xuser_config['resolution']['height'],

@@ -221,12 +221,6 @@ class DiffusionPipelineManager:
             self.clear_pipeline(model_id)
 
         if model_id not in self.pipelines:
-            if "DeepFloyd/IF-I-" in model_id:
-                # DeepFloyd stage 1 can use a more efficient text encoder config.
-                custom_text_encoder = transformers.T5EncoderModel.from_pretrained(
-                    model_id, subfolder="text_encoder", device_map="auto", load_in_8bit=False, variant="fp16", torch_dtype=self.torch_dtype
-                )
-
             logging.debug(f"Creating pipeline type {pipe_type} for model {model_id} with custom_text_encoder {type(custom_text_encoder)}")
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type, use_safetensors=use_safetensors, custom_text_encoder=custom_text_encoder, safety_modules=safety_modules)
             if pipe_type in ["upscaler", "prompt_variation", "text2img", "kandinsky-2.2"]:
