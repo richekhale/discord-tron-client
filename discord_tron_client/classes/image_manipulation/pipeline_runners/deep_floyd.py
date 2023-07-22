@@ -90,7 +90,6 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             user_config=user_config,
             scheduler_config=scheduler_config,
         )
-        self.stage3.enable_model_cpu_offload()
         return
 
     def _invoke_stage3(self, prompt: str, negative_prompt: str, image: Image, user_config: dict):
