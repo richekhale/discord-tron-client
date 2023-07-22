@@ -374,9 +374,6 @@ class PipelineRunner:
             "guidance_scaling": guidance_scale,
             "strength": user_config.get("strength", 0.5),
         }
-        if type(new_image) == torch.Tensor:
-            logging.debug(f'Returning Tensor type directly.')
-            return new_image
         return self._encode_output(
             new_image, positive_prompt, user_config, image_params
         )
@@ -604,6 +601,9 @@ class PipelineRunner:
     ):
         idx = 0
         for image in images:
+            if not hasattr(image, 'save'):
+                logging.warning(f'Returning un-processable image: {type(image)}')
+                return images
             images[idx] = self._encode_image_metadata(
                 image, prompt, user_config, image_params
             )
