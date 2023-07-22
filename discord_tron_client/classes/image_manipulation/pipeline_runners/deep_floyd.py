@@ -119,7 +119,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             output_type="pt",
             width=width,
             height=height,
-            num_images_per_prompt=4,
+            num_images_per_prompt=1,
         ).images
 
     def _embeds(self, prompt: str, negative_prompt: str):
