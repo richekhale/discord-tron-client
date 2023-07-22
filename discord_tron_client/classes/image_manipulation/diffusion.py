@@ -124,6 +124,7 @@ class DiffusionPipelineManager:
                 safety_checker=None,
                 requires_safety_checker=None,
                 use_safetensors=use_safetensors,
+                **extra_args
             )
         elif pipe_type in ["text2img"]:
             logging.debug(f"Creating a txt2img pipeline for {model_id}")
@@ -135,12 +136,14 @@ class DiffusionPipelineManager:
                 requires_safety_checker=None,
                 use_safetensors=use_safetensors,
                 use_auth_token=config.get_huggingface_api_key(),
+                **extra_args
             )
             logging.debug(f"Model config: {pipeline.config}")
         else:
             logging.debug(f"Using standard pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
                 model_id, torch_dtype=self.torch_dtype
+                **extra_args
             )
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
@@ -216,7 +219,7 @@ class DiffusionPipelineManager:
             self.clear_pipeline(model_id)
 
         if model_id not in self.pipelines:
-            logging.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
+            logging.debug(f"Creating pipeline type {pipe_type} for model {model_id} with custom_text_encoder {custom_text_encoder}")
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type, use_safetensors=use_safetensors, custom_text_encoder=custom_text_encoder)
             if pipe_type in ["upscaler", "prompt_variation", "text2img", "kandinsky-2.2"]:
                 pass
