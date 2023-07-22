@@ -52,7 +52,7 @@ class PromptManipulation:
         if (type(pipeline).__name__ == "KandinskyV22Pipeline"):
             # KandinskyV22Pipeline doesn't use the prompt manager.
             return False
-        if user_config is not None and "DeepFloyd" in user_config.get('model', '')
+        if user_config is not None and "DeepFloyd" in user_config.get('model', ''):
             # Does not work for DeepFloyd.
             return False
         return True
