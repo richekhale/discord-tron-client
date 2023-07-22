@@ -94,12 +94,12 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         ).images
 
     def _invoke_stage1(
-        self, prompt_embed, negative_prompt_embed, user_config, width=64, height=64
+        self, prompt_embed, negative_prompt_embed, user_config: dict, width=64, height=64
     ):
         return self.stage1(
             prompt_embeds=prompt_embed,
             negative_prompt_embeds=negative_prompt_embed,
-            generator=self.pipeline_manager._get_generator(user_config),
+            generator=self.diffusion_manager._get_generator(user_config),
             output_type="pt",
             width=width,
             height=height,
