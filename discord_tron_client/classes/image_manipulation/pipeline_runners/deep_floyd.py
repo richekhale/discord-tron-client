@@ -110,7 +110,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
     def _invoke_stage3(self, prompt: str, negative_prompt: str, image: Image, user_config: dict):
         self._setup_stage3(user_config)
         user_strength = user_config.get("deepfloyd_stage3_strength", 1.0)
-        logging.debug(f'Generating DeepFloyd Stage3 output at {image.width * 4}x{image.height * 4}.')
+        logging.debug(f'Generating DeepFloyd Stage3 output at {image[0].width * 4}x{image[0].height * 4}.')
         output = self.stage3(
             prompt=[prompt] * len(image),
             negative_prompt=[negative_prompt] * len(image),
