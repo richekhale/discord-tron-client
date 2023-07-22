@@ -24,19 +24,16 @@ class TqdmCapture:
             match = re.search(r"\b(\d+)%\|", s)
             if match:
                 progress = int(match.group(1))
-                if progress <= self.progress:
+                if progress == self.progress:
                     # If we have anything less than what we started with, don't send.
                     return
                 self.progress = progress
-
-                if progress >= 50 and progress <= 60:
-                    # Record GPU power use around 60% progress.
-                    gpu_power_consumption = float(
-                        self.hardware_info.get_gpu_power_consumption()
-                    )
-                    if gpu_power_consumption > self.gpu_power_consumption:
-                        # Store the maximum power used rather than a random sample.
-                        self.gpu_power_consumption = gpu_power_consumption
+                gpu_power_consumption = float(
+                    self.hardware_info.get_gpu_power_consumption()
+                )
+                if gpu_power_consumption > self.gpu_power_consumption:
+                    # Store the maximum power used rather than a random sample.
+                    self.gpu_power_consumption = gpu_power_consumption
                 asyncio.run_coroutine_threadsafe(
                     self.progress_bar.update_progress_bar(progress), self.loop
                 )

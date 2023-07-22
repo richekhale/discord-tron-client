@@ -31,8 +31,10 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         for image in images:
             width = image.width * 4
             height = image.height * 4
+            logging.debug(f'_invoke_sdxl resizing image from {image.width}x{image.height} to {width}x{height}.')
             images[idx] = image.resize((width, height), Image.LANCZOS)
             idx += 1
+        logging.debug(f'Generating SDXL-refined DeepFloyd output.')
         output = self.diffusion_manager._refiner_pipeline(
             images=images,
             user_config=user_config,
@@ -41,6 +43,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             random_seed=False,
             denoising_start=None
         )
+        logging.debug(f'Generating SDXL-refined DeepFloyd output has completed.')
         self._cleanup_pipes()
         return output
 
@@ -51,12 +54,14 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         if self.stage2 is not None:
             logging.info(f"Keeping existing {stage2_model} model with {type(self.stage2)} pipeline.")
             return
+        logging.debug(f'Retrieving DeepFloyd Stage II pipeline.')
         self.stage2 = self.pipeline_manager.get_pipe(
             model_id=stage2_model,
             user_config=user_config,
             scheduler_config=scheduler_config,
             custom_text_encoder=-1
         )
+        logging.debug(f'Retrieving DeepFloyd Stage II pipeline has completed.')
 
     def _invoke_stage2(
         self,
@@ -82,8 +87,8 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             num_images_per_prompt=1,
             guidance_scale=user_config.get("df_guidance_scale_2", 5.7),
         ).images
+        logging.debug(f'Generating DeepFloyd Stage2 output has completed.')
         self._cleanup_pipes()
-        logging.debug(f'Result: {type(stage2_result)}')
         return stage2_result
 
     def _setup_stage3(self, user_config):
@@ -92,17 +97,20 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         if self.stage3 is not None:
             logging.info(f"Keeping existing {stage3_model} model.")
             return
+        logging.debug(f'Retrieving DeepFloyd Stage III pipeline.')
         self.stage3 = self.pipeline_manager.get_pipe(
             model_id=stage3_model,
             user_config=user_config,
             scheduler_config=scheduler_config,
             safety_modules=self.safety_modules
         )
+        logging.debug(f'Retrieving DeepFloyd Stage III pipeline has completed.')
         return
 
     def _invoke_stage3(self, prompt: str, negative_prompt: str, image: Image, user_config: dict):
         self._setup_stage3(user_config)
         user_strength = user_config.get("deepfloyd_stage3_strength", 1.0)
+        logging.debug(f'Generating DeepFloyd Stage3 output at {image.width * 4}x{image.height * 4}.')
         output = self.stage3(
             prompt=[prompt] * len(image),
             negative_prompt=[negative_prompt] * len(image),
@@ -110,6 +118,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             noise_level=(100 * user_strength),
             guidance_scale=user_config.get("df_guidance_scale_3", 5.6),
         ).images
+        logging.debug(f'Generating DeepFloyd Stage3 output has completed.')
         self._cleanup_pipes()
         return output
 
@@ -123,16 +132,19 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             seed = random.randint(0, 42042042042)
         for i in range(4):
             generators.append(self.diffusion_manager._get_generator(user_config, override_seed=int(seed) + i))
+        df_guidance_scale = user_config.get('df_guidance_scale_1', 9.2)
+        logging.debug(f'Generating DeepFloyd Stage1 output at {width}x{height} and {df_guidance_scale} CFG.')
         output = self.stage1(
             prompt_embeds=prompt_embed,
             negative_prompt_embeds=negative_prompt_embed,
             generator=generators,
-            guidance_scale=user_config.get('df_guidance_scale_1', 9.2),
+            guidance_scale=df_guidance_scale,
             output_type="pt",
             width=width,
             height=height,
             num_images_per_prompt=1,
         ).images
+        logging.debug(f'Generating DeepFloyd Stage1 output has completed.')
         self._cleanup_pipes()
         return output
 
@@ -209,6 +221,8 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                     prompt=prompt,
                     negative_prompt=negative_prompt
                 )
+            if not use_latent_refiner and not use_x4_upscaler:
+                return stage2_output
             return stage3_output
         except Exception as e:
             logging.error(f"DeepFloyd pipeline failed: {e}, traceback: {e.__traceback__}")
