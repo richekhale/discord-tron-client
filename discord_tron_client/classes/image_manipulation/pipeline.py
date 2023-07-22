@@ -235,6 +235,7 @@ class PipelineRunner:
         positive_prompt="",
         negative_prompt="",
         pooled_embed=None,
+        image_return_type="pil",
         negative_pooled_embed=None,
     ):
         original_stderr = sys.stderr
@@ -243,7 +244,6 @@ class PipelineRunner:
         try:
             use_latent_result = user_config.get("latent_refiner", True)
             self.pipeline_manager.to_accelerator(pipe)
-            image_return_type = "pil"
             denoising_start = None
             user_model = user_config.get("model", "")
             if use_latent_result:
@@ -374,6 +374,9 @@ class PipelineRunner:
             "guidance_scaling": guidance_scale,
             "strength": user_config.get("strength", 0.5),
         }
+        if type(new_image) == torch.Tensor:
+            logging.debug(f'Returning Tensor type directly.')
+            return new_image
         return self._encode_output(
             new_image, positive_prompt, user_config, image_params
         )
