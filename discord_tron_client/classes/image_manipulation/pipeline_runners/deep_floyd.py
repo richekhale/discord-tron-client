@@ -108,11 +108,9 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         self, prompt_embed, negative_prompt_embed, user_config: dict, width=64, height=64
     ):
         # Create four generators with a seed based on user_config['seed']. Increment for each generator.
-        generators = 
-        [
-            self.diffusion_manager._get_generator(user_config, override_seed=int(user_config.get('seed', 0) + i))
-            for i in range(4)
-        ]
+        generators = [ ]
+        for i in range(4):
+            generators.append(self.diffusion_manager._get_generator(user_config, override_seed=int(user_config.get('seed', 0) + i)))
         return self.stage1(
             prompt_embeds=prompt_embed,
             negative_prompt_embeds=negative_prompt_embed,
