@@ -77,6 +77,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             model_id=stage3_model,
             user_config=user_config,
             scheduler_config=scheduler_config,
+            custom_text_encoder=-1
         )
         self.stage3.enable_model_cpu_offload()
         return

@@ -88,8 +88,12 @@ class DiffusionPipelineManager:
             except Exception as e:
                 logging.error(f"Error when deleting pipe: {e}")
 
-    def create_pipeline(self, model_id: str, pipe_type: str, use_safetensors: bool = True) -> Pipeline:
+    def create_pipeline(self, model_id: str, pipe_type: str, use_safetensors: bool = True, custom_text_encoder: int = None) -> Pipeline:
         pipeline_class = self.PIPELINE_CLASSES[pipe_type]
+        extra_args = {}
+        if custom_text_encoder is not None and custom_text_encoder == -1:
+            # Disable text encoder.
+            extra_args["text_encoder"] = None
         if pipe_type in ["variation", "upscaler"]:
             # Variation uses ControlNet stuff.
             logging.debug(f"Creating a ControlNet model for {model_id}")
@@ -108,6 +112,7 @@ class DiffusionPipelineManager:
                 safety_checker=None,
                 requires_safety_checker=None,
                 use_safetensors=use_safetensors,
+                **extra_args
             )
         elif pipe_type in ["prompt_variation"]:
             # Use the long prompt weighting pipeline.
@@ -171,6 +176,7 @@ class DiffusionPipelineManager:
         prompt_variation: bool = False,
         promptless_variation: bool = False,
         upscaler: bool = False,
+        custom_text_encoder: int = None
     ) -> Pipeline:
         self.delete_pipes(keep_model=model_id)
         pipe_type = (
@@ -211,7 +217,7 @@ class DiffusionPipelineManager:
 
         if model_id not in self.pipelines:
             logging.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
-            self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type, use_safetensors=use_safetensors)
+            self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type, use_safetensors=use_safetensors, custom_text_encoder=custom_text_encoder)
             if pipe_type in ["upscaler", "prompt_variation", "text2img", "kandinsky-2.2"]:
                 pass
             elif pipe_type == "variation":
