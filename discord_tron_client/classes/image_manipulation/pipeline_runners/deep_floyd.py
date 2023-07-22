@@ -146,6 +146,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             negative_prompt_embed=negative_embeds,
             width=width,
             height=height,
+            user_config=user_config,
         )
         logging.debug(f"Generating DeepFloyd Stage2 output.")
         stage2_output = self._invoke_stage2(
