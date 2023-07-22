@@ -154,7 +154,7 @@ class HardwareInfo:
         return self.video_memory_amount
 
     def get_concurrent_pipe_count(self):
-        memory_amount = self.get_memory_total()
+        memory_amount = self.get_machine_info()['video_memory_amount']
         if memory_amount == "Unknown":
             # If we do not know how much vmem we have, that is a bad sign.
             return 1
