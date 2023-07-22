@@ -260,7 +260,7 @@ class DiffusionPipelineManager:
                 self.pipelines[model_id].to(self.device)
                 torch._dynamo.config.suppress_errors = True
                 torch._dynamo.config.log_level = logging.WARNING
-                if config.enable_compile():
+                if config.enable_compile() and hasattr(self.pipelines[model_id], 'unet'):
                     self.pipelines[model_id].unet = torch.compile(
                         self.pipelines[model_id].unet,
                         mode="reduce-overhead",
