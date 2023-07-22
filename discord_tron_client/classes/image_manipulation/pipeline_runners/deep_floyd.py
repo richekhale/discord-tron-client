@@ -139,8 +139,10 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         del args["user_config"]
 
         # Grab prompt embeds from T5.
+        prompt = args.get("prompt", "")
+        negative_prompt = args.get("negative_prompt", "")
         prompt_embeds, negative_embeds = self._embeds(
-            args.get("prompt", ""), args.get("negative_prompt", "")
+            prompt, negative_prompt
         )
         try:
             logging.debug(f"Generating stage 1 output.")
@@ -177,7 +179,9 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             stage3_output = self._invoke_sdxl(
                 prompt=args.get("prompt", ""),
                 image=stage2_output,
-                user_config=user_config
+                user_config=user_config,
+                prompt=prompt,
+                negative_prompt=negative_prompt
             )
             return stage3_output
         except Exception as e:
