@@ -3,7 +3,7 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners.base_runner
 )
 from diffusers import DiffusionPipeline
 from PIL import Image
-import logging
+import logging, random
 
 
 class DeepFloydPipelineRunner(BasePipelineRunner):
@@ -110,6 +110,8 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         # Create four generators with a seed based on user_config['seed']. Increment for each generator.
         generators = [ ]
         seed = user_config.get('seed', 0)
+        if seed <= 0:
+            seed = random.randint(0, 42042042042)
         for i in range(4):
             generators.append(self.diffusion_manager._get_generator(user_config, override_seed=int(seed) + i))
         return self.stage1(
