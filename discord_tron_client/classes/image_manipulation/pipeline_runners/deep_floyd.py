@@ -94,6 +94,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         return
 
     def _invoke_stage3(self, prompt: str, negative_prompt: str, image: Image, user_config: dict, width: int, height: int):
+        self._setup_stage3(user_config)
         user_strength = user_config.get("deepfloyd_stage3_strength", 1.0)
         s3_width = width * 4 * 4
         s3_height = height * 4 * 4
