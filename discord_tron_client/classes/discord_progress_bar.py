@@ -49,7 +49,7 @@ class DiscordProgressBar:
             logging.info("Sending progress bar to websocket!")
             try:
                 # Update the websocket message template
-                self.websocket_msg.update(arguments={"message": progress_text + self.current_stage_msg})
+                self.websocket_msg.update(arguments={"message": progress_text + self.current_stage_msg or ''})
                 to_send = self.websocket_msg.to_json()
                 logging.debug(f"Sending data: {to_send}")
                 self.websocket = AppConfig.get_websocket()
