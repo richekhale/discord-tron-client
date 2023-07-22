@@ -90,7 +90,11 @@ class DiffusionPipelineManager:
 
     def create_pipeline(self, model_id: str, pipe_type: str, use_safetensors: bool = True, custom_text_encoder: int = None, safety_modules: dict = None) -> Pipeline:
         pipeline_class = self.PIPELINE_CLASSES[pipe_type]
-        extra_args = {}
+        extra_args = {
+            'feature_extractor': None,
+            'safety_checker': None,
+            'requires_safety_checker': None,
+        }
         if custom_text_encoder is not None and custom_text_encoder == -1:
             # Disable text encoder.
             extra_args["text_encoder"] = None
@@ -111,9 +115,6 @@ class DiffusionPipelineManager:
                 torch_dtype=self.torch_dtype,
                 custom_pipeline="stable_diffusion_controlnet_img2img",
                 controlnet=controlnet,
-                feature_extractor=None,
-                safety_checker=None,
-                requires_safety_checker=None,
                 use_safetensors=use_safetensors,
                 **extra_args
             )
@@ -123,9 +124,6 @@ class DiffusionPipelineManager:
             pipeline = pipeline_class.from_pretrained(
                 model_id,
                 torch_dtype=self.torch_dtype,
-                feature_extractor=None,
-                safety_checker=None,
-                requires_safety_checker=None,
                 use_safetensors=use_safetensors,
                 **extra_args
             )
@@ -134,9 +132,6 @@ class DiffusionPipelineManager:
             pipeline = pipeline_class.from_pretrained(
                 model_id,
                 torch_dtype=self.torch_dtype,
-                feature_extractor=None,
-                safety_checker=None,
-                requires_safety_checker=None,
                 use_safetensors=use_safetensors,
                 use_auth_token=config.get_huggingface_api_key(),
                 **extra_args
