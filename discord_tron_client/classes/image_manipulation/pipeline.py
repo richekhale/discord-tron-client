@@ -170,7 +170,7 @@ class PipelineRunner:
             if (
                 self.prompt_manager is not None
                 and not promptless_variation
-                and self.prompt_manager.should_enable(pipe)
+                and self.prompt_manager.should_enable(pipe, user_config)
                 and self.config.enable_compel()
             ):
                 embeddings = self.prompt_manager.process_long_prompt(
