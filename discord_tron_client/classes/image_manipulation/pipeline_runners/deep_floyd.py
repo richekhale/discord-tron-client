@@ -110,7 +110,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
     def _invoke_stage3(self, prompt: str, negative_prompt: str, image: Image, user_config: dict):
         self._setup_stage3(user_config)
         user_strength = user_config.get("deepfloyd_stage3_strength", 1.0)
-        logging.debug(f'Generating DeepFloyd Stage3 output at {image[0].width * 4}x{image[0].height * 4}.')
+        logging.debug(f'Generating DeepFloyd Stage3 output.')
         output = self.stage3(
             prompt=[prompt] * len(image),
             negative_prompt=[negative_prompt] * len(image),
@@ -132,7 +132,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             seed = random.randint(0, 42042042042)
         for i in range(4):
             generators.append(self.diffusion_manager._get_generator(user_config, override_seed=int(seed) + i))
-        df_guidance_scale = user_config.get('df_guidance_scale_1', 9.2)
+        df_guidance_scale = user_config.get("df_guidance_scale_1", 9.2)
         logging.debug(f'Generating DeepFloyd Stage1 output at {width}x{height} and {df_guidance_scale} CFG.')
         output = self.stage1(
             prompt_embeds=prompt_embed,
