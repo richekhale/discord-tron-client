@@ -428,8 +428,6 @@ class PipelineRunner:
     def _get_generator(self, user_config: dict, override_seed: int = None):
         if override_seed is None:
             self.seed = user_config.get("seed", None)
-        else:
-            self.seed = override_seed
         import random
 
         if self.seed is None or int(self.seed) == 0:
@@ -438,8 +436,11 @@ class PipelineRunner:
         elif int(self.seed) < 0:
             self.seed = random.randint(0, 2**32)
         generator = torch.Generator(device="cpu")
-        generator.manual_seed(int(self.seed))
-        logging.info(f"Seed: {self.seed}")
+        go_seed = int(self.seed)
+        if override_seed is not None:
+            go_seed = int(override_seed)
+        generator.manual_seed(int(go_seed))
+        logging.info(f"Seed: {go_seed}")
         return generator
 
     def _get_prompt_manager(
