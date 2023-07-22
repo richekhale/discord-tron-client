@@ -21,7 +21,7 @@ from discord_tron_client.classes.image_manipulation.face_upscale import (
     use_upscaler,
 )
 from PIL import Image
-import torch, gc, logging, diffusers
+import torch, gc, logging, diffusers, transformers
 
 torch.backends.cudnn.deterministic = False
 torch.backends.cuda.matmul.allow_tf32 = False
@@ -88,7 +88,7 @@ class DiffusionPipelineManager:
             except Exception as e:
                 logging.error(f"Error when deleting pipe: {e}")
 
-    def create_pipeline(self, model_id: str, pipe_type: str, use_safetensors: bool = True, custom_text_encoder: int = None, safety_modules: dict = None) -> Pipeline:
+    def create_pipeline(self, model_id: str, pipe_type: str, use_safetensors: bool = True, custom_text_encoder = None, safety_modules: dict = None) -> Pipeline:
         pipeline_class = self.PIPELINE_CLASSES[pipe_type]
         extra_args = {
             'feature_extractor': None,
@@ -98,6 +98,9 @@ class DiffusionPipelineManager:
         if custom_text_encoder is not None and custom_text_encoder == -1:
             # Disable text encoder.
             extra_args["text_encoder"] = None
+        elif custom_text_encoder is not None:
+            # Use a custom text encoder.
+            extra_args["text_encoder"] = custom_text_encoder
         if safety_modules is not None:
             for key in safety_modules:
                 extra_args[key] = safety_modules[key]
@@ -177,7 +180,7 @@ class DiffusionPipelineManager:
         prompt_variation: bool = False,
         promptless_variation: bool = False,
         upscaler: bool = False,
-        custom_text_encoder: int = None,
+        custom_text_encoder = None,
         safety_modules: dict = None
     ) -> Pipeline:
         self.delete_pipes(keep_model=model_id)
@@ -218,7 +221,13 @@ class DiffusionPipelineManager:
             self.clear_pipeline(model_id)
 
         if model_id not in self.pipelines:
-            logging.debug(f"Creating pipeline type {pipe_type} for model {model_id} with custom_text_encoder {custom_text_encoder}")
+            if "DeepFloyd/IF-I-" in model_id:
+                # DeepFloyd stage 1 can use a more efficient text encoder config.
+                custom_text_encoder = transformers.T5EncoderModel.from_pretrained(
+                    model_id, subfolder="text_encoder", device_map="auto", load_in_8bit=True, variant="8bit"
+                )
+
+            logging.debug(f"Creating pipeline type {pipe_type} for model {model_id} with custom_text_encoder {type(custom_text_encoder)}")
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type, use_safetensors=use_safetensors, custom_text_encoder=custom_text_encoder, safety_modules=safety_modules)
             if pipe_type in ["upscaler", "prompt_variation", "text2img", "kandinsky-2.2"]:
                 pass
@@ -258,6 +267,12 @@ class DiffusionPipelineManager:
                 if config.enable_compile() and hasattr(self.pipelines[model_id], 'unet'):
                     self.pipelines[model_id].unet = torch.compile(
                         self.pipelines[model_id].unet,
+                        mode="reduce-overhead",
+                        fullgraph=True,
+                    )
+                if config.enable_compile() and hasattr(self.pipelines[model_id], 'text_encoder'):
+                    self.pipelines[model_id].text_encoder = torch.compile(
+                        self.pipelines[model_id].text_encoder,
                         mode="reduce-overhead",
                         fullgraph=True,
                     )
