@@ -200,13 +200,15 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                     image=stage2_output,
                     user_config=user_config,
                 )
-            logging.debug(f"Generating DeepFloyd Stage3 output using latent refiner.")
-            stage3_output = self._invoke_sdxl(
-                images=stage2_output,
-                user_config=user_config,
-                prompt=prompt,
-                negative_prompt=negative_prompt
-            )
+            use_latent_refiner = user_config.get("use_df_latent_refiner", False)
+            if use_latent_refiner:
+                logging.debug(f"Generating DeepFloyd Stage3 output using latent refiner.")
+                stage3_output = self._invoke_sdxl(
+                    images=stage2_output,
+                    user_config=user_config,
+                    prompt=prompt,
+                    negative_prompt=negative_prompt
+                )
             return stage3_output
         except Exception as e:
             logging.error(f"DeepFloyd pipeline failed: {e}, traceback: {e.__traceback__}")
