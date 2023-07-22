@@ -74,7 +74,8 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             output_type=output_type,
             width=s2_width,
             height=s2_height,
-            num_images_per_prompt=4
+            num_images_per_prompt=4,
+            guidance_scale=user_config.get("df_guidance_scale_2", 5.7),
         ).images
         logging.debug(f'Result: {type(stage2_result)}')
         return stage2_result
@@ -100,6 +101,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             negative_prompt=[negative_prompt] * len(image),
             image=image,
             noise_level=(100 * user_strength),
+            guidance_scale=user_config.get("df_guidance_scale_3", 5.6),
         ).images
 
     def _invoke_stage1(
@@ -109,6 +111,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             prompt_embeds=prompt_embed,
             negative_prompt_embeds=negative_prompt_embed,
             generator=self.diffusion_manager._get_generator(user_config),
+            guidance_scale=user_config.get('df_guidance_scale_1', 9.2),
             output_type="pt",
             width=width,
             height=height,
