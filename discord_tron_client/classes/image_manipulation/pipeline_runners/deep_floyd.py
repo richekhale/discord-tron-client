@@ -29,10 +29,14 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             images = [images]
         idx = 0
         for image in images:
-            width = image.width * 4
-            height = image.height * 4
-            logging.debug(f'_invoke_sdxl resizing image from {image.width}x{image.height} to {width}x{height}.')
-            images[idx] = image.resize((width, height), Image.LANCZOS)
+            if hasattr(image, 'width'):
+                width = image.width * 4
+                height = image.height * 4
+                logging.debug(f'_invoke_sdxl resizing image from {image.width}x{image.height} to {width}x{height}.')
+                images[idx] = image.resize((width, height), Image.LANCZOS)
+            else:
+                logging.debug(f'_invoke_sdxl not resizing non-Image inputs.')
+                break
             idx += 1
         logging.debug(f'Generating SDXL-refined DeepFloyd output.')
         output = self.diffusion_manager._refiner_pipeline(
