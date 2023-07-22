@@ -224,7 +224,7 @@ class DiffusionPipelineManager:
             if "DeepFloyd/IF-I-" in model_id:
                 # DeepFloyd stage 1 can use a more efficient text encoder config.
                 custom_text_encoder = transformers.T5EncoderModel.from_pretrained(
-                    model_id, subfolder="text_encoder", device_map="auto", load_in_8bit=True, variant="8bit"
+                    model_id, subfolder="text_encoder", device_map="auto", load_in_8bit=False, variant="fp16", torch_dtype=self.torch_dtype
                 )
 
             logging.debug(f"Creating pipeline type {pipe_type} for model {model_id} with custom_text_encoder {type(custom_text_encoder)}")
