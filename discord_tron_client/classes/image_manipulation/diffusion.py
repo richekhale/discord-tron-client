@@ -283,24 +283,15 @@ class DiffusionPipelineManager:
 
     def delete_pipes(self, keep_model: str = None):
         total_allowed_concurrent = hardware.get_concurrent_pipe_count()
-        keys_to_delete = [
-            pipeline
-            for pipeline in self.pipelines
-            if keep_model is None or pipeline != keep_model
-        ]
-
-        # Updated to count the current number of active pipelines
-        active_pipes = len(self.pipelines) - len(keys_to_delete)
-
-        for key in keys_to_delete:
-            # Only delete pipes if we exceed the limit
-            if active_pipes >= total_allowed_concurrent:
-                logging.info(
-                    f"Clearing out an unwanted pipe for {key}, as we have a limit of {total_allowed_concurrent} concurrent pipes."
-                )
-                del self.pipelines[key]
-                self.clear_cuda_cache()
-                active_pipes -= 1  # Update the count after deleting a pipeline
+        for model_id in self.pipelines:
+            if len(self.pipelines) > total_allowed_concurrent and keep_model is None or keep_model != model_id:
+                logging.info(f'Deleting pipe for model {model_id}, as we had {len(self.pipelines)} pipes, and only {total_allowed_concurrent} are allowed.')
+                del self.pipelines[model_id]
+                if model_id in self.last_pipe_scheduler:
+                    del self.last_pipe_scheduler[model_id]
+                if model_id in self.last_pipe_type:
+                    del self.last_pipe_type[model_id]
+        self.clear_cuda_cache()
 
     def clear_cuda_cache(self):
         gc.collect()
@@ -352,7 +343,7 @@ class DiffusionPipelineManager:
         return pipeline
 
     def get_sdxl_refiner_pipe(self):
-        self.delete_pipes()
+        self.delete_pipes(keep_model='ptx0/s2')
         pipeline = self.get_pipe(
             user_config={},
             scheduler_config={"name": "fast"},
