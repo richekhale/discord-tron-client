@@ -550,7 +550,7 @@ class PipelineRunner:
         return pipeline_runner(
             generator=torch.Generator(device="cpu").manual_seed(int(seed_flip)),
             prompt=[prompt] * len(images),
-            negative_prompt=negative_prompt,
+            negative_prompt=[negative_prompt] * len(images),
             image=images,
             user_config=user_config,
             output_type="pil",
