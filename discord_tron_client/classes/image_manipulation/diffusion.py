@@ -350,7 +350,7 @@ class DiffusionPipelineManager:
             promptless_variation=True,
             user_config={},
             scheduler_config={"name": "controlnet"},
-            model_id="saftle/urpm",
+            model_id="emilianJR/epiCRealism",
         )
         return pipeline
 
