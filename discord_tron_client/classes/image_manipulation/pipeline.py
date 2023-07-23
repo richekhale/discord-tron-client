@@ -339,6 +339,7 @@ class PipelineRunner:
                     generator=generator,
                     prompt=positive_prompt,
                     negative_prompt=negative_prompt,
+                    controlnet_strength=user_config.get("tile_strength", 0.3),
                 )
             elif upscaler:
                 logging.info("Upscaling image using Real-ESRGAN!")
@@ -491,6 +492,7 @@ class PipelineRunner:
         generator,
         prompt: str = None,
         negative_prompt: str = None,
+        controlnet_strength: float = None
     ):
         # Get the image width/height from 'image' if it's provided
         logging.info(f"Running promptless variation with image.size {image.size}.")
@@ -514,7 +516,7 @@ class PipelineRunner:
             controlnet_conditioning_image=image,
             width=image.size[0],
             height=image.size[1],
-            strength=user_config.get("tile_strength", 0.3),
+            strength=controlnet_strength,
             generator=generator,
             num_inference_steps=user_config.get("tile_steps", 32),
         ).images[0]
@@ -570,9 +572,12 @@ class PipelineRunner:
         return new_images
 
     def _controlnet_all_images(
-        self, preprocessed_images: list, user_config: dict, generator
+        self, preprocessed_images: list, user_config: dict, generator, prompt: str = None, negative_prompt: str = None, controlnet_strength: float = None
     ):
-        if float(user_config.get("tile_strength", 0.3)) == 0.0:
+        if controlnet_strength is None:
+            controlnet_strength = user_config.get("tile_strength", 0.3)
+
+        if float(controlnet_strength) == 0.0:
             # Zero strength = Zero CTU.
             return preprocessed_images
 
@@ -585,6 +590,9 @@ class PipelineRunner:
                 user_config=user_config,
                 pipe=controlnet_pipe,
                 generator=generator,
+                prompt=prompt,
+                negative_prompt=negative_prompt,
+                controlnet_strength=controlnet_strength,
             )
             gc.collect()
             idx += 1

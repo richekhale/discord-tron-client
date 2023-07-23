@@ -232,10 +232,10 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                 negative_embeds=negative_embeds,
                 width=width,
                 height=height,
-                output_type="pil" if not user_config.get("use_df_x4_upscaler", True) else "pt"
+                output_type="pil" if not user_config.get("df_x4_upscaler", True) else "pt"
             )
-            use_x4_upscaler = user_config.get("use_df_x4_upscaler", True)
-            if use_x4_upscaler:
+            df_x4_upscaler = user_config.get("df_x4_upscaler", True)
+            if df_x4_upscaler:
                 logging.debug(f"Generating DeepFloyd Stage3 output using x4 upscaler.")
                 stage3_output = self._invoke_stage3(
                     prompt=args.get("prompt", ""),
@@ -243,8 +243,8 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                     image=stage2_output,
                     user_config=user_config,
                 )
-            use_latent_refiner = user_config.get("use_df_latent_refiner", False)
-            if use_latent_refiner:
+            df_latent_refiner = user_config.get("df_latent_refiner", False)
+            if df_latent_refiner:
                 logging.debug(f"Generating DeepFloyd Stage3 output using latent refiner.")
                 stage3_output = self._invoke_sdxl(
                     images=stage2_output,
@@ -252,7 +252,20 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                     prompt=prompt,
                     negative_prompt=negative_prompt
                 )
-            if not use_latent_refiner and not use_x4_upscaler:
+            df_esrgan_upscaler = user_config.get("df_esrgan_upscaler", False)
+            if df_esrgan_upscaler:
+                stage3_output = self.diffusion_manager.upscale_image(stage3_output)
+            df_controlnet_upscaler = user_config.get("df_controlnet_upscaler", False):
+            if df_controlnet_upscaler:
+                stage3_output = self.pipeline_manager._controlnet_all_images(
+                    preprocessed_images=stage3_output,
+                    user_config=user_config,
+                    generator=None,
+                    prompt=prompt,
+                    negative_prompt=negative_prompt,
+                    controlnet_strength=user_config.get("df_controlnet_strength", 1.0),
+                )
+            if not df_latent_refiner and not df_x4_upscaler:
                 return stage2_output
             return stage3_output
         except Exception as e:
