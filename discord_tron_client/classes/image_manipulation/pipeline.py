@@ -1,4 +1,4 @@
-import logging, sys, torch, gc, traceback, time, asyncio
+import logging, sys, torch, gc, traceback, time, asyncio, accelerate
 from torch.cuda import OutOfMemoryError
 from tqdm import tqdm
 from discord_tron_client.classes.app_config import AppConfig

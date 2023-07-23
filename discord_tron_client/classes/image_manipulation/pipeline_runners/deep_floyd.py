@@ -188,7 +188,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         # This has to support portrait or landscape, as well as square images.
         width = user_config.get("resolution", {}).get("width", 768)
         height = user_config.get("resolution", {}).get("height", 768)
-        
+        logging.debug(f'DeepFloyd stage 1 resolution before adjustment is {width}x{height}')
         # Scale factor k is the ratio of desired resolution (64 in this case) to the smaller dimension
         k = 64 / min(height, width)
         
@@ -199,6 +199,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         # Ensure both dimensions are multiples of 64
         height = (height // 64) * 64
         width = (width // 64) * 64
+        logging.debug(f'DeepFloyd stage 1 resolution after adjustment is {width}x{height}')
 
         return width, height
 

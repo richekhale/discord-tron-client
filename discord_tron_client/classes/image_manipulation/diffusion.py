@@ -12,6 +12,7 @@ from diffusers import (
     KandinskyV22Pipeline,
     StableDiffusionXLImg2ImgPipeline,
 )
+from diffusers.models.attention_processor import AttnProcessor2_0
 from diffusers import DiffusionPipeline as Pipeline
 from typing import Dict
 from discord_tron_client.classes.hardware import HardwareInfo
@@ -241,6 +242,9 @@ class DiffusionPipelineManager:
                     f"After setting scheduler: {self.pipelines[model_id].scheduler}"
                 )
             # Additional offload settings that we apply to all pipelines.
+            if hasattr(self.pipelines[model_id], 'unet'):
+                self.pipelines[model_id].unet.to(memory_format=torch.channels_last)
+                self.pipelines[model_id].unet.set_attn_processor(AttnProcessor2_0()) # https://huggingface.co/docs/diffusers/optimization/torch2.0
             if (
                 hasattr(self.pipelines[model_id], "enable_model_cpu_offload")
                 and hardware.should_offload()
@@ -266,6 +270,8 @@ class DiffusionPipelineManager:
                         mode="reduce-overhead",
                         fullgraph=True,
                     )
+                if hasattr(self.pipelines[model_id], 'controlnet') and config.enable_compile():
+                    self.pipelines[model_id].controlnet = torch.compile(self.pipelines[model_id].controlnet, mode="reduce-overhead", fullgraph=True)
                 if config.enable_compile() and hasattr(self.pipelines[model_id], 'text_encoder') and type(self.pipelines[model_id].text_encoder) == transformers.T5EncoderModel:
                     logging.info('Found T5 encoder model. Compiling...')
                     self.pipelines[model_id].text_encoder = torch.compile(
