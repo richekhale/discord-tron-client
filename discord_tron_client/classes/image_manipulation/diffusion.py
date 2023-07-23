@@ -187,7 +187,8 @@ class DiffusionPipelineManager:
         promptless_variation: bool = False,
         upscaler: bool = False,
         custom_text_encoder = None,
-        safety_modules: dict = None
+        safety_modules: dict = None,
+        use_safetensors: bool = True
     ) -> Pipeline:
         self.delete_pipes(keep_model=model_id)
         pipe_type = (
@@ -199,7 +200,6 @@ class DiffusionPipelineManager:
             if upscaler
             else "text2img"
         )
-        use_safetensors = True
         if "kandinsky-2-2" in model_id:
             use_safetensors = False
             pipe_type = "kandinsky-2.2"
@@ -351,6 +351,7 @@ class DiffusionPipelineManager:
             user_config={},
             scheduler_config={"name": "controlnet"},
             model_id="emilianJR/epiCRealism",
+            use_safetensors=False
         )
         return pipeline
 
