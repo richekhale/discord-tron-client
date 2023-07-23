@@ -255,7 +255,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             df_esrgan_upscaler = user_config.get("df_esrgan_upscaler", False)
             if df_esrgan_upscaler:
                 stage3_output = self.diffusion_manager.upscale_image(stage3_output)
-            df_controlnet_upscaler = user_config.get("df_controlnet_upscaler", False):
+            df_controlnet_upscaler = user_config.get("df_controlnet_upscaler", False)
             if df_controlnet_upscaler:
                 stage3_output = self.pipeline_manager._controlnet_all_images(
                     preprocessed_images=stage3_output,
