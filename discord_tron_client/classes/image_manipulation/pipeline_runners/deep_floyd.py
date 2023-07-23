@@ -188,19 +188,18 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         # This has to support portrait or landscape, as well as square images.
         width = user_config.get("resolution", {}).get("width", 768)
         height = user_config.get("resolution", {}).get("height", 768)
-        aspect_ratio = width / height
-        if width > height:
-            # Landscape
-            width = 64
-            height = int(width * aspect_ratio)
-        elif height > width:
-            # Portrait
-            height = 64
-            width = int(height * aspect_ratio)
-        else:
-            # Square
-            width = 64
-            height = 64
+        
+        # Scale factor k is the ratio of desired resolution (64 in this case) to the smaller dimension
+        k = 64 / min(height, width)
+        
+        # Update dimensions
+        height = int(round(height * k))
+        width = int(round(width * k))
+        
+        # Ensure both dimensions are multiples of 64
+        height = (height // 64) * 64
+        width = (width // 64) * 64
+
         return width, height
 
     def __call__(self, **args):
