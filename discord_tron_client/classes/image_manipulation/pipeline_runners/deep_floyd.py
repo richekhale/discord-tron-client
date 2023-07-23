@@ -177,6 +177,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         logging.debug(f'Generating DeepFloyd text embeds has completed.')
         if self.should_offload():
             # Clean up the text encoder to save VRAM.
+            logging.info(f'Clearing up the DeepFloyd text encoder to save VRAM.')
             self.stage1.text_encoder = None
             self.clear_cuda_cache()
         return embeds

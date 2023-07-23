@@ -119,6 +119,7 @@ class DiffusionPipelineManager:
                 custom_pipeline="stable_diffusion_controlnet_img2img",
                 controlnet=controlnet,
                 use_safetensors=use_safetensors,
+                device_map="auto",
                 **extra_args
             )
         elif pipe_type in ["prompt_variation"]:
@@ -128,6 +129,7 @@ class DiffusionPipelineManager:
                 model_id,
                 torch_dtype=self.torch_dtype,
                 use_safetensors=use_safetensors,
+                device_map="auto",
                 **extra_args
             )
         elif pipe_type in ["text2img"]:
@@ -137,13 +139,17 @@ class DiffusionPipelineManager:
                 torch_dtype=self.torch_dtype,
                 use_safetensors=use_safetensors,
                 use_auth_token=config.get_huggingface_api_key(),
+                device_map="auto",
                 **extra_args
             )
             logging.debug(f"Model config: {pipeline.config}")
         else:
             logging.debug(f"Using standard pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
-                model_id, torch_dtype=self.torch_dtype
+                model_id, torch_dtype=self.torch_dtype,
+                use_safetensors=use_safetensors,
+                use_auth_token=config.get_huggingface_api_key(),
+                device_map="auto",
                 **extra_args
             )
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:

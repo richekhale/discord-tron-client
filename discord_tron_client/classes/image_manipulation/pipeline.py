@@ -326,6 +326,11 @@ class PipelineRunner:
                         negative_prompt=negative_prompt,
                         denoising_start=0.8,
                     )
+                new_image = self._controlnet_all_images(
+                    preprocessed_images=preprocessed_images,
+                    user_config=user_config,
+                    generator=generator,
+                )
             elif promptless_variation:
                 new_image = self._controlnet_pipeline(
                     image=image,
