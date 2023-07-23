@@ -140,7 +140,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         seed = int(user_config.get('seed', 0))
         if int(seed) <= 0:
             seed = random.randint(0, 42042042042)
-        for i in range(4):
+        for i in range(self.batch_size()):
             generators.append(self.diffusion_manager._get_generator(user_config, override_seed=int(seed) + i))
         df_guidance_scale = user_config.get("df_guidance_scale_1", 9.2)
         logging.debug(f'Generating DeepFloyd Stage1 output at {width}x{height} and {df_guidance_scale} CFG.')
