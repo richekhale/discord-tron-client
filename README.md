@@ -8,7 +8,8 @@ This codebase is capable of:
 * 🕵 Upscale images via ControlNet Tile v1.5
 * ✔️ Run Stable Diffusion 2.1 images through 1.5 ControlNet pipeline or the SDXL refiner
 * ✔️ Run Stable Diffusion XL (SDXL) images with its refiner
-* 🔢 Use of Karras Sigmas for major quality improvement
+* ✔️ Run Kandinsky 2.2 standalone or via ControlNet/SDXL/RealESRGAN
+* ✔️ Run DeepFloyd XL (4.3B) via x4 upscaler, RealESRGAN, ControlNet, or SDXL Refiner
 * 🙊 OpenAI GPT integrations, including the option to enforce "jailbreaks"
 * 📢 Bark TTS samples via [bghira/bghira-bark](https://github.com/bghira/bghira-bark)
 * 📖 Language model predict/responses
@@ -31,6 +32,8 @@ things are more likely to have frequent changes.
 This is developed on a laptop with 8GB of VRAM but that requires disabling
 much of the project's abilities. You can use either Bark, or Stable Diffusion, 
 but trying to run both in the bot on 8GB of VRAM, is not currently possible.
+
+Most modern image models will just simply not run on 8GB VRAM anymore.
 
 It's an "easy fix", but just not something that has been a focus.
 
