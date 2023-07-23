@@ -266,12 +266,15 @@ class DiffusionPipelineManager:
                         mode="reduce-overhead",
                         fullgraph=True,
                     )
-                if config.enable_compile() and hasattr(self.pipelines[model_id], 'text_encoder'):
+                if config.enable_compile() and hasattr(self.pipelines[model_id], 'text_encoder') and type(self.pipelines[model_id].text_encoder) == transformers.T5EncoderModel:
+                    logging.info('Found T5 encoder model. Compiling...')
                     self.pipelines[model_id].text_encoder = torch.compile(
                         self.pipelines[model_id].text_encoder,
                         mode="reduce-overhead",
                         fullgraph=True,
                     )
+                else:
+                    logging.warning(f'Torch compile on text encoder type {type(self.pipelines[model_id].text_encoder)} is not yet supported.')
         else:
             logging.info(f"Keeping existing pipeline. Not creating any new ones.")
             self.pipelines[model_id].to(self.device)
