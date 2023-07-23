@@ -508,7 +508,6 @@ class PipelineRunner:
         prompt_embed, negative_embed = controlnet_prompt_manager.process_long_prompt(
             positive_prompt=prompt, negative_prompt=negative_prompt
         )
-        self.pipeline_manager.to_accelerator(pipe)
         new_image = pipe(
             prompt_embeds=prompt_embed,
             negative_prompt_embeds=negative_embed,
@@ -520,7 +519,6 @@ class PipelineRunner:
             generator=generator,
             num_inference_steps=user_config.get("tile_steps", 32),
         ).images[0]
-        self.pipeline_manager.to_cpu(pipe, user_config["model_id"])
         return new_image
 
     def _refiner_pipeline(
