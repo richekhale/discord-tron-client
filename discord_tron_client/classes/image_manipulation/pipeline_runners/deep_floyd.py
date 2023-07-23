@@ -234,6 +234,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                 height=height,
                 output_type="pil" if not user_config.get("df_x4_upscaler", True) else "pt"
             )
+            stage3_output = None
             df_x4_upscaler = user_config.get("df_x4_upscaler", True)
             if df_x4_upscaler:
                 logging.debug(f"Generating DeepFloyd Stage3 output using x4 upscaler.")
@@ -258,7 +259,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             df_controlnet_upscaler = user_config.get("df_controlnet_upscaler", False)
             if df_controlnet_upscaler:
                 stage3_output = self.diffusion_manager._controlnet_all_images(
-                    preprocessed_images=stage3_output,
+                    preprocessed_images=stage3_output or stage2_output,
                     user_config=user_config,
                     generator=None,
                     prompt=prompt,
