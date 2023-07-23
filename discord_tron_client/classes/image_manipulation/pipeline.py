@@ -245,6 +245,7 @@ class PipelineRunner:
             use_latent_result = user_config.get("latent_refiner", True)
             self.pipeline_manager.to_accelerator(pipe)
             denoising_start = None
+            preprocessed_images = None
             user_model = user_config.get("model", "")
             if use_latent_result:
                 image_return_type = "latent"
@@ -327,7 +328,7 @@ class PipelineRunner:
                         denoising_start=0.8,
                     )
                 new_image = self._controlnet_all_images(
-                    preprocessed_images=preprocessed_images,
+                    preprocessed_images=preprocessed_images or new_image,
                     user_config=user_config,
                     generator=generator,
                 )
