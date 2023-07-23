@@ -42,3 +42,6 @@ class BasePipelineRunner:
             )
     def should_offload(self):
         return hardware_info.should_offload() or hardware_info.should_sequential_offload()
+    
+    def batch_size(self):
+        return config.get_config_value('df_batch_size', 1)

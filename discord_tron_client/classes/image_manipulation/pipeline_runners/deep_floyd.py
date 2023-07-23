@@ -212,7 +212,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         prompt = args.get("prompt", "")
         negative_prompt = args.get("negative_prompt", "")
         prompt_embeds, negative_embeds = self._embeds(
-            [prompt] * 4, [negative_prompt] * 4
+            [prompt] * self.batch_size(), [negative_prompt] * self.batch_size()
         )
         try:
             logging.debug(f"Generating stage 1 output.")
@@ -259,7 +259,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             df_controlnet_upscaler = user_config.get("df_controlnet_upscaler", False)
             if df_controlnet_upscaler:
                 stage3_output = self.diffusion_manager._controlnet_all_images(
-                    preprocessed_images=stage3_output or stage2_output,
+                    preprocessed_images=stage3_output or stage2_output or stage1_output,
                     user_config=user_config,
                     generator=None,
                     prompt=prompt,
