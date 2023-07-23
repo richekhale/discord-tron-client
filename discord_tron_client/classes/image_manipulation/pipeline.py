@@ -260,6 +260,7 @@ class PipelineRunner:
                         f"Final inference step: {denoising_start}, steps: {steps}"
                     )
             if not promptless_variation and image is None:
+                logging.info(f'Running text2img with batch_size {batch_size} via model {user_model}.')
                 # text2img workflow
                 if "ptx0/s1" in user_model or "stable-diffusion-xl" in user_model:
                     pipeline_runner = runner_map["sdxl_base"](pipeline=pipe)
@@ -293,6 +294,7 @@ class PipelineRunner:
                     generator=generator,
                 )
                 if use_latent_result:
+                    logging.info(f'Putting text2img latents into refiner at {denoising_start * 100} percent of the way through the process..')
                     preprocessed_images = self._refiner_pipeline(
                         images=preprocessed_images,
                         user_config=user_config,
@@ -306,6 +308,7 @@ class PipelineRunner:
                     generator=generator,
                 )
             elif not upscaler and not promptless_variation and image is not None:
+                logging.info(f'Running img2img with batch_size {batch_size} via model {user_model}.')
                 # Img2Img workflow
                 guidance_scale = 7.5
                 new_image = pipe(
@@ -524,7 +527,7 @@ class PipelineRunner:
 
     def _refiner_pipeline(
         self,
-        images: Image,
+        images: list,
         user_config: dict,
         prompt: str = None,
         negative_prompt: str = None,
@@ -542,40 +545,33 @@ class PipelineRunner:
         #     positive_prompt=prompt, negative_prompt=negative_prompt
         # )
 
-        new_images = []
-        self.pipeline_manager.to_accelerator(pipe)
         # Reverse the bits in the seed:
         seed_flip = int(self.seed) ^ 0xFFFFFFFF
-        for image in images:
-            new_images.append(
-                pipeline_runner(
-                    generator=torch.Generator(device="cpu").manual_seed(int(seed_flip)),
-                    prompt=prompt,
-                    negative_prompt=negative_prompt,
-                    image=image,
-                    user_config=user_config,
-                    output_type="pil",
-                    num_images_per_prompt=1,
-                    guidance_scale=float(user_config.get("refiner_guidance", 7.5)),
-                    guidance_rescale=float(user_config.get("refiner_guidance_rescale", 0.0)),
-                    strength=float(user_config.get("refiner_strength", 0.5)),
-                    aesthetic_score=float(user_config.get("aesthetic_score", 10.0)),
-                    negative_aesthetic_score=float(
-                        user_config.get("negative_aesthetic_score", 1.0)
-                    ),
-                    num_inference_steps=int(user_config.get("steps", 20)),
-                    denoising_start=denoising_start,
-                )[0]
-            )
-        self.pipeline_manager.to_cpu(pipe)
-        return new_images
+        return pipeline_runner(
+            generator=torch.Generator(device="cpu").manual_seed(int(seed_flip)),
+            prompt=[prompt] * len(images),
+            negative_prompt=negative_prompt,
+            image=images,
+            user_config=user_config,
+            output_type="pil",
+            num_images_per_prompt=1,
+            guidance_scale=float(user_config.get("refiner_guidance", 7.5)),
+            guidance_rescale=float(user_config.get("refiner_guidance_rescale", 0.0)),
+            strength=float(user_config.get("refiner_strength", 0.5)),
+            aesthetic_score=float(user_config.get("aesthetic_score", 10.0)),
+            negative_aesthetic_score=float(
+                user_config.get("negative_aesthetic_score", 1.0)
+            ),
+            num_inference_steps=int(user_config.get("steps", 20)),
+            denoising_start=denoising_start,
+        )
 
     def _controlnet_all_images(
         self, preprocessed_images: list, user_config: dict, generator, prompt: str = None, negative_prompt: str = None, controlnet_strength: float = None
     ):
         if controlnet_strength is None:
             controlnet_strength = user_config.get("tile_strength", 0.3)
-
+        logging.debug(f'User ControlNet strength: {controlnet_strength}')
         if float(controlnet_strength) == 0.0:
             # Zero strength = Zero CTU.
             return preprocessed_images
