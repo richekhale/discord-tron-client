@@ -9,8 +9,12 @@ class ImageMetadata:
     @staticmethod
     def encode(image: Image, user_config: dict, attributes: dict = None):
         metadata = PngImagePlugin.PngInfo()
-        metadata.add_text("user_config", json.dumps(user_config))
-        metadata.add_text("parameters", ImageMetadata.automatic1111_metadata(user_config, attributes))
+        # remove gpt_role from metadata, if there:
+        user_config_copy = user_config.copy()
+        if 'gpt_role' in user_config:
+            del user_config_copy['gpt_role']
+        metadata.add_text("user_config", json.dumps(user_config_copy))
+        metadata.add_text("parameters", ImageMetadata.automatic1111_metadata(user_config_copy, attributes))
         if attributes is not None:
             # Random attributes can be added to the image, eg. "prompt", "user_id", "user_name"
             for key, value in attributes.items():
@@ -29,6 +33,9 @@ class ImageMetadata:
         user_config = json.loads(metadata["user_config"])
         # remove user_config from metadata:
         del metadata["user_config"]
+        # remove gpt_role from metadata, if there:
+        if 'gpt_role' in user_config:
+            del user_config['gpt_role']
         return user_config, metadata
     
     @staticmethod

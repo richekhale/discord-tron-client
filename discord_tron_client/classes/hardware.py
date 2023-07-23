@@ -43,8 +43,12 @@ class HardwareInfo:
         return HardwareInfo.identifier
 
     def should_offload(self):
+        if not config.enable_offload():
+            return False
         return self.get_video_memory_info() == 'Unknown' or self.video_memory_amount < 48
     def should_sequential_offload(self):
+        if not config.enable_offload() or not config.enable_sequential_offload():
+            return False
         return self.should_offload() and self.video_memory_amount < 10
 
     def get_system_capabilities(self):
@@ -150,7 +154,7 @@ class HardwareInfo:
         return self.video_memory_amount
 
     def get_concurrent_pipe_count(self):
-        memory_amount = self.get_memory_total()
+        memory_amount = self.get_machine_info()['video_memory_amount']
         if memory_amount == "Unknown":
             # If we do not know how much vmem we have, that is a bad sign.
             return 1
@@ -159,6 +163,7 @@ class HardwareInfo:
             # We have 12GiB per model, essentially.
             return 1
         pipe_count = int(gb / 12)
+        logging.debug(f'HardwareInfo: {pipe_count} concurrent pipes allowed via {gb}GiB VRAM and 12GiB allocated per pipe.')
         return pipe_count
 
     def get_gpu_power_consumption(self):

@@ -3387,12 +3387,12 @@ reference = "default"
 
 [[package]]
 name = "llama-cpp-python"
-version = "0.1.72"
+version = "0.1.74"
 description = "A Python wrapper for llama.cpp"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "llama_cpp_python-0.1.72.tar.gz", hash = "sha256:1520fa9751ff77ac4dea7837e224a77a5698eb7310eb4afbd5fbea1668f9ae0e"},
+    {file = "llama_cpp_python-0.1.74.tar.gz", hash = "sha256:406db14d9e1b32fccf0505c2aad74f349232aa860995663cfb2d3b52143c4376"},
 ]
 
 [package.dependencies]
@@ -8418,4 +8418,4 @@ reference = "default"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "c492c4d34d96ef0f3bb2e9083bd9e7c61b4039ac56511a0e52ed67bbd5908ac8"
+content-hash = "e37ef83f8e483aa506613c14d4089f5da841d98d1eb545aa0459a72ac110af08"

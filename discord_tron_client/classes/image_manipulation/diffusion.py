@@ -9,6 +9,7 @@ from diffusers import (
     AutoencoderKL,
     DDIMScheduler,
     UniPCMultistepScheduler,
+    KandinskyV22Pipeline,
     StableDiffusionXLImg2ImgPipeline,
 )
 from diffusers import DiffusionPipeline as Pipeline
@@ -20,7 +21,7 @@ from discord_tron_client.classes.image_manipulation.face_upscale import (
     use_upscaler,
 )
 from PIL import Image
-import torch, gc, logging, diffusers
+import torch, gc, logging, diffusers, transformers
 
 torch.backends.cudnn.deterministic = False
 torch.backends.cuda.matmul.allow_tf32 = False
@@ -38,6 +39,7 @@ config = AppConfig()
 class DiffusionPipelineManager:
     PIPELINE_CLASSES = {
         "text2img": DiffusionPipeline,
+        "kandinsky-2.2": DiffusionPipeline,
         "prompt_variation": StableDiffusionXLImg2ImgPipeline,
         "variation": StableDiffusionPipeline,
         "upscaler": StableDiffusionPipeline,
@@ -86,8 +88,22 @@ class DiffusionPipelineManager:
             except Exception as e:
                 logging.error(f"Error when deleting pipe: {e}")
 
-    def create_pipeline(self, model_id: str, pipe_type: str) -> Pipeline:
+    def create_pipeline(self, model_id: str, pipe_type: str, use_safetensors: bool = True, custom_text_encoder = None, safety_modules: dict = None) -> Pipeline:
         pipeline_class = self.PIPELINE_CLASSES[pipe_type]
+        extra_args = {
+            'feature_extractor': None,
+            'safety_checker': None,
+            'requires_safety_checker': None,
+        }
+        if custom_text_encoder is not None and custom_text_encoder == -1:
+            # Disable text encoder.
+            extra_args["text_encoder"] = None
+        elif custom_text_encoder is not None:
+            # Use a custom text encoder.
+            extra_args["text_encoder"] = custom_text_encoder
+        if safety_modules is not None:
+            for key in safety_modules:
+                extra_args[key] = safety_modules[key]
         if pipe_type in ["variation", "upscaler"]:
             # Variation uses ControlNet stuff.
             logging.debug(f"Creating a ControlNet model for {model_id}")
@@ -102,10 +118,8 @@ class DiffusionPipelineManager:
                 torch_dtype=self.torch_dtype,
                 custom_pipeline="stable_diffusion_controlnet_img2img",
                 controlnet=controlnet,
-                feature_extractor=None,
-                safety_checker=None,
-                requires_safety_checker=None,
-                use_safetensors=True,
+                use_safetensors=use_safetensors,
+                **extra_args
             )
         elif pipe_type in ["prompt_variation"]:
             # Use the long prompt weighting pipeline.
@@ -113,27 +127,26 @@ class DiffusionPipelineManager:
             pipeline = pipeline_class.from_pretrained(
                 model_id,
                 torch_dtype=self.torch_dtype,
-                feature_extractor=None,
-                safety_checker=None,
-                requires_safety_checker=None,
-                use_safetensors=True,
+                use_safetensors=use_safetensors,
+                **extra_args
             )
         elif pipe_type in ["text2img"]:
             logging.debug(f"Creating a txt2img pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
                 model_id,
                 torch_dtype=self.torch_dtype,
-                feature_extractor=None,
-                safety_checker=None,
-                requires_safety_checker=None,
-                use_safetensors=True,
+                use_safetensors=use_safetensors,
                 use_auth_token=config.get_huggingface_api_key(),
+                **extra_args
             )
             logging.debug(f"Model config: {pipeline.config}")
         else:
             logging.debug(f"Using standard pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
-                model_id, torch_dtype=self.torch_dtype
+                model_id, torch_dtype=self.torch_dtype,
+                use_safetensors=use_safetensors,
+                use_auth_token=config.get_huggingface_api_key(),
+                **extra_args
             )
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
@@ -169,6 +182,9 @@ class DiffusionPipelineManager:
         prompt_variation: bool = False,
         promptless_variation: bool = False,
         upscaler: bool = False,
+        custom_text_encoder = None,
+        safety_modules: dict = None,
+        use_safetensors: bool = True
     ) -> Pipeline:
         self.delete_pipes(keep_model=model_id)
         pipe_type = (
@@ -180,6 +196,9 @@ class DiffusionPipelineManager:
             if upscaler
             else "text2img"
         )
+        if "kandinsky-2-2" in model_id:
+            use_safetensors = False
+            pipe_type = "kandinsky-2.2"
         logging.info(
             f"Executing get_pipe for model {model_id} and pipe_type {pipe_type}"
         )
@@ -193,7 +212,9 @@ class DiffusionPipelineManager:
             )
             self.clear_pipeline(model_id)
         if (
-            model_id in self.last_pipe_scheduler
+            scheduler_config is not None
+            and scheduler_config != {}
+            and model_id in self.last_pipe_scheduler
             and self.last_pipe_scheduler[model_id] != scheduler_config["name"]
         ):
             logging.warn(
@@ -201,11 +222,10 @@ class DiffusionPipelineManager:
             )
             self.clear_pipeline(model_id)
 
-        move_cuda = True
         if model_id not in self.pipelines:
-            logging.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
-            self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type)
-            if pipe_type in ["upscaler", "prompt_variation", "text2img"]:
+            logging.debug(f"Creating pipeline type {pipe_type} for model {model_id} with custom_text_encoder {type(custom_text_encoder)}")
+            self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type, use_safetensors=use_safetensors, custom_text_encoder=custom_text_encoder, safety_modules=safety_modules)
+            if pipe_type in ["upscaler", "prompt_variation", "text2img", "kandinsky-2.2"]:
                 pass
             elif pipe_type == "variation":
                 # I think this needs a specific scheduler set.
@@ -233,19 +253,6 @@ class DiffusionPipelineManager:
                     self.pipelines[model_id].enable_model_cpu_offload()
                 except Exception as e:
                     logging.error(f"Could not enable CPU offload on the model: {e}")
-            elif (
-                hasattr(self.pipelines[model_id], "enable_sequential_cpu_offload")
-                and hardware.should_sequential_offload()
-            ):
-                try:
-                    logging.warn(
-                        f"Hardware constraints are enabling *SEQUENTIAL* CPU offload. This WILL impact performance."
-                    )
-                    self.pipelines[model_id].enable_model_cpu_offload()
-                except Exception as e:
-                    logging.error(
-                        f"Could not enable sequential CPU offload on the model: {e}"
-                    )
             else:
                 logging.info(
                     f"Moving pipe to CUDA early, because no offloading is being used."
@@ -253,46 +260,46 @@ class DiffusionPipelineManager:
                 self.pipelines[model_id].to(self.device)
                 torch._dynamo.config.suppress_errors = True
                 torch._dynamo.config.log_level = logging.WARNING
-                if config.enable_compile():
+                if config.enable_compile() and hasattr(self.pipelines[model_id], 'unet'):
                     self.pipelines[model_id].unet = torch.compile(
                         self.pipelines[model_id].unet,
                         mode="reduce-overhead",
                         fullgraph=True,
                     )
+                if config.enable_compile() and hasattr(self.pipelines[model_id], 'text_encoder'):
+                    self.pipelines[model_id].text_encoder = torch.compile(
+                        self.pipelines[model_id].text_encoder,
+                        mode="reduce-overhead",
+                        fullgraph=True,
+                    )
         else:
             logging.info(f"Keeping existing pipeline. Not creating any new ones.")
+            self.pipelines[model_id].to(self.device)
         self.last_pipe_type[model_id] = pipe_type
-        self.last_pipe_scheduler[model_id] = scheduler_config["name"]
+        if scheduler_config is not None and scheduler_config != {}:
+            self.last_pipe_scheduler[model_id] = scheduler_config.get("name", "default")
         enable_tiling = user_config.get("enable_tiling", True)
-        if enable_tiling:
+        if hasattr(self.pipelines[model_id], 'vae') and enable_tiling:
             logging.warn(f"Enabling VAE tiling. This could cause artifacted outputs.")
             self.pipelines[model_id].vae.enable_tiling()
             self.pipelines[model_id].vae.enable_slicing()
-        else:
+        elif hasattr(self.pipelines[model_id], 'vae'):
             self.pipelines[model_id].vae.disable_tiling()
             self.pipelines[model_id].vae.disable_slicing()
         return self.pipelines[model_id]
 
     def delete_pipes(self, keep_model: str = None):
         total_allowed_concurrent = hardware.get_concurrent_pipe_count()
-        keys_to_delete = [
-            pipeline
-            for pipeline in self.pipelines
-            if keep_model is None or pipeline != keep_model
-        ]
-
-        # Updated to count the current number of active pipelines
-        active_pipes = len(self.pipelines) - len(keys_to_delete)
-
-        for key in keys_to_delete:
-            # Only delete pipes if we exceed the limit
-            if active_pipes >= total_allowed_concurrent:
-                logging.info(
-                    f"Clearing out an unwanted pipe for {key}, as we have a limit of {total_allowed_concurrent} concurrent pipes."
-                )
-                del self.pipelines[key]
-                self.clear_cuda_cache()
-                active_pipes -= 1  # Update the count after deleting a pipeline
+        # Loop by a range of 0 through len(self.pipelines):
+        for model_id in list(self.pipelines.keys()):
+            if len(self.pipelines) > total_allowed_concurrent and (keep_model is None or keep_model != model_id):
+                logging.info(f'Deleting pipe for model {model_id}, as we had {len(self.pipelines)} pipes, and only {total_allowed_concurrent} are allowed.')
+                del self.pipelines[model_id]
+                if model_id in self.last_pipe_scheduler:
+                    del self.last_pipe_scheduler[model_id]
+                if model_id in self.last_pipe_type:
+                    del self.last_pipe_type[model_id]
+        self.clear_cuda_cache()
 
     def clear_cuda_cache(self):
         gc.collect()
@@ -339,12 +346,13 @@ class DiffusionPipelineManager:
             promptless_variation=True,
             user_config={},
             scheduler_config={"name": "controlnet"},
-            model_id="saftle/urpm",
+            model_id="emilianJR/epiCRealism",
+            use_safetensors=False
         )
         return pipeline
 
     def get_sdxl_refiner_pipe(self):
-        self.delete_pipes()
+        self.delete_pipes(keep_model='ptx0/s2')
         pipeline = self.get_pipe(
             user_config={},
             scheduler_config={"name": "fast"},
