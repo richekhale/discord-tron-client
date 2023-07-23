@@ -581,7 +581,6 @@ class PipelineRunner:
 
         idx = 0
         controlnet_pipe = self.pipeline_manager.get_controlnet_pipe()
-        self.pipeline_manager.to_accelerator(controlnet_pipe)
         for image in preprocessed_images:
             preprocessed_images[idx] = self._controlnet_pipeline(
                 image=image,
@@ -595,7 +594,6 @@ class PipelineRunner:
             gc.collect()
             idx += 1
         del controlnet_pipe
-        self.pipeline_manager.to_cpu(controlnet_pipe)
         return preprocessed_images
 
     def _encode_image_metadata(self, image: Image, prompt, user_config, image_params):
