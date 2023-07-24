@@ -54,10 +54,6 @@ class WorkerProcessor:
         try:
             logging.debug(f"Entered process_command via WebSocket, payload: {payload}")
             if "module_name" not in payload:
-                logging.warn(
-                    "Not executing command payload via WorkerProcessor, as it does not contain a module_name: "
-                    + str(payload)
-                )
                 return
             handler = self.command_handlers.get(payload["module_name"], {}).get(
                 payload["module_command"]

@@ -42,7 +42,7 @@ class ApiClient:
         send_auth: bool = True,
     ):
             try:
-                logging.error(f'Sending POST request to {endpoint} with files {files} and headers {self.headers} using params {params}')
+                logging.debug(f'Sending POST request to {endpoint} with files {files} and headers {self.headers} using params {params}')
                 if params is None:
                     params = {}
                 if send_auth:

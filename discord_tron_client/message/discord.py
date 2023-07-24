@@ -29,7 +29,7 @@ class DiscordMessage(WebsocketMessage):
         if isinstance(context, DiscordMessage):
             # Extract the context from the existing DiscordMessage
             context = context.data
-            logging.info(f"Extracted data from the DiscordMessage context: {context}")
+            logging.debug(f"Extracted data from the DiscordMessage context: {context}")
         self.context = context
         arguments = {}
         if message is not None:
