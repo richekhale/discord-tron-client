@@ -120,6 +120,7 @@ class DiffusionPipelineManager:
                 custom_pipeline="stable_diffusion_controlnet_img2img",
                 controlnet=controlnet,
                 use_safetensors=use_safetensors,
+                variant="fp16",
                 **extra_args
             )
         elif pipe_type in ["prompt_variation"]:
