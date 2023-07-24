@@ -5,9 +5,9 @@ from discord_tron_client.classes.app_config import AppConfig
 from discord_tron_client.classes.api_client import ApiClient
 from typing import List
 from io import BytesIO
-import logging, json, asyncio, base64
+import logging, json, asyncio, base64, urllib3
 from scipy.io.wavfile import write as write_wav
-
+urllib3.disable_warnings()
 config = AppConfig()
 
 semaphore = asyncio.Semaphore(config.get_max_concurrent_uploads())

@@ -2,7 +2,7 @@ import logging, json, requests, sys, os, io, time
 from discord_tron_client.classes.auth import Auth
 from discord_tron_client.classes.app_config import AppConfig
 from PIL import Image
-
+import urllib3
 
 class ApiClient:
     def __init__(self, auth: Auth, config: AppConfig):
