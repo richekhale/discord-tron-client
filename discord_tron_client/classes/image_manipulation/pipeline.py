@@ -539,18 +539,19 @@ class PipelineRunner:
         pipe = self.pipeline_manager.get_sdxl_refiner_pipe()
         pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe)
 
-        # Generate prompt embeds. Currently disabled/broken.
-        # refiner_prompt_manager = self._get_prompt_manager(pipe, use_second_encoder_only=True)
-        # prompt_embed, negative_embed, pooled_embed, negative_pooled_embed = refiner_prompt_manager.process_long_prompt(
-        #     positive_prompt=prompt, negative_prompt=negative_prompt
-        # )
+        refiner_prompt_manager = self._get_prompt_manager(pipe, use_second_encoder_only=True)
+        prompt_embed, negative_embed, pooled_embed, negative_pooled_embed = refiner_prompt_manager.process_long_prompt(
+            positive_prompt=prompt, negative_prompt=negative_prompt
+        )
 
         # Reverse the bits in the seed:
         seed_flip = int(self.seed) ^ 0xFFFFFFFF
         return pipeline_runner(
             generator=[torch.Generator(device="cpu").manual_seed(int(seed_flip))] * len(images),
-            prompt=[prompt] * len(images),
-            negative_prompt=[negative_prompt] * len(images),
+            prompt_embeds=prompt_embed,
+            negative_prompt_embeds=negative_embed,
+            pooled_prompt_embeds=pooled_embed,
+            negative_pooled_prompt_embeds=negative_pooled_embed,
             image=images,
             user_config=user_config,
             output_type="pil",

@@ -243,9 +243,8 @@ class DiffusionPipelineManager:
                 )
             # Additional offload settings that we apply to all pipelines.
             if hasattr(self.pipelines[model_id], 'unet'):
-                # self.pipelines[model_id].unet.to(memory_format=torch.channels_last)
-                # self.pipelines[model_id].unet.set_attn_processor(AttnProcessor2_0()) # https://huggingface.co/docs/diffusers/optimization/torch2.0
-                pass
+                self.pipelines[model_id].unet.to(memory_format=torch.channels_last)
+                self.pipelines[model_id].unet.set_attn_processor(AttnProcessor2_0()) # https://huggingface.co/docs/diffusers/optimization/torch2.0
             if (
                 hasattr(self.pipelines[model_id], "enable_model_cpu_offload")
                 and hardware.should_offload()
