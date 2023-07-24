@@ -120,7 +120,6 @@ class DiffusionPipelineManager:
                 custom_pipeline="stable_diffusion_controlnet_img2img",
                 controlnet=controlnet,
                 use_safetensors=use_safetensors,
-                variant="fp16",
                 **extra_args
             )
         elif pipe_type in ["prompt_variation"]:
@@ -139,6 +138,7 @@ class DiffusionPipelineManager:
                 torch_dtype=self.torch_dtype,
                 use_safetensors=use_safetensors,
                 use_auth_token=config.get_huggingface_api_key(),
+                variant="fp16",
                 **extra_args
             )
             logging.debug(f"Model config: {pipeline.config}")
