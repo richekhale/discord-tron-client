@@ -30,5 +30,7 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
             ]:
                 if unwanted_arg in args:
                     del args[unwanted_arg]
-        
+            if type(args['prompt'] != list):
+                args['prompt'] = [args['prompt']] * len(args['image'])
+                args['negative_prompt'] = [args['negative_prompt']] * len(args['image'])
         return self.pipeline(**args).images
