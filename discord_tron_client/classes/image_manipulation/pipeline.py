@@ -552,6 +552,8 @@ class PipelineRunner:
             negative_prompt_embeds=negative_embed,
             pooled_prompt_embeds=pooled_embed,
             negative_pooled_prompt_embeds=negative_pooled_embed,
+            prompt=prompt,
+            negative_prompt=negative_prompt,
             image=images,
             user_config=user_config,
             output_type="pil",
