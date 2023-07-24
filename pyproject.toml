@@ -26,7 +26,6 @@ numpy = ">=1.23.2"
 torch = "^2.0.1"
 torchaudio = { version = ">=0.12.1" }
 colorama = "^0.4.6"
-xformers = {version = "^0.0.20.dev526", allow-prereleases = true}
 compel = "^2.0.0"
 llama-cpp-python = "^0.1.74"
 peft = "^0.2.0"
@@ -54,6 +53,9 @@ name = "default"
 url = "https://pypi.org/simple"
 priority = "primary"
 
+[[tool.poetry.source]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/nightly/cu118"
 
 [[tool.poetry.source]]
 name = "PyPI"

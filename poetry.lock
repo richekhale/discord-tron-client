@@ -8418,4 +8418,4 @@ reference = "default"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "e37ef83f8e483aa506613c14d4089f5da841d98d1eb545aa0459a72ac110af08"
+content-hash = "e9770549f2bb609fe4c3d047e9acc43ee0148c439eef6978fcda15fb159ae5e8"
