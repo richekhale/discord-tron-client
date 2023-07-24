@@ -138,7 +138,7 @@ class DiffusionPipelineManager:
                 torch_dtype=self.torch_dtype,
                 use_safetensors=use_safetensors,
                 use_auth_token=config.get_huggingface_api_key(),
-                variant="fp16",
+                variant=config.get_config_value('model_default_variant', None),
                 **extra_args
             )
             logging.debug(f"Model config: {pipeline.config}")
