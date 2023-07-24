@@ -162,7 +162,7 @@ class HardwareInfo:
         if gb == 8:
             # We have 12GiB per model, essentially.
             return 1
-        pipe_count = int(gb / 12)
+        pipe_count = int(gb / 10)
         logging.debug(f'HardwareInfo: {pipe_count} concurrent pipes allowed via {gb}GiB VRAM and 12GiB allocated per pipe.')
         return pipe_count
 
