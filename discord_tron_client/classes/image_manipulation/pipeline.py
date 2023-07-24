@@ -1,4 +1,5 @@
 import logging, sys, torch, gc, traceback, time, asyncio, accelerate
+torch.set_float32_matmul_precision('high')
 from torch.cuda import OutOfMemoryError
 from tqdm import tqdm
 from discord_tron_client.classes.app_config import AppConfig

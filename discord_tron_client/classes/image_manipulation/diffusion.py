@@ -271,12 +271,11 @@ class DiffusionPipelineManager:
                         fullgraph=True,
                     )
                 if hasattr(self.pipelines[model_id], 'controlnet') and config.enable_compile():
-                    self.pipelines[model_id].controlnet = torch.compile(self.pipelines[model_id].controlnet, mode="reduce-overhead", fullgraph=True)
+                    self.pipelines[model_id].controlnet = torch.compile(self.pipelines[model_id].controlnet, fullgraph=True)
                 if config.enable_compile() and hasattr(self.pipelines[model_id], 'text_encoder') and type(self.pipelines[model_id].text_encoder) == transformers.T5EncoderModel:
                     logging.info('Found T5 encoder model. Compiling...')
                     self.pipelines[model_id].text_encoder = torch.compile(
                         self.pipelines[model_id].text_encoder,
-                        mode="reduce-overhead",
                         fullgraph=True,
                     )
                 else:
