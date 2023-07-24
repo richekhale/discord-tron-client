@@ -360,11 +360,12 @@ class DiffusionPipelineManager:
         return pipeline
 
     def get_sdxl_refiner_pipe(self):
-        self.delete_pipes(keep_model='ptx0/s2')
+        refiner_model = 'stabilityai/stable-diffusion-xl-refiner-0.9'
+        self.delete_pipes(keep_model=refiner_model)
         pipeline = self.get_pipe(
             user_config={},
             scheduler_config={"name": "fast"},
-            model_id="ptx0/s2",
+            model_id=refiner_model,
         )
         return pipeline
 
