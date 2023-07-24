@@ -13,7 +13,7 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
 
         # Currently, it seems like the refiner's prompt weighting is broken.
         # We are disabling it by default.
-        if user_config is not None and user_config.get("refiner_prompt_weighting", False):
+        if user_config is not None and user_config.get("refiner_prompt_weighting", True):
             # SDXL, when using prompt embeds, must be instructed to only generate 1 image per prompt.
             args["num_images_per_prompt"] = 1
             # We don't pass the text prompts in, when using embeds.
