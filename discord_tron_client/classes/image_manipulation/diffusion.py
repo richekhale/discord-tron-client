@@ -25,8 +25,8 @@ from PIL import Image
 import torch, gc, logging, diffusers, transformers
 
 torch.backends.cudnn.deterministic = False
-torch.backends.cuda.matmul.allow_tf32 = False
-torch.backends.cudnn.allow_tf32 = False
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
 torch.backends.cudnn.benchmark = True
 torch.backends.cuda.enable_flash_sdp(True)
 if torch.backends.cuda.mem_efficient_sdp_enabled():
