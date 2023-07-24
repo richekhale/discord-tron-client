@@ -160,7 +160,7 @@ class AppConfig:
         return self.get_config_value("master_url", "https://" + hostname + ":5000")
 
     def verify_master_ssl(self):
-        return self.get_config_value("websocket_hub", {}).get("verify_ssl", False)
+        return self.get_config_value("websocket_hub", {}).get("verify_ssl", True)
 
     def get_websocket_hub_host(self):
         return self.get_config_value("websocket_hub", {}).get("host", "localhost")
