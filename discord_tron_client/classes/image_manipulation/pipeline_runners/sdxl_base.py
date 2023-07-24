@@ -1,3 +1,4 @@
+import logging
 from discord_tron_client.classes.image_manipulation.pipeline_runners import BasePipelineRunner
 
 class SdxlBasePipelineRunner(BasePipelineRunner):
@@ -8,7 +9,7 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
         # Get user_config and delete it from args, it doesn't get passed to the pipeline
         user_config = args.get("user_config", None)
         del args["user_config"]
-
+        logging.debug(f'Args (minus user_config) for SDXL Base: {args}')
         if user_config.get("prompt_weighting", True):
             # SDXL, when using prompt embeds, only generates 1 image per prompt.
             args["num_images_per_prompt"] = 1
