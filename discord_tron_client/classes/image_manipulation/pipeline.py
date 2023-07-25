@@ -557,7 +557,7 @@ class PipelineRunner:
             image=images,
             user_config=user_config,
             output_type="pil",
-            num_images_per_prompt=1,
+            num_images_per_prompt=len(images),
             guidance_scale=float(user_config.get("refiner_guidance", 7.5)),
             guidance_rescale=float(user_config.get("refiner_guidance_rescale", 0.0)),
             strength=float(user_config.get("refiner_strength", 0.5)),
