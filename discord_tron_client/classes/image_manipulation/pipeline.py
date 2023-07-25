@@ -538,16 +538,21 @@ class PipelineRunner:
         logging.info(f"Running SDXL Refiner..")
         pipe = self.pipeline_manager.get_sdxl_refiner_pipe()
         pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe)
-
-        refiner_prompt_manager = self._get_prompt_manager(pipe, use_second_encoder_only=True)
-        prompt_embed, negative_embed, pooled_embed, negative_pooled_embed = refiner_prompt_manager.process_long_prompt(
-            positive_prompt=prompt, negative_prompt=negative_prompt
-        )
+        prompt_embed = None
+        negative_embed = None
+        pooled_embed = None
+        negative_pooled_embed = None
+        if self.config.enable_compel():
+            logging.info(f'SDXL Refiner is using Compel prompt embed weighting.')
+            refiner_prompt_manager = self._get_prompt_manager(pipe, use_second_encoder_only=True)
+            prompt_embed, negative_embed, pooled_embed, negative_pooled_embed = refiner_prompt_manager.process_long_prompt(
+                positive_prompt=prompt, negative_prompt=negative_prompt
+            )
 
         # Reverse the bits in the seed:
-        seed_flip = int(self.seed) ^ 0xFFFFFFFF
+        seed_flip = int(self.seed)
         return pipeline_runner(
-            # generator=[torch.Generator(device="cpu").manual_seed(int(seed_flip))] * len(images),
+            generator=[torch.Generator(device="cpu").manual_seed(int(seed_flip))] * len(images),
             prompt_embeds=prompt_embed,
             negative_prompt_embeds=negative_embed,
             pooled_prompt_embeds=pooled_embed,
