@@ -1,11 +1,16 @@
-from compel import Compel, ReturnedEmbeddingsType
 from discord_tron_client.classes.app_config import AppConfig
+
 import logging
 
 config = AppConfig()
+if config.enable_compel():
+    from compel import Compel, ReturnedEmbeddingsType
+
 # Manipulating prompts for the pipeline.
 class PromptManipulation:
     def __init__(self, pipeline, device, use_second_encoder_only: bool = False):
+        if not config.enable_compel():
+            return
         self.is_valid_pipeline(pipeline)
         self.pipeline = pipeline
         if (self.has_dual_text_encoders(pipeline) and not use_second_encoder_only):
