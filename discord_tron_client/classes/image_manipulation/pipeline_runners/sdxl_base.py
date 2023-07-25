@@ -10,18 +10,18 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
         user_config = args.get("user_config", None)
         del args["user_config"]
         logging.debug(f'Args (minus user_config) for SDXL Base: {args}')
-        if user_config.get("prompt_weighting", True):
-            # SDXL, when using prompt embeds, only generates 1 image per prompt.
-            args["num_images_per_prompt"] = 1
-            # Remove unwanted arguments for this condition
-            for unwanted_arg in ["prompt", "negative_prompt"]:
-                if unwanted_arg in args:
-                    del args[unwanted_arg]
-        else:
-            # Remove unwanted arguments for this condition
-            for unwanted_arg in ["prompt_embeds", "negative_prompt_embeds", "pooled_prompt_embeds", "negative_pooled_prompt_embeds"]:
-                if unwanted_arg in args:
-                    del args[unwanted_arg]
+        # if user_config.get("prompt_weighting", True):
+        #     # SDXL, when using prompt embeds, only generates 1 image per prompt.
+        #     args["num_images_per_prompt"] = 1
+        #     # Remove unwanted arguments for this condition
+        #     for unwanted_arg in ["prompt", "negative_prompt"]:
+        #         if unwanted_arg in args:
+        #             del args[unwanted_arg]
+        # else:
+        # Remove unwanted arguments for this condition
+        for unwanted_arg in ["prompt_embeds", "negative_prompt_embeds", "pooled_prompt_embeds", "negative_pooled_prompt_embeds"]:
+            if unwanted_arg in args:
+                del args[unwanted_arg]
         
         # Convert specific arguments to desired types
         if "num_inference_steps" in args:
