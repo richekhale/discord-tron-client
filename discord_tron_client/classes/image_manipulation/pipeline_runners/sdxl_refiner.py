@@ -33,10 +33,10 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
             ]:
                 if unwanted_arg in args:
                     del args[unwanted_arg]
-            if type(args['prompt'] == list):
+            if type(args['prompt']) == list:
                 logging.debug(f'Received list prompts. Stripping to a string...')
                 args['prompt'] = args['prompt'][0]
-            if type(args['negative_prompt'] == list):
+            if type(args['negative_prompt']) == list:
                 args['negative_prompt'] = args['negative_prompt'][0]
         return_images = []
         processing_images = args['image']
