@@ -552,7 +552,8 @@ class PipelineRunner:
         # Reverse the bits in the seed:
         seed_flip = int(self.seed)
         return pipeline_runner(
-            generator=[torch.Generator(device="cpu").manual_seed(int(seed_flip))] * len(images),
+            generator=[
+                torch.Generator(device="cpu").manual_seed(int(seed_flip))] * len(images),
             prompt_embeds=prompt_embed,
             negative_prompt_embeds=negative_embed,
             pooled_prompt_embeds=pooled_embed,

@@ -33,8 +33,11 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
             ]:
                 if unwanted_arg in args:
                     del args[unwanted_arg]
-            if type(args['prompt'] != list):
-                logging.debug(f'Received non-list prompts. Encapsulating in list..')
-                args['prompt'] = [args['prompt']] * len(args['image'])
-                args['negative_prompt'] = [args['negative_prompt']] * len(args['image'])
-        return self.pipeline(**args).images
+            if type(args['prompt'] == list):
+                logging.debug(f'Received list prompts. Stripping to a string...')
+                args['prompt'] = args['prompt'][0]
+                args['negative_prompt'] = args['negative_prompt'][0]
+        return_images = []
+        for idx in range(0, len(args['image'])):
+            return_images.append(self.pipeline(**args).images)
+        return return_images
