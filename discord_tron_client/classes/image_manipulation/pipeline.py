@@ -251,9 +251,7 @@ class PipelineRunner:
                 image_return_type = "latent"
                 if user_config.get("refiner_strength", 0.5) > 1.0:
                     raise ValueError("refiner_strength must be between 0.0 and 1.0")
-                if "ptx0/s1" in user_config.get(
-                    "model", ""
-                ) or "stable-diffusion-xl" in user_model:
+                if "ptx0/s1" in user_model or "sdxl-base" in user_model or "stable-diffusion-xl" in user_model:
                     # Max inference steps are an inverse relationship of the refiner strength with the base steps.
                     denoising_start = 1 - user_config.get("refiner_strength", 0.5)
                     logging.debug(
