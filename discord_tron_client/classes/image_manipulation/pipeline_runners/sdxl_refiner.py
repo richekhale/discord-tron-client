@@ -2,7 +2,8 @@ import logging
 from discord_tron_client.classes.image_manipulation.pipeline_runners import (
     BasePipelineRunner,
 )
-
+from discord_tron_client.classes.app_config import AppConfig
+config = AppConfig()
 
 class SdxlRefinerPipelineRunner(BasePipelineRunner):
     def __init__(self, pipeline):
