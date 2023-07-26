@@ -40,6 +40,7 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
         return_images = []
         processing_images = args['image']
         del args['image']
-        for idx in range(0, len(processing_images)):
+        for idx, image in range(0, len(processing_images)):
+            args['image'] = image
             return_images.append(self.pipeline(**args).images)
         return return_images
