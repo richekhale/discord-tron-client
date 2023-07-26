@@ -262,7 +262,7 @@ class PipelineRunner:
             if not promptless_variation and image is None:
                 logging.info(f'Running text2img with batch_size {batch_size} via model {user_model}.')
                 # text2img workflow
-                if "ptx0/s1" in user_model or "stable-diffusion-xl" in user_model:
+                if "ptx0/s1" in user_model or "stable-diffusion-xl" in user_model or "sdxl" in user_model:
                     pipeline_runner = runner_map["sdxl_base"](pipeline=pipe)
                 elif "ptx0/s2" in user_model or "xl-refiner" in user_model:
                     pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe)
