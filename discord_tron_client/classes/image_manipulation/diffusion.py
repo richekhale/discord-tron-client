@@ -360,7 +360,7 @@ class DiffusionPipelineManager:
         return pipeline
 
     def get_sdxl_refiner_pipe(self):
-        refiner_model = config.get_config_value('refiner_model', 'stabilityai/stable-diffusion-xl-refiner-0.9')
+        refiner_model = config.get_config_value('refiner_model', 'stabilityai/stable-diffusion-xl-refiner-1.0')
         self.delete_pipes(keep_model=refiner_model)
         pipeline = self.get_pipe(
             user_config={},
