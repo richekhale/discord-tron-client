@@ -29,7 +29,7 @@ class DiscordMessage(WebsocketMessage):
         if isinstance(context, DiscordMessage):
             # Extract the context from the existing DiscordMessage
             context = context.data
-            logging.info(f"Extracted data from the DiscordMessage context: {context}")
+            logging.debug(f"Extracted data from the DiscordMessage context: {context}")
         self.context = context
         arguments = {}
         if message is not None:
@@ -97,9 +97,9 @@ class DiscordMessage(WebsocketMessage):
         guidance_rescale = user_config.get("guidance_rescale")
         if latent_refiner == "On":
             latent_refiner = f"{latent_refiner}, `!settings refiner_strength {refiner_strength}` ({float(refiner_strength) * float(steps)}), `!settings refiner_guidance {refiner_guidance}`, `!settings aesthetic_score {aesthetic_score}`, `!settings negative_aesthetic_score {negative_aesthetic_score}`"
-        if model_id == "ptx0/s1" and latent_refiner == "Off":
+        if (model_id == "ptx0/s1" or model_id == "ptx0/sdxl-base")and latent_refiner == "Off":
             model_id = "SDXL Base"
-        elif model_id == "ptx0/s1" and latent_refiner != "Off":
+        elif (model_id == "ptx0/s1" or model_id == "ptx0/sdxl-base")and latent_refiner != "Off":
             model_id = "SDXL Base + Refiner"
         else:
             model_id = f"!model {model_id}"

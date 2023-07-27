@@ -23,10 +23,9 @@ tensorflow = "^2.12.0"
 accelerate = "^0.18.0"
 
 numpy = ">=1.23.2"
-torch = "^2.0.1"
-torchaudio = { version = ">=0.12.1" }
+torch = {version = "^2.1.0.dev20230723+cu118", allow-prereleases = true}
+torchaudio = {version = "^2.1.0.dev20230723+cu118", allow-prereleases = true}
 colorama = "^0.4.6"
-xformers = {version = "^0.0.20.dev526", allow-prereleases = true}
 compel = "^2.0.0"
 llama-cpp-python = "^0.1.74"
 peft = "^0.2.0"
@@ -37,7 +36,7 @@ pydub = "^0.25.1"
 tiktoken = "^0.3.3"
 pyopenssl = "^23.1.1"
 black = "^23.3.0"
-torchvision = "^0.15.2"
+torchvision = {version = "^0.16.0.dev20230723+cu118", allow-prereleases = true}
 torchmetrics = "^0.11.4"
 opencv-contrib-python = "^4.7.0.72"
 controlnet-aux = "^0.0.3"
@@ -48,12 +47,16 @@ realesrgan = {git = "https://github.com/sberbank-ai/Real-ESRGAN.git"}
 audiocraft = {git = "https://github.com/facebookresearch/audiocraft"}
 invisible-watermark = "^0.2.0"
 discord-py-slash-command = "^4.2.1"
+torchtriton = {version = "^2.0.0+f16138d447", allow-prereleases = true}
 
 [[tool.poetry.source]]
 name = "default"
 url = "https://pypi.org/simple"
 priority = "primary"
 
+[[tool.poetry.source]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/nightly/cu118"
 
 [[tool.poetry.source]]
 name = "PyPI"

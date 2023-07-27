@@ -42,16 +42,10 @@ class DiscordProgressBar:
         progress_text = "`" + f"[{bar}] {percent}% complete`"
         we_have_another_fifth_of_progress = percent % 20
         if we_have_another_fifth_of_progress == 0:
-            logging.debug(
-                f"Current document for websocket_msg: {self.websocket_msg.to_json()}"
-            )
-            # await self.discord_first_message.edit(content=progress_text)
-            logging.info("Sending progress bar to websocket!")
             try:
                 # Update the websocket message template
                 self.websocket_msg.update(arguments={"message": progress_text + self.current_stage_msg})
                 to_send = self.websocket_msg.to_json()
-                logging.debug(f"Sending data: {to_send}")
                 self.websocket = AppConfig.get_websocket()
                 await self.send_update(
                     self.websocket, str(to_send)

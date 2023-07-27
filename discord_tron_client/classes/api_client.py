@@ -2,7 +2,7 @@ import logging, json, requests, sys, os, io, time
 from discord_tron_client.classes.auth import Auth
 from discord_tron_client.classes.app_config import AppConfig
 from PIL import Image
-
+import urllib3
 
 class ApiClient:
     def __init__(self, auth: Auth, config: AppConfig):
@@ -42,7 +42,7 @@ class ApiClient:
         send_auth: bool = True,
     ):
             try:
-                logging.error(f'Sending POST request to {endpoint} with files {files} and headers {self.headers} using params {params}')
+                logging.debug(f'Sending POST request to {endpoint} with files {files} and headers {self.headers} using params {params}')
                 if params is None:
                     params = {}
                 if send_auth:

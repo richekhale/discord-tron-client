@@ -82,17 +82,16 @@ async def websocket_client(
                 else:
                     logging.error("No startup sequence found.")
                 async for message in websocket:
-                    logging.info(f"Received message from master")
+                    logging.debug(f"Received message from master")
                     logging.debug(f"{message}")
                     payload = json.loads(message)
                     semaphore = general_semaphore
-                    logging.info("Initial queue: generic semaphore")
                     if "job_type" in payload:
                         if payload["job_type"] == "gpu":
-                            logging.info("Using GPU-specific semaphore")
+                            logging.debug("Using GPU-specific semaphore")
                             semaphore = gpu_semaphore
                         if payload["job_type"] == "llama":
-                            logging.info("Using Llama-specific semaphore")
+                            logging.debug("Using Llama-specific semaphore")
                             semaphore = llama_semaphore
                     asyncio.create_task(
                         log_slow_callbacks(

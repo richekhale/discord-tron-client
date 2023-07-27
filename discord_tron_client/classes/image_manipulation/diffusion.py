@@ -12,6 +12,7 @@ from diffusers import (
     KandinskyV22Pipeline,
     StableDiffusionXLImg2ImgPipeline,
 )
+from diffusers.models.attention_processor import AttnProcessor2_0
 from diffusers import DiffusionPipeline as Pipeline
 from typing import Dict
 from discord_tron_client.classes.hardware import HardwareInfo
@@ -24,8 +25,8 @@ from PIL import Image
 import torch, gc, logging, diffusers, transformers
 
 torch.backends.cudnn.deterministic = False
-torch.backends.cuda.matmul.allow_tf32 = False
-torch.backends.cudnn.allow_tf32 = False
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
 torch.backends.cudnn.benchmark = True
 torch.backends.cuda.enable_flash_sdp(True)
 if torch.backends.cuda.mem_efficient_sdp_enabled():
@@ -137,6 +138,7 @@ class DiffusionPipelineManager:
                 torch_dtype=self.torch_dtype,
                 use_safetensors=use_safetensors,
                 use_auth_token=config.get_huggingface_api_key(),
+                variant=config.get_config_value('model_default_variant', None),
                 **extra_args
             )
             logging.debug(f"Model config: {pipeline.config}")
@@ -241,6 +243,9 @@ class DiffusionPipelineManager:
                     f"After setting scheduler: {self.pipelines[model_id].scheduler}"
                 )
             # Additional offload settings that we apply to all pipelines.
+            if hasattr(self.pipelines[model_id], 'unet'):
+                self.pipelines[model_id].unet.to(memory_format=torch.channels_last)
+                self.pipelines[model_id].unet.set_attn_processor(AttnProcessor2_0()) # https://huggingface.co/docs/diffusers/optimization/torch2.0
             if (
                 hasattr(self.pipelines[model_id], "enable_model_cpu_offload")
                 and hardware.should_offload()
@@ -258,20 +263,23 @@ class DiffusionPipelineManager:
                     f"Moving pipe to CUDA early, because no offloading is being used."
                 )
                 self.pipelines[model_id].to(self.device)
-                torch._dynamo.config.suppress_errors = True
-                torch._dynamo.config.log_level = logging.WARNING
                 if config.enable_compile() and hasattr(self.pipelines[model_id], 'unet'):
+                    torch._dynamo.config.suppress_errors = True
                     self.pipelines[model_id].unet = torch.compile(
                         self.pipelines[model_id].unet,
                         mode="reduce-overhead",
                         fullgraph=True,
                     )
-                if config.enable_compile() and hasattr(self.pipelines[model_id], 'text_encoder'):
+                if hasattr(self.pipelines[model_id], 'controlnet') and config.enable_compile():
+                    self.pipelines[model_id].controlnet = torch.compile(self.pipelines[model_id].controlnet, fullgraph=True)
+                if hasattr(self.pipelines[model_id], 'text_encoder') and type(self.pipelines[model_id].text_encoder) == transformers.T5EncoderModel and config.enable_compile():
+                    logging.info('Found T5 encoder model. Compiling...')
                     self.pipelines[model_id].text_encoder = torch.compile(
                         self.pipelines[model_id].text_encoder,
-                        mode="reduce-overhead",
                         fullgraph=True,
                     )
+                else:
+                    logging.warning(f'Torch compile on text encoder type {type(self.pipelines[model_id].text_encoder)} is not yet supported.')
         else:
             logging.info(f"Keeping existing pipeline. Not creating any new ones.")
             self.pipelines[model_id].to(self.device)
@@ -352,11 +360,12 @@ class DiffusionPipelineManager:
         return pipeline
 
     def get_sdxl_refiner_pipe(self):
-        self.delete_pipes(keep_model='ptx0/s2')
+        refiner_model = config.get_config_value('refiner_model', 'stabilityai/stable-diffusion-xl-refiner-1.0')
+        self.delete_pipes(keep_model=refiner_model)
         pipeline = self.get_pipe(
             user_config={},
             scheduler_config={"name": "fast"},
-            model_id="ptx0/s2",
+            model_id=refiner_model,
         )
         return pipeline
 

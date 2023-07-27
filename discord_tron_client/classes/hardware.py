@@ -29,17 +29,15 @@ class HardwareInfo:
     @classmethod
     def get_identifier(cls):
         if HardwareInfo.identifier is not None:
-            logging.info(f"Using current identifier: {HardwareInfo.identifier}")
             return HardwareInfo.identifier
-        logging.info(f"Identifier not found, configuring new one")
         HardwareInfo.identifier = (
             config.get_friendly_name() or HardwareInfo.get_system_hostname()
         )
         import random
-
         HardwareInfo.identifier = (
             HardwareInfo.identifier + "-" + str(random.randint(0, 2))
         )
+        logging.info(f"Identifier not found, configuring new one: {HardwareInfo.identifier}")
         return HardwareInfo.identifier
 
     def should_offload(self):
@@ -162,7 +160,7 @@ class HardwareInfo:
         if gb == 8:
             # We have 12GiB per model, essentially.
             return 1
-        pipe_count = int(gb / 12)
+        pipe_count = int(gb / 10)
         logging.debug(f'HardwareInfo: {pipe_count} concurrent pipes allowed via {gb}GiB VRAM and 12GiB allocated per pipe.')
         return pipe_count
 
