@@ -367,7 +367,7 @@ class DiffusionPipelineManager:
             scheduler_config={"name": "fast"},
             model_id=refiner_model,
         )
-        pipeline.vae = AutoencoderKL.from_pretrained('ptx0/s2', subfolder='vae', torch_dtype=self.torch_dtype, use_safetensors=True, use_auth_token=config.get_huggingface_api_key())
+        pipeline.vae = AutoencoderKL.from_pretrained('ptx0/s2', subfolder='vae', torch_dtype=self.torch_dtype, use_safetensors=True, use_auth_token=config.get_huggingface_api_key()).to(self.device)
         return pipeline
 
     def enforce_zero_terminal_snr(self, betas):
