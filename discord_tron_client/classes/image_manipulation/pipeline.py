@@ -506,10 +506,12 @@ class PipelineRunner:
         if prompt is None:
             prompt = user_config["tile_positive"]
             negative_prompt = user_config["tile_negative"]
-        controlnet_prompt_manager = self._get_prompt_manager(pipe)
-        prompt_embed, negative_embed = controlnet_prompt_manager.process_long_prompt(
-            positive_prompt=prompt, negative_prompt=negative_prompt
-        )
+        prompt_embed, negative_embed = None, None
+        if self.config.enable_compel():
+            controlnet_prompt_manager = self._get_prompt_manager(pipe)
+            prompt_embed, negative_embed = controlnet_prompt_manager.process_long_prompt(
+                positive_prompt=prompt, negative_prompt=negative_prompt
+            )
         new_image = pipe(
             prompt_embeds=prompt_embed,
             negative_prompt_embeds=negative_embed,
