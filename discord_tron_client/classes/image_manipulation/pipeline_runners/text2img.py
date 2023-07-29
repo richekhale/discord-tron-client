@@ -12,7 +12,6 @@ class Text2ImgPipelineRunner(BasePipelineRunner):
             del args["pooled_prompt_embeds"]
         if "negative_pooled_prompt_embeds" in args:
             del args["negative_pooled_prompt_embeds"]
-
         if user_config.get("prompt_weighting", True):
             # Remove unwanted arguments for this condition
             for unwanted_arg in ["prompt", "negative_prompt"]:
