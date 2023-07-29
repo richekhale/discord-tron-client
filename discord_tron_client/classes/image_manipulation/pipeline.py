@@ -1,4 +1,4 @@
-import logging, sys, torch, gc, traceback, time, asyncio, accelerate
+import logging, sys, torch, gc, traceback, time, asyncio, diffusers
 from torch.cuda import OutOfMemoryError
 from tqdm import tqdm
 from discord_tron_client.classes.app_config import AppConfig
@@ -248,9 +248,14 @@ class PipelineRunner:
             preprocessed_images = None
             user_model = user_config.get("model", "")
             if use_latent_result:
-                image_return_type = "latent"
                 if user_config.get("refiner_strength", 0.5) > 1.0:
                     raise ValueError("refiner_strength must be between 0.0 and 1.0")
+
+                image_return_type = "latent"
+                if not type(pipe, (diffusers.StableDiffusionXLPipeline, diffusers.StableDiffusionXLImg2ImgPipeline)):
+                    # We can't send latents directly from a non-SDXL pipeline into the SDXL refiner.
+                    image_return_type = "pil"
+
                 # Max inference steps are an inverse relationship of the refiner strength with the base steps.
                 denoising_start = 1 - user_config.get("refiner_strength", 0.5)
                 logging.debug(
