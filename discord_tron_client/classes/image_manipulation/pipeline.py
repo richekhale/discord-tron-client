@@ -251,12 +251,11 @@ class PipelineRunner:
                 image_return_type = "latent"
                 if user_config.get("refiner_strength", 0.5) > 1.0:
                     raise ValueError("refiner_strength must be between 0.0 and 1.0")
-                if "ptx0/s1" in user_model or "sdxl-base" in user_model or "stable-diffusion-xl" in user_model:
-                    # Max inference steps are an inverse relationship of the refiner strength with the base steps.
-                    denoising_start = 1 - user_config.get("refiner_strength", 0.5)
-                    logging.debug(
-                        f"Final inference step: {denoising_start}, steps: {steps}"
-                    )
+                # Max inference steps are an inverse relationship of the refiner strength with the base steps.
+                denoising_start = 1 - user_config.get("refiner_strength", 0.5)
+                logging.debug(
+                    f"Final inference step: {denoising_start}, steps: {steps}"
+                )
             if not promptless_variation and image is None:
                 logging.info(f'Running text2img with batch_size {batch_size} via model {user_model}.')
                 # text2img workflow
