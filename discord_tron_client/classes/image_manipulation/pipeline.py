@@ -297,7 +297,7 @@ class PipelineRunner:
                     generator=generator,
                 )
                 if use_latent_result:
-                    logging.info(f'Putting text2img latents into refiner at {min(int(denoising_start), 1) * 100} percent of the way through the process..')
+                    logging.info(f'Putting text2img latents into refiner at {min(int(str(denoising_start)), 1) * 100} percent of the way through the process..')
                     preprocessed_images = self._refiner_pipeline(
                         images=preprocessed_images,
                         user_config=user_config,
