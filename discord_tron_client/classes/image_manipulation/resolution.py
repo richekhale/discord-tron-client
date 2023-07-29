@@ -224,7 +224,7 @@ class ResolutionManager:
         # Get the maximum resolution for the current aspect ratio
         side_x = config.get_max_resolution_width(aspect_ratio)
         side_y = config.get_max_resolution_height(aspect_ratio)
-        logging.info
+        logging.info(
             "Aspect ratio "
             + str(aspect_ratio)
             + " has a maximum resolution of "
