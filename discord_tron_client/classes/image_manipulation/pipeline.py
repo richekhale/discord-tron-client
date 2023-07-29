@@ -252,7 +252,7 @@ class PipelineRunner:
                     raise ValueError("refiner_strength must be between 0.0 and 1.0")
 
                 image_return_type = "latent"
-                if not type(pipe, (diffusers.StableDiffusionXLPipeline, diffusers.StableDiffusionXLImg2ImgPipeline)):
+                if not type(pipe) in [diffusers.StableDiffusionXLPipeline, diffusers.StableDiffusionXLImg2ImgPipeline]:
                     # We can't send latents directly from a non-SDXL pipeline into the SDXL refiner.
                     image_return_type = "pil"
 
