@@ -8,12 +8,10 @@ hardware = HardwareInfo()
 
 class ResolutionManager:
     resolutions = [
-        # 1:1 aspect ratio
         {"width": 768, "height": 768},
         {"width": 1024, "height": 1024, "default_max": True},
         {"width": 1280, "height": 1280},
         {"width": 2048, "height": 2048},
-        # SDXL Resolutions, widescreen
         {"width": 1984, "height": 512},
         {"width": 1920, "height": 512},
         {"width": 1856, "height": 512},
@@ -33,7 +31,6 @@ class ResolutionManager:
         {"width": 1088, "height": 896},
         {"width": 1088, "height": 960},
         {"width": 1024, "height": 960},
-        # SDXL Resolutions, portrait
         {"width": 960, "height": 1024},
         {"width": 960, "height": 1088},
         {"width": 896, "height": 1088},
