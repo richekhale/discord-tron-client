@@ -8,6 +8,10 @@ class Text2ImgPipelineRunner(BasePipelineRunner):
         # Get user_config and delete it from args, it doesn't get passed to the pipeline
         user_config = args.get("user_config", None)
         del args["user_config"] 
+        if "pooled_prompt_embeds" in args:
+            del args["pooled_prompt_embeds"]
+        if "negative_pooled_prompt_embeds" in args:
+            del args["negative_pooled_prompt_embeds"]
 
         if user_config.get("prompt_weighting", True):
             # Remove unwanted arguments for this condition
@@ -27,6 +31,5 @@ class Text2ImgPipelineRunner(BasePipelineRunner):
             args["guidance_scale"] = float(args["guidance_scale"])
         if "guidance_rescale" in args:
             args["guidance_rescale"] = float(args["guidance_rescale"])
-        
         # Call the pipeline with arguments and return the images
         return self.pipeline(**args).images
