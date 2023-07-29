@@ -255,6 +255,7 @@ class PipelineRunner:
                 if not type(pipe) in [diffusers.StableDiffusionXLPipeline, diffusers.StableDiffusionXLImg2ImgPipeline]:
                     # We can't send latents directly from a non-SDXL pipeline into the SDXL refiner.
                     image_return_type = "pil"
+                    denoising_start = None
 
                 # Max inference steps are an inverse relationship of the refiner strength with the base steps.
                 denoising_start = 1 - user_config.get("refiner_strength", 0.5)
