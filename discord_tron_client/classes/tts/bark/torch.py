@@ -37,11 +37,9 @@ class BarkTorch:
 
     def _generate(self, prompt, user_config, character_voice: str = None):
         # generate audio from text
-        if character_voice is None:
-            logging.debug(f"No voice provided, using default.")
-            character_voice = user_config.get("tts_voice", "en_female_intense")
+        if character_voice is None or character_voice == 'none' or character_voice == 'default':
+            character_voice = None
         logging.debug(f"Generating text {prompt[32:]}.. with voice {character_voice}")
-
         audio = generate_audio(prompt, history_prompt=character_voice)
         return audio, None
 
