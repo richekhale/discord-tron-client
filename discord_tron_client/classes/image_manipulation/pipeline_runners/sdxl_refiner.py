@@ -13,8 +13,6 @@ class SdxlRefinerPipelineRunner(BasePipelineRunner):
         user_config = args.get("user_config", None)
         del args["user_config"]  # This doesn't get passed to Diffusers.
         logging.debug(f'Args (minus user_config) for SDXL refiner: {args}')
-        # Currently, it seems like the refiner's prompt weighting is broken.
-        # We are disabling it by default.
         if user_config is not None and user_config.get("refiner_prompt_weighting", True) and config.enable_compel():
             logging.info(f'Using SDXL prompt weighting.')
             # SDXL, when using prompt embeds, must be instructed to only generate 1 image per prompt.

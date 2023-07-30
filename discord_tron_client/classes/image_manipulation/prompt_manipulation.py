@@ -25,7 +25,7 @@ class PromptManipulation:
                     self.pipeline.text_encoder,
                     self.pipeline.text_encoder_2
                 ],
-                truncate_long_prompts=True,
+                truncate_long_prompts=False,
                 returned_embeddings_type=ReturnedEmbeddingsType.PENULTIMATE_HIDDEN_STATES_NON_NORMALIZED,
                 requires_pooled=[
                     False,  # CLIP-L does not produce pooled embeds.
@@ -38,7 +38,7 @@ class PromptManipulation:
             self.compel = Compel(
                 tokenizer=self.pipeline.tokenizer_2,
                 text_encoder=self.pipeline.text_encoder_2,
-                truncate_long_prompts=True,
+                truncate_long_prompts=False,
                 returned_embeddings_type=ReturnedEmbeddingsType.PENULTIMATE_HIDDEN_STATES_NON_NORMALIZED,
                 requires_pooled=True
             )
