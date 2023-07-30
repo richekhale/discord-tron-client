@@ -167,6 +167,13 @@ class PipelineRunner:
             negative_embed = None
             pooled_embed = None
             negative_pooled_embed = None
+            user_style = user_config.get('style', None)
+            if user_style is not None and user_style != 'base':
+                prompt, negative_prompt = PromptManipulation.stylize_prompt(
+                    user_prompt=prompt,
+                    user_negative=negative_prompt,
+                    user_style=user_style
+                )
             if (
                 self.prompt_manager is not None
                 and not promptless_variation

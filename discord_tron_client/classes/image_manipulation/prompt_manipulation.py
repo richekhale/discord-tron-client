@@ -6,6 +6,77 @@ config = AppConfig()
 if config.enable_compel():
     from compel import Compel, ReturnedEmbeddingsType
 
+prompt_styles = {
+    "enhance": [
+        "breathtaking {prompt} award-winning, professional, highly detailed",
+        "{prompt} ugly, deformed, noisy, blurry, distorted, grainy"
+    ],
+    "anime": [
+        "anime artwork {prompt} anime style, key visual, vibrant, studio anime,  highly detailed",
+        "{prompt} photo, deformed, black and white, realism, disfigured, low contrast"
+    ],
+    "photographic": [
+        "cinematic photo {prompt} 35mm photograph, film, bokeh, professional, 4k, highly detailed",
+        "{prompt} drawing, painting, crayon, sketch, graphite, impressionist, noisy, blurry, soft, deformed, ugly"
+    ],
+    "digital-art": [
+        "concept art {prompt} digital artwork, illustrative, painterly, matte painting, highly detailed",
+        "{prompt} photo, photorealistic, realism, ugly"
+    ],
+    "comic-book": [
+        "comic {prompt} graphic illustration, comic art, graphic novel art, vibrant, highly detailed",
+        "{prompt} photograph, deformed, glitch, noisy, realistic, stock photo"
+    ],
+    "fantasy-art": [
+        "ethereal fantasy concept art of {prompt} magnificent, celestial, ethereal, painterly, epic, majestic, magical, fantasy art, cover art, dreamy",
+        "{prompt} photographic, realistic, realism, 35mm film, dslr, cropped, frame, text, deformed, glitch, noise, noisy, off-center, deformed, cross-eyed, closed eyes, bad anatomy, ugly, disfigured, sloppy, duplicate, mutated, black and white"
+    ],
+    "analog-film": [
+        "analog film photo {prompt} faded film, desaturated, 35mm photo, grainy, vignette, vintage, Kodachrome, Lomography, stained, highly detailed, found footage",
+        "{prompt} painting, drawing, illustration, glitch, deformed, mutated, cross-eyed, ugly, disfigured"
+    ],
+    "neonpunk": [
+        "neonpunk style {prompt} cyberpunk, vaporwave, neon, vibes, vibrant, stunningly beautiful, crisp, detailed, sleek, ultramodern, magenta highlights, dark purple shadows, high contrast, cinematic, ultra detailed, intricate, professional",
+        "{prompt} painting, drawing, illustration, glitch, deformed, mutated, cross-eyed, ugly, disfigured"
+    ],
+    "isometric": [
+        "isometric style {prompt} vibrant, beautiful, crisp, detailed, ultra detailed, intricate",
+        "{prompt} deformed, mutated, ugly, disfigured, blur, blurry, noise, noisy, realistic, photographic"
+    ],
+    "lowpoly": [
+        "low-poly style {prompt} low-poly game art, polygon mesh, jagged, blocky, wireframe edges, centered composition",
+        "{prompt} noisy, sloppy, messy, grainy, highly detailed, ultra textured, photo"
+    ],
+    "origami": [
+        "origami style {prompt} paper art, pleated paper, folded, origami art, pleats, cut and fold, centered composition",
+        "{prompt} noisy, sloppy, messy, grainy, highly detailed, ultra textured, photo"
+    ],
+    "line-art": [
+        "line art drawing {prompt} professional, sleek, modern, minimalist, graphic, line art, vector graphics",
+        "{prompt} anime, photorealistic, 35mm film, deformed, glitch, blurry, noisy, off-center, deformed, cross-eyed, closed eyes, bad anatomy, ugly, disfigured, mutated, realism, realistic, impressionism, expressionism, oil, acrylic"
+    ],
+    "craft-clay": [
+        "play-doh style {prompt} sculpture, clay art, centered composition, Claymation",
+        "{prompt} sloppy, messy, grainy, highly detailed, ultra textured, photo"
+    ],
+    "cinematic": [
+        "cinematic film still {prompt} shallow depth of field, vignette, highly detailed, high budget, bokeh, cinemascope, moody, epic, gorgeous, film grain, grainy",
+        "{prompt} anime, cartoon, graphic, text, painting, crayon, graphite, abstract, glitch, deformed, mutated, ugly, disfigured"
+    ],
+    "3d-model": [
+        "professional 3d model {prompt} octane render, highly detailed, volumetric, dramatic lighting",
+        "{prompt} ugly, deformed, noisy, low poly, blurry, painting"
+    ],
+    "pixel-art": [
+        "pixel-art {prompt} low-res, blocky, pixel art style, 8-bit graphics",
+        "{prompt} sloppy, messy, blurry, noisy, highly detailed, ultra textured, photo, realistic"
+    ],
+    "texture": [
+        "texture {prompt} top down close-up",
+        "{prompt} ugly, deformed, noisy, blurry"
+    ]
+}
+
 # Manipulating prompts for the pipeline.
 class PromptManipulation:
     def __init__(self, pipeline, device, use_second_encoder_only: bool = False):
@@ -113,4 +184,29 @@ class PromptManipulation:
             if segment in prompt:
                 prompt = prompt.replace(segment, '')
         return prompt
+    
+    @staticmethod
+    def stylize_prompt(user_prompt: str, user_negative: str, user_style: str = None):
+        if user_style is not None:
+            if user_style not in prompt_styles:
+                raise ValueError(f'Invalid prompt style: {user_style}')
+            if user_style == 'base':
+                return user_prompt, user_negative
+        user_prompt, user_style = PromptManipulation.get_override_style(user_prompt)
+        if user_style is None:
+            logging.debug(f'No prompt style override found. Using prompt as-is.')
+            return user_prompt, user_negative
+        prompt = prompt_styles[user_style][0].format(prompt=user_prompt)
+        negative_prompt = prompt_styles[user_style][1].format(prompt=user_negative)
+        return prompt, negative_prompt
+    
+    @staticmethod
+    def get_override_style(user_prompt: str):
+        # A user can provide `--style [prompt]` in their user_prompt. We will replace this!
+        override_style = None
+        if '--style' in user_prompt:
+            override_style = user_prompt.split('--style')[1].split(' ')[1]
+            user_prompt = user_prompt.replace(f'--style {override_style}', '')
+        return user_prompt, override_style
+    
 # Path: discord_tron_client/classes/image_manipulation/diffusion.py
