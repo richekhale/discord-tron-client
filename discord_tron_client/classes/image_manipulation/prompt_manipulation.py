@@ -193,12 +193,11 @@ class PromptManipulation:
             if user_style == 'base':
                 return user_prompt, user_negative
         user_prompt, user_style = PromptManipulation.get_override_style(user_prompt)
-        if user_style is None:
-            logging.debug(f'No prompt style override found. Using prompt as-is.')
-            return user_prompt, user_negative
-        prompt = prompt_styles[user_style][0].format(prompt=user_prompt)
-        negative_prompt = prompt_styles[user_style][1].format(prompt=user_negative)
-        return prompt, negative_prompt
+        if user_style is not None:
+            logging.debug(f'Prompt style override found: {user_style}')
+            user_prompt = prompt_styles[user_style][0].format(prompt=user_prompt)
+            user_negative = prompt_styles[user_style][1].format(prompt=user_negative)
+        return user_prompt, user_negative
     
     @staticmethod
     def get_override_style(user_prompt: str):
