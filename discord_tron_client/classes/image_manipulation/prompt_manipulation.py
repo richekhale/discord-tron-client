@@ -187,16 +187,23 @@ class PromptManipulation:
     
     @staticmethod
     def stylize_prompt(user_prompt: str, user_negative: str, user_style: str = None):
+        logging.debug(f'Beginning stylize_prompt.')
         if user_style is not None:
+            logging.debug(f'Received a user_style: {user_style}')
             if user_style not in prompt_styles:
+                logging.error(f'Received invalid user style: {user_style}')
                 raise ValueError(f'Invalid prompt style: {user_style}')
             if user_style == 'base':
+                logging.warning(f'User is using base style. Returning prompts as-is.')
                 return user_prompt, user_negative
         user_prompt, user_style = PromptManipulation.get_override_style(user_prompt)
+        logging.info(f'Prompt style override: {user_style} for prompt: {user_prompt}')
         if user_style is not None:
             logging.debug(f'Prompt style override found: {user_style}')
             user_prompt = prompt_styles[user_style][0].format(prompt=user_prompt)
             user_negative = prompt_styles[user_style][1].format(prompt=user_negative)
+        else:
+            logging.warning(f'Not doing anything to the user prompt.')
         return user_prompt, user_negative
     
     @staticmethod
