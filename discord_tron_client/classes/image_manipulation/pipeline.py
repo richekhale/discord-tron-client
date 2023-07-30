@@ -251,7 +251,6 @@ class PipelineRunner:
         batch_size = self.config.maximum_batch_size()
         try:
             use_latent_result = user_config.get("latent_refiner", True)
-            self.pipeline_manager.to_accelerator(pipe)
             denoising_start = None
             preprocessed_images = None
             user_model = user_config.get("model", "")
@@ -381,7 +380,6 @@ class PipelineRunner:
             try:
                 del prompt_embed
                 del negative_embed
-                self.pipeline_manager.to_cpu(pipe)
                 gc.collect()
             except Exception as e:
                 logging.warn(f"Could not cleanly clear the GC: {e}")
