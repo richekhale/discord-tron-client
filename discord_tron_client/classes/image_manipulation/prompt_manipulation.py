@@ -207,12 +207,11 @@ class PromptManipulation:
         return user_prompt, user_negative
     
     @staticmethod
-    def get_override_style(user_prompt: str):
+    def get_override_style(user_prompt: str, user_style: str):
         # A user can provide `--style [prompt]` in their user_prompt. We will replace this!
-        override_style = None
         if '--style' in user_prompt:
-            override_style = user_prompt.split('--style')[1].split(' ')[1]
-            user_prompt = user_prompt.replace(f'--style {override_style}', '')
-        return user_prompt, override_style
+            user_style = user_prompt.split('--style')[1].split(' ')[1]
+            user_prompt = user_prompt.replace(f'--style {user_style}', '')
+        return user_prompt, user_style
     
 # Path: discord_tron_client/classes/image_manipulation/diffusion.py
