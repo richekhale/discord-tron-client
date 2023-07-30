@@ -9,71 +9,71 @@ if config.enable_compel():
 prompt_styles = {
     "enhance": [
         "breathtaking {prompt} award-winning, professional, highly detailed",
-        "ugly, deformed, noisy, blurry, distorted, grainy"
+        "ugly, deformed, noisy, blurry, distorted, grainy {prompt}"
     ],
     "anime": [
         "anime artwork {prompt} anime style, key visual, vibrant, studio anime,  highly detailed",
-        "photo, deformed, black and white, realism, disfigured, low contrast"
+        "photo, deformed, black and white, realism, disfigured, low contrast {prompt}"
     ],
     "photographic": [
         "cinematic photo {prompt} 35mm photograph, film, bokeh, professional, 4k, highly detailed",
-        "drawing, painting, crayon, sketch, graphite, impressionist, noisy, blurry, soft, deformed, ugly"
+        "drawing, painting, crayon, sketch, graphite, impressionist, noisy, blurry, soft, deformed {prompt}, ugly"
     ],
     "digital-art": [
         "concept art {prompt} digital artwork, illustrative, painterly, matte painting, highly detailed",
-        "photo, photorealistic, realism, ugly"
+        "photo, photorealistic, realism, ugly {prompt}"
     ],
     "comic-book": [
         "comic {prompt} graphic illustration, comic art, graphic novel art, vibrant, highly detailed",
-        "photograph, deformed, glitch, noisy, realistic, stock photo"
+        "photograph, deformed, glitch, noisy, realistic, stock photo {prompt}"
     ],
     "fantasy-art": [
         "ethereal fantasy concept art of {prompt} magnificent, celestial, ethereal, painterly, epic, majestic, magical, fantasy art, cover art, dreamy",
-        "photographic, realistic, realism, 35mm film, dslr, cropped, frame, text, deformed, glitch, noise, noisy, off-center, deformed, cross-eyed, closed eyes, bad anatomy, ugly, disfigured, sloppy, duplicate, mutated, black and white"
+        "photographic, realistic, realism, 35mm film, dslr, cropped, frame, text, deformed, glitch, noise, noisy, off-center, deformed, cross-eyed, clo {prompt}sed eyes, bad anatomy, ugly, disfigured, sloppy, duplicate, mutated, black and white"
     ],
     "analog-film": [
         "analog film photo {prompt} faded film, desaturated, 35mm photo, grainy, vignette, vintage, Kodachrome, Lomography, stained, highly detailed, found footage",
-        "painting, drawing, illustration, glitch, deformed, mutated, cross-eyed, ugly, disfigured"
+        "painting, drawing, illustration, glitch, deformed, mutated, cross-eyed, ugly, disfigured {prompt}"
     ],
     "neonpunk": [
         "neonpunk style {prompt} cyberpunk, vaporwave, neon, vibes, vibrant, stunningly beautiful, crisp, detailed, sleek, ultramodern, magenta highlights, dark purple shadows, high contrast, cinematic, ultra detailed, intricate, professional",
-        "painting, drawing, illustration, glitch, deformed, mutated, cross-eyed, ugly, disfigured"
+        "painting, drawing, illustration, glitch, deformed, mutated, cross-eyed, ugly, disfigured {prompt}"
     ],
     "isometric": [
         "isometric style {prompt} vibrant, beautiful, crisp, detailed, ultra detailed, intricate",
-        "deformed, mutated, ugly, disfigured, blur, blurry, noise, noisy, realistic, photographic"
+        "deformed, mutated, ugly, disfigured, blur, blurry, noise, noisy, realistic, photographic {prompt}"
     ],
     "lowpoly": [
         "low-poly style {prompt} low-poly game art, polygon mesh, jagged, blocky, wireframe edges, centered composition",
-        "noisy, sloppy, messy, grainy, highly detailed, ultra textured, photo"
+        "noisy, sloppy, messy, grainy, highly detailed, ultra textured, photo {prompt}"
     ],
     "origami": [
         "origami style {prompt} paper art, pleated paper, folded, origami art, pleats, cut and fold, centered composition",
-        "noisy, sloppy, messy, grainy, highly detailed, ultra textured, photo"
+        "noisy, sloppy, messy, grainy, highly detailed, ultra textured, photo {prompt}"
     ],
     "line-art": [
         "line art drawing {prompt} professional, sleek, modern, minimalist, graphic, line art, vector graphics",
-        "anime, photorealistic, 35mm film, deformed, glitch, blurry, noisy, off-center, deformed, cross-eyed, closed eyes, bad anatomy, ugly, disfigured, mutated, realism, realistic, impressionism, expressionism, oil, acrylic"
+        "anime, photorealistic, 35mm film, deformed, glitch, blurry, noisy, off-center, deformed, cross-eyed, c {prompt}losed eyes, bad anatomy, ugly, disfigured, mutated, realism, realistic, impressionism, expressionism, oil, acrylic"
     ],
     "craft-clay": [
         "play-doh style {prompt} sculpture, clay art, centered composition, Claymation",
-        "sloppy, messy, grainy, highly detailed, ultra textured, photo"
+        "sloppy, messy, grainy, highly detailed, ultra textured, photo {prompt}"
     ],
     "cinematic": [
         "cinematic film still {prompt} shallow depth of field, vignette, highly detailed, high budget, bokeh, cinemascope, moody, epic, gorgeous, film grain, grainy",
-        "anime, cartoon, graphic, text, painting, crayon, graphite, abstract, glitch, deformed, mutated, ugly, disfigured"
+        "anime, cartoon, graphic, text, painting, crayon, graphite, abstract, glitch, deformed, mutated, ugly, disfigured {prompt}"
     ],
     "3d-model": [
         "professional 3d model {prompt} octane render, highly detailed, volumetric, dramatic lighting",
-        "ugly, deformed, noisy, low poly, blurry, painting"
+        "ugly, deformed, noisy, low poly, blurry, painting {prompt}"
     ],
     "pixel-art": [
         "pixel-art {prompt} low-res, blocky, pixel art style, 8-bit graphics",
-        "sloppy, messy, blurry, noisy, highly detailed, ultra textured, photo, realistic"
+        "sloppy, messy, blurry, noisy, highly detailed, ultra textured, photo {prompt}, realistic"
     ],
     "texture": [
         "texture {prompt} top down close-up",
-        "ugly, deformed, noisy, blurry"
+        "ugly, deformed, noisy, blurry {prompt}"
     ]
 }
 
