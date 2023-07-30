@@ -196,7 +196,7 @@ class PromptManipulation:
             if user_style == 'base':
                 logging.warning(f'User is using base style. Returning prompts as-is.')
                 return user_prompt, user_negative
-        user_prompt, user_style = PromptManipulation.get_override_style(user_prompt)
+        user_prompt, user_style = PromptManipulation.get_override_style(user_prompt, user_style)
         logging.info(f'Prompt style override: {user_style} for prompt: {user_prompt}')
         if user_style is not None:
             logging.debug(f'Prompt style override found: {user_style}')
