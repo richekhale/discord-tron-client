@@ -284,6 +284,8 @@ class AppConfig:
     def bark_subsystem_type(self):
         return self.get_config_value("bark_subsystem", "torch")
 
+    def enable_diffusion(self):
+        return self.get_config_value("enable_diffusion", True)
     def enable_compel(self):
         return self.get_config_value("use_compel_prompt_weighting", True)
     def enable_compile(self):

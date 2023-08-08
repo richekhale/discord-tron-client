@@ -61,7 +61,7 @@ class HardwareInfo:
             "stablevicuna": config.is_stablevicuna_enabled(),
             "tts_bark": config.is_bark_enabled(),
         }
-        if self.video_memory_amount != "Unknown" and int(self.video_memory_amount) >= 8:
+        if self.video_memory_amount != "Unknown" and int(self.video_memory_amount) >= 8 and config.enable_diffusion():
             capabilities["gpu"] = True
             capabilities["variation"] = True
         if int(self.memory_amount) >= 16:
