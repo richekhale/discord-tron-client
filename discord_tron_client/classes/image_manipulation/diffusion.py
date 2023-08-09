@@ -114,6 +114,9 @@ class DiffusionPipelineManager:
             logging.debug(
                 f"Passing the ControlNet into a StableDiffusionControlNetPipeline for {model_id}"
             )
+            logging.debug(
+                f"Passing args into ControlNet: {extra_args} for {model_id}"
+            )
             pipeline = self.PIPELINE_CLASSES["text2img"].from_pretrained(
                 model_id,
                 torch_dtype=self.torch_dtype,

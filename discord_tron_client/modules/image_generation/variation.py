@@ -35,6 +35,9 @@ async def promptless_variation(payload, websocket):
         'ptx0/artius_v21',
         'stablediffusionapi/illuminati-diffusion',
         'ptx0/realism-engine',
+        'ptx0/sdxl-base',
+        'ptx0/s1',
+        'ptx0/s2'
     ]
     controlnet_warning = ""
     default_controlnet_model = "theintuitiveye/HARDblend"
