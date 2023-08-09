@@ -510,7 +510,7 @@ class PipelineRunner:
         # Get the image width/height from 'image' if it's provided
         logging.info(f"Running promptless variation with image.size {image.size}.")
         width, height = image.size
-        if width != 1024 and height != 1024:
+        if width != 1024 or height != 1024:
             # If neither width nor height is 1024, resize the image so that one is, while
             # maintaining the aspect ratio.
             image = self._resize_for_condition_image(input_image=image, resolution=1024)
@@ -518,14 +518,16 @@ class PipelineRunner:
             prompt = user_config["tile_positive"]
             negative_prompt = user_config["tile_negative"]
         prompt_embed, negative_embed = None, None
-        if self.config.enable_compel():
-            controlnet_prompt_manager = self._get_prompt_manager(pipe)
-            prompt_embed, negative_embed = controlnet_prompt_manager.process_long_prompt(
-                positive_prompt=prompt, negative_prompt=negative_prompt
-            )
+        # if self.config.enable_compel():
+        #     controlnet_prompt_manager = self._get_prompt_manager(pipe)
+        #     prompt_embed, negative_embed = controlnet_prompt_manager.process_long_prompt(
+        #         positive_prompt=prompt, negative_prompt=negative_prompt
+        #     )
         new_image = pipe(
-            prompt_embeds=prompt_embed,
-            negative_prompt_embeds=negative_embed,
+            # prompt_embeds=prompt_embed,
+            # negative_prompt_embeds=negative_embed,
+            prompt=prompt,
+            negative_prompt=negative_prompt,
             image=image,
             controlnet_conditioning_image=image,
             width=image.size[0],
