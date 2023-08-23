@@ -296,3 +296,5 @@ class AppConfig:
         return self.get_config_value('enable_sequential_offload', False)
     def maximum_batch_size(self):
         return max(self.get_config_value('maximum_batch_size', 4), 1)
+    def use_safetensors(self):
+        return self.get_config_value('use_safetensors', True)
