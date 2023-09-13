@@ -30,7 +30,7 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
         if "guidance_scale" in args:
             args["guidance_scale"] = float(args["guidance_scale"])
         if "guidance_rescale" in args:
-            args["guidance_rescale"] = int(args["guidance_rescale"])
+            args["guidance_rescale"] = float(args["guidance_rescale"])
         
         # Call the pipeline with arguments and return the images
         return self.pipeline(**args).images
