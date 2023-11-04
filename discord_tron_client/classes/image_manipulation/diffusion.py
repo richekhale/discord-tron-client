@@ -281,7 +281,7 @@ class DiffusionPipelineManager:
                         self.pipelines[model_id].text_encoder,
                         fullgraph=True,
                     )
-                else:
+                elif hasattr(self.pipelines[model_id], 'text_encoder'):
                     logging.warning(f'Torch compile on text encoder type {type(self.pipelines[model_id].text_encoder)} is not yet supported.')
         else:
             logging.info(f"Keeping existing pipeline. Not creating any new ones.")
