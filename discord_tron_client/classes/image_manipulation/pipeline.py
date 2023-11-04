@@ -278,7 +278,7 @@ class PipelineRunner:
                 elif "ptx0/s2" in user_model or "xl-refiner" in user_model:
                     pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe)
                 elif "kandinsky-2-2" in user_model:
-                    pipeline_runner = runner_map["kandinsky_2.2"](decoder=pipe, pipeline_manager=self.pipeline_manager)
+                    pipeline_runner = runner_map["kandinsky_2.2"](pipeline=pipe)
                 elif "DeepFloyd" in user_model:
                     pipeline_runner = runner_map["deep_floyd"](stage1=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
                     # DeepFloyd pipeline handles all of this.
