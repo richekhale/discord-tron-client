@@ -10,6 +10,7 @@ from diffusers import (
     DDIMScheduler,
     UniPCMultistepScheduler,
     KandinskyV22Pipeline,
+    AutoPipelineForText2Image,
     StableDiffusionXLImg2ImgPipeline,
 )
 from diffusers.models.attention_processor import AttnProcessor2_0
@@ -40,7 +41,7 @@ config = AppConfig()
 class DiffusionPipelineManager:
     PIPELINE_CLASSES = {
         "text2img": DiffusionPipeline,
-        "kandinsky-2.2": DiffusionPipeline,
+        "kandinsky-2.2": AutoPipelineForText2Image,
         "prompt_variation": StableDiffusionXLImg2ImgPipeline,
         "variation": StableDiffusionPipeline,
         "upscaler": StableDiffusionPipeline,
