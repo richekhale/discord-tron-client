@@ -208,7 +208,14 @@ async def prompt_variation(payload, websocket):
         image = Image.open(
             io.BytesIO(requests.get(payload["image_data"], timeout=10).content)
         )
-        new_width, new_height = calculate_new_size_by_pixel_area(image.width, image.height, 1.0)
+        factor = 1.0
+        # See if the prompt has a `--upscale` parameter and then multiply it by a maximum of 2 or factor to upscale
+        if "--upscale" in prompt:
+            upscale_factor = float(prompt.split("--upscale")[1].split(" ")[0])
+            factor = min(upscale_factor, 2.0)
+            # Remove --upscale from prompt:
+            prompt = prompt.split("--upscale")[0]
+        new_width, new_height = calculate_new_size_by_pixel_area(image.width, image.height, factor)
         image = image.resize(
             (new_width, new_height), resample=Image.LANCZOS
         )
