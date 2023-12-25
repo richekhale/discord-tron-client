@@ -211,7 +211,8 @@ async def prompt_variation(payload, websocket):
         factor = 1.0
         # See if the prompt has a `--upscale` parameter and then multiply it by a maximum of 2 or factor to upscale
         if "--upscale" in prompt:
-            upscale_factor = float(prompt.split("--upscale")[1].split(" ")[0])
+            import re
+            upscale_factor = float(re.search(r"--upscale (\d+\.?\d*)", prompt).group(1))
             factor = min(upscale_factor, 2.0)
             # Remove --upscale from prompt:
             prompt = prompt.split("--upscale")[0]
