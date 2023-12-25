@@ -332,6 +332,7 @@ class PipelineRunner:
                     denoising_end=0.8 if use_latent_result else None,
                     output_type=image_return_type,
                     guidance_scale=guidance_scale,
+                    guidance_rescale=float(user_config.get("guidance_rescale", 0.7)),
                 ).images
                 if use_latent_result:
                     new_image = self._refiner_pipeline(
