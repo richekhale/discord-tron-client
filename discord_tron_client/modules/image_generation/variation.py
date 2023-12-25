@@ -149,6 +149,25 @@ async def promptless_variation(payload, websocket):
         await websocket.send(discord_msg.to_json())
         raise e
 
+def round_to_nearest_multiple(value, multiple):
+    """Round a value to the nearest multiple."""
+    rounded = round(value / multiple) * multiple
+    return max(rounded, multiple)  # Ensure it's at least the value of 'multiple'
+
+from math import sqrt
+
+def calculate_new_size_by_pixel_area(W: int, H: int, megapixels: float):
+    aspect_ratio = W / H
+    total_pixels = megapixels * 1e6  # Convert megapixels to pixels
+
+    W_new = int(round(sqrt(total_pixels * aspect_ratio)))
+    H_new = int(round(sqrt(total_pixels / aspect_ratio)))
+
+    # Ensure they are divisible by 8
+    W_new = round_to_nearest_multiple(W_new, 64)
+    H_new = round_to_nearest_multiple(H_new, 64)
+
+    return W_new, H_new
 
 async def prompt_variation(payload, websocket):
     # We extract the features from the payload and pass them onto the actual generator
@@ -189,15 +208,11 @@ async def prompt_variation(payload, websocket):
         image = Image.open(
             io.BytesIO(requests.get(payload["image_data"], timeout=10).content)
         )
-        their_aspect_ratio = image.width / image.height
-        old_aspect_ratio = resolution['width'] / resolution['height']
-        if their_aspect_ratio == old_aspect_ratio and (
-            image.width != resolution['width'] or image.height != resolution['height']
-        ):
-            # If we have an image that's the right aspect ratio, but not the right size, we need to resize it.
-            image = image.resize(
-                (resolution["width"], resolution["height"]), resample=Image.LANCZOS
-            )
+        new_width, new_height = calculate_new_size_by_pixel_area(image.width, image.height, 1.0)
+        image = image.resize(
+            (new_width, new_height), resample=Image.LANCZOS
+        )
+        
         try:
             background = Image.new("RGBA", image.size, (255, 255, 255))
             alpha_composite = Image.alpha_composite(background, image)
