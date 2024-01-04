@@ -72,7 +72,7 @@ class HardwareInfo:
             config.enable_diffusion()
             and (
                 type(self.video_memory_amount) is float
-                type(self.video_memory_amount) is int
+                or type(self.video_memory_amount) is int
                 or self.video_memory_amount.isnumeric()
             )
             and int(self.video_memory_amount) >= 8
