@@ -2,6 +2,7 @@ import subprocess, torch
 import logging, socket
 from discord_tron_client.classes.app_config import AppConfig
 from diffusers.utils.logging import set_verbosity_warning
+
 set_verbosity_warning()
 config = AppConfig()
 
@@ -34,16 +35,22 @@ class HardwareInfo:
             config.get_friendly_name() or HardwareInfo.get_system_hostname()
         )
         import random
+
         HardwareInfo.identifier = (
             HardwareInfo.identifier + "-" + str(random.randint(0, 2))
         )
-        logging.info(f"Identifier not found, configuring new one: {HardwareInfo.identifier}")
+        logging.info(
+            f"Identifier not found, configuring new one: {HardwareInfo.identifier}"
+        )
         return HardwareInfo.identifier
 
     def should_offload(self):
         if not config.enable_offload():
             return False
-        return self.get_video_memory_info() == 'Unknown' or self.video_memory_amount < 48
+        return (
+            self.get_video_memory_info() == "Unknown" or self.video_memory_amount < 48
+        )
+
     def should_sequential_offload(self):
         if not config.enable_offload() or not config.enable_sequential_offload():
             return False
@@ -61,7 +68,15 @@ class HardwareInfo:
             "stablevicuna": config.is_stablevicuna_enabled(),
             "tts_bark": config.is_bark_enabled(),
         }
-        if (config.enable_diffusion() and self.video_memory_amount.isnumeric() and int(self.video_memory_amount) >= 8):
+        if (
+            config.enable_diffusion()
+            and (
+                type(self.video_memory_amount) is float
+                type(self.video_memory_amount) is int
+                or self.video_memory_amount.isnumeric()
+            )
+            and int(self.video_memory_amount) >= 8
+        ):
             capabilities["gpu"] = True
             capabilities["variation"] = True
         if int(self.memory_amount) >= 16:
@@ -152,7 +167,7 @@ class HardwareInfo:
         return self.video_memory_amount
 
     def get_concurrent_pipe_count(self):
-        memory_amount = self.get_machine_info()['video_memory_amount']
+        memory_amount = self.get_machine_info()["video_memory_amount"]
         if memory_amount == "Unknown":
             # If we do not know how much vmem we have, that is a bad sign.
             return 1
@@ -161,7 +176,9 @@ class HardwareInfo:
             # We have 12GiB per model, essentially.
             return 1
         pipe_count = int(gb / 10)
-        logging.debug(f'HardwareInfo: {pipe_count} concurrent pipes allowed via {gb}GiB VRAM and 12GiB allocated per pipe.')
+        logging.debug(
+            f"HardwareInfo: {pipe_count} concurrent pipes allowed via {gb}GiB VRAM and 12GiB allocated per pipe."
+        )
         return pipe_count
 
     def get_gpu_power_consumption(self):
