@@ -103,23 +103,28 @@ class DiscordMessage(WebsocketMessage):
             model_id = "SDXL Base + Refiner"
         else:
             model_id = f"!model {model_id}"
-        vmem = int(system_hw["video_memory_amount"])
+        vmem = 0
+        if system_hw["video_memory_amount"].isnumeric():
+            vmem = int(system_hw["video_memory_amount"])
         if type(execute_duration) is str and not execute_duration.isdigit():
             execute_time = execute_duration
         else:
             execute_time = round(execute_duration, 2)
-        return (
-            f"**<@{author_id}>'s Prompt**: {prompt}\n"
-            f"**Seed**: `!seed {seed}`, `!guidance {user_config['guidance_scaling']}`, `!settings guidance_rescale {guidance_rescale}`, `!steps {steps}`, `!settings strength {strength}`\n"
-            f"**Model**: `{model_id}`\n"
-            f"**SDXL Refiner**: {latent_refiner}\n"
-            f"**Resolution**: "
-            + str(resolution["width"])
-            + "x"
-            + str(resolution["height"])
-            + "\n"
-            f"**{HardwareInfo.get_identifier()}**: {payload['gpu_power_consumption']}W power used in {execute_time} seconds via {system_hw['gpu_type']} ({vmem}G), on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
-        )
+        try:
+            return (
+                f"**<@{author_id}>'s Prompt**: {prompt}\n"
+                f"**Seed**: `!seed {seed}`, `!guidance {user_config['guidance_scaling']}`, `!settings guidance_rescale {guidance_rescale}`, `!steps {steps}`, `!settings strength {strength}`\n"
+                f"**Model**: `{model_id}`\n"
+                f"**SDXL Refiner**: {latent_refiner}\n"
+                f"**Resolution**: "
+                + str(resolution["width"])
+                + "x"
+                + str(resolution["height"])
+                + "\n"
+                f"**{HardwareInfo.get_identifier()}**: {payload['gpu_power_consumption']}W power used in {execute_time} seconds via {system_hw['gpu_type']} ({vmem}G), on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
+            )
+        except Exception as e:
+            return(f"Error generating prompt configuration: {e}")
 
     @staticmethod
     def mention(payload):
