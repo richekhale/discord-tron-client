@@ -235,7 +235,10 @@ async def prompt_variation(payload, websocket):
         )
         await websocket.send(discord_msg.to_json())
         # Grab starting timestamp
+        if "overridden_user_id" in payload and payload["overridden_user_id"] is not None:
+            payload["discord_context"]["author"]["id"] = payload["overridden_user_id"]
         user_config["user_id"] = payload["discord_context"]["author"]["id"]
+
         start_time = asyncio.get_running_loop().time()
         output_images = await pipeline_runner.generate_image(
             user_config=user_config,
