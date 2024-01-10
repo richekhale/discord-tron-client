@@ -112,7 +112,7 @@ class DiscordMessage(WebsocketMessage):
             execute_time = round(execute_duration, 2)
         try:
             return (
-                f"**<@{author_id}>'s Prompt**: {prompt[:32]}...\n"
+                f"**<@{author_id}>'s Prompt**: {prompt[:255]}...\n"
                 f"**Seed**: `!seed {seed}`, `!guidance {user_config['guidance_scaling']}`, `!settings guidance_rescale {guidance_rescale}`, `!steps {steps}`, `!settings strength {strength}`\n"
                 f"**Model**: `{model_id}`\n"
                 f"**SDXL Refiner**: {latent_refiner}\n"
