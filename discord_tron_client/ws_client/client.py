@@ -7,6 +7,18 @@ from discord_tron_client.classes.auth import Auth
 from discord_tron_client.classes.message import WebsocketMessage
 from discord_tron_client.classes.worker_processor import WorkerProcessor
 
+async def periodic_wakeup(interval, websocket):
+    """
+    Send a periodic ping to the server to keep the connection alive and responsive.
+    """
+    while True:
+        await asyncio.sleep(interval)
+        try:
+            # You might send a ping or some other non-blocking operation here
+            await websocket.ping()
+        except Exception as e:
+            logging.error(f"Error during periodic wakeup: {e}")
+            # Handle the exception as needed (e.g., reconnection logic)
 
 async def websocket_client(
     config: AppConfig, startup_sequence: str = None, auth: Auth = None
@@ -72,6 +84,8 @@ async def websocket_client(
                 ping_timeout=60,
             ) as websocket:
                 AppConfig.set_websocket(websocket)
+                # Start the periodic wakeup task
+                wakeup_task = asyncio.create_task(periodic_wakeup(30, websocket))  # Ping every 30 seconds
                 # Send the startup sequence
                 if startup_sequence:
                     for message in startup_sequence:
@@ -127,6 +141,8 @@ async def websocket_client(
 
             logging.error(f"Fatal Error: {e}, traceback: {traceback.format_exc()}")
             await asyncio.sleep(5)
+        finally:
+            wakeup_task.cancel()
 
 
 async def log_slow_callbacks(coro, threshold):
