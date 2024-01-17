@@ -110,18 +110,14 @@ class DiscordMessage(WebsocketMessage):
             execute_time = execute_duration
         else:
             execute_time = round(execute_duration, 2)
+        resolution_string = f"{resolution['width']}x{resolution['height']}"
         try:
             return (
                 f"<@{author_id}>\n"
                 f"**Prompt**: {prompt[:255]}...\n"
-                f"**Seed**: `!seed {seed}`, `!guidance {user_config['guidance_scaling']}`, `!guidance_rescale {guidance_rescale}`, `!steps {steps}`, `!strength {strength}`\n"
+                f"**Settings**: `!seed {seed}`, `!guidance {user_config['guidance_scaling']}`, `!guidance_rescale {guidance_rescale}`, `!steps {steps}`, `!strength {strength}`, `!resolution {resolution_string}`\n"
                 f"**Model**: `{model_id}`\n"
                 f"**SDXL Refiner**: {latent_refiner}\n"
-                f"**Resolution**: "
-                + str(resolution["width"])
-                + "x"
-                + str(resolution["height"])
-                + "\n"
                 f"**{HardwareInfo.get_identifier()}**: {payload['gpu_power_consumption']}W power used in {execute_time} seconds via {system_hw['gpu_type']} ({vmem}G)\n" #, on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
             )
         except Exception as e:
