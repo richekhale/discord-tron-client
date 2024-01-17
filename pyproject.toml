@@ -20,7 +20,7 @@ websocket = "^0.2.1"
 diffusers = {git = "https://github.com/huggingface/diffusers"}
 transformers = "^4.28.1"
 tensorflow = "^2.12.0"
-accelerate = "^0.18.0"
+accelerate = "^0.26.1"
 
 numpy = ">=1.23.2"
 torch = "^2.1.0+cu118"
