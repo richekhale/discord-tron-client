@@ -78,7 +78,8 @@ async def generate_image(payload, websocket):
         if "overridden_user_id" in payload and payload["overridden_user_id"] is not None:
             payload["discord_context"]["author"]["id"] = payload["overridden_user_id"]
         user_config["user_id"] = payload["discord_context"]["author"]["id"]
-            
+        if "width" not in resolution or "height" not in resolution:
+            resolution = {"width": 1024, "height": 1024}
         output_images = await pipeline_runner.generate_image(
             user_config=user_config,
             scheduler_config=scheduler_config,
