@@ -45,6 +45,6 @@ class ImageMetadata:
         # attributes.get('prompt', 'no prompt given')
         # Steps: user_config.get('steps', 0), Sampler: DDIM, CFG scale: attributes['guidance'], Seed: attributes['seed'], Size: user_config['width] x user_config['height], Model hash: 12345678
         a1111_output = attributes.get('prompt', user_config.get('positive_prompt', 'no prompt given'))
-        a1111_output = f'{a1111_output}\nSteps: {user_config.get("steps", 0)}, Sampler: {attributes.get("scheduler", "DDIM")}, CFG scale: {attributes.get("guidance_scaling", user_config.get("guidance_scaling"))}, Seed: {attributes["seed"]}, Size: {user_config["resolution"]["width"]}x{user_config["resolution"]["height"]}, Model hash: 12345678'
+        a1111_output = f'{a1111_output}\nSteps: {user_config.get("steps", 0)}, Sampler: {attributes.get("scheduler", "DDIM")}, CFG scale: {attributes.get("guidance_scaling", user_config.get("guidance_scaling"))}, Seed: {attributes["seed"]}, Size: {user_config["resolution"].get("width", 1024)}x{user_config["resolution"].get("height", 1024)}, Model hash: 12345678'
 
         return a1111_output
