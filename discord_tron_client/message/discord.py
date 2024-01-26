@@ -124,6 +124,7 @@ class DiscordMessage(WebsocketMessage):
                 f"**Settings**: `!seed {seed}`, `!guidance {user_config['guidance_scaling']}`, `!guidance_rescale {guidance_rescale}`, `!steps {steps}`, `!strength {strength}`, `!resolution {resolution_string}`\n"
                 f"**Model**: `{model_id}`\n{refiner_status}"
                 f"**{HardwareInfo.get_identifier()}**: {payload['gpu_power_consumption']}W power used in {execute_time} seconds via {system_hw['gpu_type']} ({vmem}G)\n" #, on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
+                f"**Job ID:** `{payload['job_id']}`\n"
             )
         except Exception as e:
             return(f"Error generating prompt configuration: {e}")
