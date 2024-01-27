@@ -26,15 +26,16 @@ class DiscordProgressBar:
         self.last_update = time.time()
 
     async def update_progress_bar(self, step: int):
-        if step == 0 and self.current_step == 100:
-            # We might be onto stage two of a multi-stage operation..
-            self.current_stage += 1
-            self.current_stage_msg = ' (Stage ' + str(self.current_stage) + ')'
         if step < self.current_step:
             logging.warn(
                 f"Step {step} is less than current step {self.current_step}. This means the progress bar tried updating to the same state more than once."
             )
         self.current_step = step
+        if step == 0 and self.current_step == 100:
+            # We might be onto stage two of a multi-stage operation..
+            self.current_stage += 1
+            self.current_stage_msg = ' (Stage ' + str(self.current_stage) + ')'
+            return
         progress = self.current_step / self.total_steps
         filled_length = int(progress * self.progress_bar_length)
         bar = "█" * filled_length + "-" * (self.progress_bar_length - filled_length)
