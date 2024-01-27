@@ -2,9 +2,10 @@ import json, logging
 
 logging.basicConfig(level=logging.INFO)
 import ssl, websockets, asyncio
+from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.classes.app_config import AppConfig
 from discord_tron_client.classes.auth import Auth
-from discord_tron_client.classes.message import WebsocketMessage
+from discord_tron_client.message.job_queue import JobQueueMessage
 from discord_tron_client.classes.worker_processor import WorkerProcessor
 
 async def periodic_wakeup(interval, websocket):
@@ -101,6 +102,16 @@ async def websocket_client(
                     payload = json.loads(message)
                     semaphore = general_semaphore
                     if "job_type" in payload:
+                        if "job_id" in payload:
+                            logging.debug(
+                                f"Processing job {payload['job_id']} of type {payload['job_type']}"
+                            )
+                            # Send websocket command for the 'job_queue' module 'acknowledge' command
+                            await websocket.send(
+                                JobQueueMessage(
+                                    websocket, payload['job_id'], HardwareInfo.get_identifier(), module_command="acknowledge"
+                                ).to_json()
+                            )
                         if payload["job_type"] == "gpu":
                             logging.debug("Using GPU-specific semaphore")
                             semaphore = gpu_semaphore
