@@ -168,6 +168,9 @@ class PipelineRunner:
             negative_embed = None
             pooled_embed = None
             negative_pooled_embed = None
+            positive_prompt = user_config.get("positive_prompt", None)
+            if positive_prompt is not None:
+                prompt = f"{prompt} {positive_prompt}"
             user_style = user_config.get('style', None)
             logging.debug(f'User prompt style: {user_style}')
             if user_style is not None and user_style != 'base':

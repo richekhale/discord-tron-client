@@ -83,7 +83,7 @@ async def generate_image(payload, websocket):
         output_images = await pipeline_runner.generate_image(
             user_config=user_config,
             scheduler_config=scheduler_config,
-            prompt=prompt + " " + positive_prompt,
+            prompt=prompt,
             model_id=model_id,
             side_x=resolution["width"],
             side_y=resolution["height"],
