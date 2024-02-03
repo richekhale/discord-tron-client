@@ -60,7 +60,6 @@ class DiffusionPipelineManager:
     }
 
     def __init__(self):
-        self.pipelines = {}
         hw_limits = hardware.get_hardware_limits()
         self.torch_dtype = torch.float16
         self.is_memory_constrained = False
@@ -81,6 +80,7 @@ class DiffusionPipelineManager:
         self.last_pipe_scheduler = {}  # { "model_id": "default" }
         self.pipelines: Dict[str, Pipeline] = {}
         self.last_pipe_type: Dict[str, str] = {}
+        self.pipeline_versions = {}
 
     def clear_pipeline(self, model_id: str) -> None:
         if model_id in self.pipelines:
@@ -182,6 +182,38 @@ class DiffusionPipelineManager:
             self.pipelines["upscaler"] = get_upscaler()
         return self.pipelines["upscaler"]
 
+    def get_model_latest_hash(
+        self,
+        model_id: str,
+        unet_model_name: str = "unet/diffusion_pytorch_model.safetensors"
+    ) -> str:
+        from huggingface_hub import get_hf_file_metadata, hf_hub_url
+        url = hf_hub_url(repo_id=model_id, filename=unet_model_name)
+        try:
+            metadata = get_hf_file_metadata(url)
+
+            return metadata.commit_hash
+        except Exception as e:
+            logging.error(f"Could not get model metadata: {e}")
+            return None
+
+    def is_model_latest(
+        self,
+        model_id: str
+    ) -> bool:
+        latest_hash = self.get_model_latest_hash(model_id)
+        if latest_hash is None:
+            return None
+        if model_id in self.pipeline_versions:
+            current_hash = self.pipeline_versions[model_id].config.model_hash
+            test = latest_hash == current_hash
+            if test:
+                logging.debug(f"Model {model_id} is the latest version.")
+                return True
+            logging.debug(f"Model {model_id} is not the latest. Setting version from {self.pipeline_versions.get(model_id, None)} to {latest_hash}")
+            self.pipeline_versions[model_id] = latest_hash
+        return False
+
     def get_pipe(
         self,
         user_config: dict,
@@ -229,7 +261,16 @@ class DiffusionPipelineManager:
                 f"Clearing out an incorrect pipeline and scheduler, for the same model. Going from {self.last_pipe_scheduler[model_id]} to {scheduler_config['name']}. Model: {model_id}"
             )
             self.clear_pipeline(model_id)
-
+        # Let's check the current hash against the latest and delete the stored model if it needs an update.
+        logging.info(f"Checking the model version for {model_id}: currently we have {self.pipeline_versions.get(model_id, None)}")
+        if not self.is_model_latest(model_id):
+            new_revision = self.pipeline_versions.get(model_id, None)
+            if not new_revision:
+                raise ValueError(f"Could not get the latest revision for model {model_id}")
+            logging.warn(
+                f"Model {model_id} is not the latest version. Deleting the stored model. Retrieving {new_revision} from the cache."
+            )
+            self.clear_pipeline(model_id)
         if model_id not in self.pipelines:
             logging.debug(f"Creating pipeline type {pipe_type} for model {model_id} with custom_text_encoder {type(custom_text_encoder)}")
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type, use_safetensors=use_safetensors, custom_text_encoder=custom_text_encoder, safety_modules=safety_modules)
