@@ -24,16 +24,17 @@ from discord_tron_client.classes.image_manipulation.face_upscale import (
 )
 from PIL import Image
 import torch, gc, logging, diffusers, transformers
-
+logger = logging.getLogger('DiffusionPipelineManager')
+logger.setLevel('DEBUG')
 torch.backends.cudnn.deterministic = False
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
 torch.backends.cudnn.benchmark = True
 torch.backends.cuda.enable_flash_sdp(True)
 if torch.backends.cuda.mem_efficient_sdp_enabled():
-    logging.info("CUDA SDP (scaled dot product attention) is enabled.")
+    logger.info("CUDA SDP (scaled dot product attention) is enabled.")
 if torch.backends.cuda.math_sdp_enabled():
-    logging.info("CUDA MATH SDP (scaled dot product attention) is enabled.")
+    logger.info("CUDA MATH SDP (scaled dot product attention) is enabled.")
 hardware = HardwareInfo()
 config = AppConfig()
 
@@ -71,7 +72,7 @@ class DiffusionPipelineManager:
         ):
             self.torch_dtype = torch.float32
         if hw_limits["gpu"] != "Unknown" and hw_limits["gpu"] <= 16:
-            logging.warn(
+            logger.warn(
                 f"Our GPU has less than 16GB of memory, so we will use memory constrained pipeline parameters for image generation, resulting in much higher CPU use to lower VMEM use."
             )
             self.is_memory_constrained = True
@@ -88,7 +89,9 @@ class DiffusionPipelineManager:
                 del self.pipelines[model_id]
                 self.clear_cuda_cache()
             except Exception as e:
-                logging.error(f"Error when deleting pipe: {e}")
+                logger.error(f"Error when deleting pipe: {e}")
+        else:
+            logger.warning(f"Model {model_id} did not have a cached pipeline to clear.")
 
     def create_pipeline(self, model_id: str, pipe_type: str, use_safetensors: bool = True, custom_text_encoder = None, safety_modules: dict = None) -> Pipeline:
         pipeline_class = self.PIPELINE_CLASSES[pipe_type]
@@ -108,14 +111,14 @@ class DiffusionPipelineManager:
                 extra_args[key] = safety_modules[key]
         if pipe_type in ["variation", "upscaler"]:
             # Variation uses ControlNet stuff.
-            logging.debug(f"Creating a ControlNet model for {model_id}")
+            logger.debug(f"Creating a ControlNet model for {model_id}")
             controlnet = ControlNetModel.from_pretrained(
                 "lllyasviel/control_v11f1e_sd15_tile", torch_dtype=self.torch_dtype
             )
-            logging.debug(
+            logger.debug(
                 f"Passing the ControlNet into a StableDiffusionControlNetPipeline for {model_id}"
             )
-            logging.debug(
+            logger.debug(
                 f"Passing args into ControlNet: {extra_args} for {model_id}"
             )
             pipeline = self.PIPELINE_CLASSES["text2img"].from_pretrained(
@@ -128,7 +131,7 @@ class DiffusionPipelineManager:
             )
         elif pipe_type in ["prompt_variation"]:
             # Use the long prompt weighting pipeline.
-            logging.debug(f"Creating a LPW pipeline for {model_id}")
+            logger.debug(f"Creating a LPW pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
                 model_id,
                 torch_dtype=self.torch_dtype,
@@ -136,7 +139,7 @@ class DiffusionPipelineManager:
                 **extra_args
             )
         elif pipe_type in ["text2img"]:
-            logging.debug(f"Creating a txt2img pipeline for {model_id}")
+            logger.debug(f"Creating a txt2img pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
                 model_id,
                 torch_dtype=self.torch_dtype,
@@ -145,9 +148,9 @@ class DiffusionPipelineManager:
                 variant=config.get_config_value('model_default_variant', None),
                 **extra_args
             )
-            logging.debug(f"Model config: {pipeline.config}")
+            logger.debug(f"Model config: {pipeline.config}")
         else:
-            logging.debug(f"Using standard pipeline for {model_id}")
+            logger.debug(f"Using standard pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
                 model_id, torch_dtype=self.torch_dtype,
                 use_safetensors=use_safetensors,
@@ -189,12 +192,14 @@ class DiffusionPipelineManager:
     ) -> str:
         from huggingface_hub import get_hf_file_metadata, hf_hub_url
         url = hf_hub_url(repo_id=model_id, filename=unet_model_name)
+        logger.debug(f"Retrieving metadata from URL: {url}")
         try:
             metadata = get_hf_file_metadata(url)
-
-            return metadata.commit_hash
+            result = metadata.commit_hash
+            logger.debug(f"Commit hash retrieved: {result}")
+            return result
         except Exception as e:
-            logging.error(f"Could not get model metadata: {e}")
+            logger.error(f"Could not get model metadata: {e}")
             return None
 
     def is_model_latest(
@@ -203,15 +208,15 @@ class DiffusionPipelineManager:
     ) -> bool:
         latest_hash = self.get_model_latest_hash(model_id)
         if latest_hash is None:
+            logger.debug(f"is_model_latest could not retrieve metadata: {latest_hash}")
             return None
-        if model_id in self.pipeline_versions:
-            current_hash = self.pipeline_versions[model_id].config.model_hash
-            test = latest_hash == current_hash
-            if test:
-                logging.debug(f"Model {model_id} is the latest version.")
-                return True
-            logging.debug(f"Model {model_id} is not the latest. Setting version from {self.pipeline_versions.get(model_id, None)} to {latest_hash}")
-            self.pipeline_versions[model_id] = latest_hash
+        current_hash = self.pipeline_versions.get(model_id, None)
+        test = latest_hash == current_hash
+        if test:
+            logger.debug(f"Model {model_id} is the latest version.")
+            return True
+        logger.debug(f"Model {model_id} is not the latest. Setting version from {self.pipeline_versions.get(model_id, None)} to {latest_hash}")
+        self.pipeline_versions[model_id] = latest_hash
         return False
 
     def get_pipe(
@@ -239,7 +244,7 @@ class DiffusionPipelineManager:
         if "kandinsky-2-2" in model_id:
             use_safetensors = False
             pipe_type = "kandinsky-2.2"
-        logging.info(
+        logger.info(
             f"Executing get_pipe for model {model_id} and pipe_type {pipe_type}"
         )
 
@@ -247,7 +252,7 @@ class DiffusionPipelineManager:
             model_id in self.last_pipe_type
             and self.last_pipe_type[model_id] != pipe_type
         ):
-            logging.warn(
+            logger.warn(
                 f"Clearing out an incorrect pipeline type for the same model. Going from {self.last_pipe_type[model_id]} to {pipe_type}. Model: {model_id}"
             )
             self.clear_pipeline(model_id)
@@ -257,28 +262,28 @@ class DiffusionPipelineManager:
             and model_id in self.last_pipe_scheduler
             and self.last_pipe_scheduler[model_id] != scheduler_config["name"]
         ):
-            logging.warn(
+            logger.warn(
                 f"Clearing out an incorrect pipeline and scheduler, for the same model. Going from {self.last_pipe_scheduler[model_id]} to {scheduler_config['name']}. Model: {model_id}"
             )
             self.clear_pipeline(model_id)
         # Let's check the current hash against the latest and delete the stored model if it needs an update.
-        logging.info(f"Checking the model version for {model_id}: currently we have {self.pipeline_versions.get(model_id, None)}")
+        logger.info(f"Checking the model version for {model_id}: currently we have {self.pipeline_versions.get(model_id, None)}")
         if not self.is_model_latest(model_id):
             new_revision = self.pipeline_versions.get(model_id, None)
             if not new_revision:
                 raise ValueError(f"Could not get the latest revision for model {model_id}")
-            logging.warn(
+            logger.warn(
                 f"Model {model_id} is not the latest version. Deleting the stored model. Retrieving {new_revision} from the cache."
             )
             self.clear_pipeline(model_id)
         if model_id not in self.pipelines:
-            logging.debug(f"Creating pipeline type {pipe_type} for model {model_id} with custom_text_encoder {type(custom_text_encoder)}")
+            logger.debug(f"Creating pipeline type {pipe_type} for model {model_id} with custom_text_encoder {type(custom_text_encoder)}")
             self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type, use_safetensors=use_safetensors, custom_text_encoder=custom_text_encoder, safety_modules=safety_modules)
             if pipe_type in ["upscaler", "prompt_variation", "text2img", "kandinsky-2.2"]:
                 pass
             elif pipe_type == "variation":
                 # I think this needs a specific scheduler set.
-                logging.debug(
+                logger.debug(
                     f"Before setting scheduler: {self.pipelines[model_id].scheduler}"
                 )
                 self.pipelines[
@@ -286,7 +291,7 @@ class DiffusionPipelineManager:
                 ].scheduler = UniPCMultistepScheduler.from_config(
                     self.pipelines[model_id].scheduler.config
                 )
-                logging.debug(
+                logger.debug(
                     f"After setting scheduler: {self.pipelines[model_id].scheduler}"
                 )
             # Additional offload settings that we apply to all pipelines.
@@ -299,14 +304,14 @@ class DiffusionPipelineManager:
                 and not hardware.should_sequential_offload()
             ):
                 try:
-                    logging.warn(
+                    logger.warn(
                         f"Hardware constraints are enabling model CPU offload. This could impact performance."
                     )
                     self.pipelines[model_id].enable_model_cpu_offload()
                 except Exception as e:
-                    logging.error(f"Could not enable CPU offload on the model: {e}")
+                    logger.error(f"Could not enable CPU offload on the model: {e}")
             else:
-                logging.info(
+                logger.info(
                     f"Moving pipe to CUDA early, because no offloading is being used."
                 )
                 self.pipelines[model_id].to(self.device)
@@ -320,22 +325,22 @@ class DiffusionPipelineManager:
                 if hasattr(self.pipelines[model_id], 'controlnet') and config.enable_compile():
                     self.pipelines[model_id].controlnet = torch.compile(self.pipelines[model_id].controlnet, fullgraph=True)
                 if hasattr(self.pipelines[model_id], 'text_encoder') and type(self.pipelines[model_id].text_encoder) == transformers.T5EncoderModel and config.enable_compile():
-                    logging.info('Found T5 encoder model. Compiling...')
+                    logger.info('Found T5 encoder model. Compiling...')
                     self.pipelines[model_id].text_encoder = torch.compile(
                         self.pipelines[model_id].text_encoder,
                         fullgraph=True,
                     )
                 elif hasattr(self.pipelines[model_id], 'text_encoder'):
-                    logging.warning(f'Torch compile on text encoder type {type(self.pipelines[model_id].text_encoder)} is not yet supported.')
+                    logger.warning(f'Torch compile on text encoder type {type(self.pipelines[model_id].text_encoder)} is not yet supported.')
         else:
-            logging.info(f"Keeping existing pipeline. Not creating any new ones.")
+            logger.info(f"Keeping existing pipeline. Not creating any new ones.")
             self.pipelines[model_id].to(self.device)
         self.last_pipe_type[model_id] = pipe_type
         if scheduler_config is not None and scheduler_config != {}:
             self.last_pipe_scheduler[model_id] = scheduler_config.get("name", "default")
         enable_tiling = user_config.get("enable_tiling", True)
         if hasattr(self.pipelines[model_id], 'vae') and enable_tiling:
-            logging.warn(f"Enabling VAE tiling. This could cause artifacted outputs.")
+            logger.warn(f"Enabling VAE tiling. This could cause artifacted outputs.")
             self.pipelines[model_id].vae.enable_tiling()
             self.pipelines[model_id].vae.enable_slicing()
         elif hasattr(self.pipelines[model_id], 'vae'):
@@ -348,7 +353,7 @@ class DiffusionPipelineManager:
         # Loop by a range of 0 through len(self.pipelines):
         for model_id in list(self.pipelines.keys()):
             if len(self.pipelines) > total_allowed_concurrent and (keep_model is None or keep_model != model_id):
-                logging.info(f'Deleting pipe for model {model_id}, as we had {len(self.pipelines)} pipes, and only {total_allowed_concurrent} are allowed.')
+                logger.info(f'Deleting pipe for model {model_id}, as we had {len(self.pipelines)} pipes, and only {total_allowed_concurrent} are allowed.')
                 del self.pipelines[model_id]
                 if model_id in self.last_pipe_scheduler:
                     del self.last_pipe_scheduler[model_id]
@@ -359,17 +364,17 @@ class DiffusionPipelineManager:
     def clear_cuda_cache(self):
         gc.collect()
         if config.get_cuda_cache_clear_toggle():
-            logging.info("Clearing the CUDA cache...")
+            logger.info("Clearing the CUDA cache...")
             torch.cuda.empty_cache()
             torch.clear_autocast_cache()
         else:
-            logging.debug(
+            logger.debug(
                 f"NOT clearing CUDA cache. Config option `cuda_cache_clear` is not set, or is False."
             )
 
     def set_scheduler(self, pipe, user_config=None, scheduler_config: dict = None):
         if scheduler_config is None:
-            logging.debug(f"Not setting scheduler_config parameters.")
+            logger.debug(f"Not setting scheduler_config parameters.")
             return
         if "name" not in scheduler_config:
             raise ValueError(f"Scheduler config must have a name: {scheduler_config}")
@@ -379,14 +384,14 @@ class DiffusionPipelineManager:
             )
         name = scheduler_config["name"]
         if name == "default":
-            logging.debug(f"User selected the default scheduler. Not setting one.")
+            logger.debug(f"User selected the default scheduler. Not setting one.")
             return
 
         scheduler_name = scheduler_config["scheduler"]
 
         scheduler_module = self.SCHEDULER_MAPPINGS[scheduler_name]
         if scheduler_name == "DPMSolverMultistepScheduler":
-            logging.debug(
+            logger.debug(
                 f"Setting algorithm_type to dpmsolver++ for {name} scheduler, {scheduler_name}."
             )
             pipe.scheduler = scheduler_module.from_config(
