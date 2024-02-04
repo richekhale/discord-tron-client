@@ -59,7 +59,6 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
     def _setup_stage2(self, user_config):
         stage2_model = "DeepFloyd/IF-II-L-v1.0"
         logging.debug(f'Configuring DF-IF Stage II Pipeline: {stage2_model}')
-        scheduler_config = {}  # This isn't really used anymore.
         if self.stage2 is not None:
             logging.info(f"Keeping existing {stage2_model} model with {type(self.stage2)} pipeline.")
             return
@@ -67,7 +66,6 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         self.stage2 = self.pipeline_manager.get_pipe(
             model_id=stage2_model,
             user_config=user_config,
-            scheduler_config=scheduler_config,
             custom_text_encoder=-1
         )
         logging.debug(f'Retrieving DeepFloyd Stage II pipeline has completed.')
@@ -102,7 +100,6 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
 
     def _setup_stage3(self, user_config):
         stage3_model = "stabilityai/stable-diffusion-x4-upscaler"
-        scheduler_config = {}  # This isn't really used anymore.
         if self.stage3 is not None:
             logging.info(f"Keeping existing {stage3_model} model.")
             return
@@ -110,7 +107,6 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         self.stage3 = self.pipeline_manager.get_pipe(
             model_id=stage3_model,
             user_config=user_config,
-            scheduler_config=scheduler_config,
             safety_modules=self.safety_modules
         )
         logging.debug(f'Retrieving DeepFloyd Stage III pipeline has completed.')

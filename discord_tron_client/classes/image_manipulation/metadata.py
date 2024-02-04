@@ -48,10 +48,10 @@ class ImageMetadata:
         try:
             a1111_output = f'{a1111_output}\n'
             a1111_output = f'{a1111_output}Steps: {user_config.get("steps", 0)},'
-            a1111_output = f'{a1111_output} Sampler: {attributes.get("scheduler", "DDIM")},'
+            a1111_output = f'{a1111_output} Sampler: {attributes.get("sampler", "DDIM")},'
             a1111_output = f'{a1111_output} CFG scale: {attributes.get("guidance_scaling", user_config.get("guidance_scaling"))},'
             a1111_output = f'{a1111_output} Seed: {attributes["seed"]},'
-            a1111_output = f'{a1111_output} Size: {user_config["resolution"].get("width", 1024)}x{user_config["resolution"].get("height", 1024)}, Model hash: 12345678'
+            a1111_output = f'{a1111_output} Size: {user_config["resolution"].get("width", 1024)}x{user_config["resolution"].get("height", 1024)}, Model hash: {attributes.get("model_hash", "Unknown")}'
         except Exception as e:
             logging.error(f'Error generating A1111 metadata: {e}')
 

@@ -222,7 +222,6 @@ class DiffusionPipelineManager:
     def get_pipe(
         self,
         user_config: dict,
-        scheduler_config: dict,
         model_id: str,
         prompt_variation: bool = False,
         promptless_variation: bool = False,
@@ -254,16 +253,6 @@ class DiffusionPipelineManager:
         ):
             logger.warn(
                 f"Clearing out an incorrect pipeline type for the same model. Going from {self.last_pipe_type[model_id]} to {pipe_type}. Model: {model_id}"
-            )
-            self.clear_pipeline(model_id)
-        if (
-            scheduler_config is not None
-            and scheduler_config != {}
-            and model_id in self.last_pipe_scheduler
-            and self.last_pipe_scheduler[model_id] != scheduler_config["name"]
-        ):
-            logger.warn(
-                f"Clearing out an incorrect pipeline and scheduler, for the same model. Going from {self.last_pipe_scheduler[model_id]} to {scheduler_config['name']}. Model: {model_id}"
             )
             self.clear_pipeline(model_id)
         # Let's check the current hash against the latest and delete the stored model if it needs an update.
@@ -336,8 +325,6 @@ class DiffusionPipelineManager:
             logger.info(f"Keeping existing pipeline. Not creating any new ones.")
             self.pipelines[model_id].to(self.device)
         self.last_pipe_type[model_id] = pipe_type
-        if scheduler_config is not None and scheduler_config != {}:
-            self.last_pipe_scheduler[model_id] = scheduler_config.get("name", "default")
         enable_tiling = user_config.get("enable_tiling", True)
         if hasattr(self.pipelines[model_id], 'vae') and enable_tiling:
             logger.warn(f"Enabling VAE tiling. This could cause artifacted outputs.")
@@ -372,40 +359,11 @@ class DiffusionPipelineManager:
                 f"NOT clearing CUDA cache. Config option `cuda_cache_clear` is not set, or is False."
             )
 
-    def set_scheduler(self, pipe, user_config=None, scheduler_config: dict = None):
-        if scheduler_config is None:
-            logger.debug(f"Not setting scheduler_config parameters.")
-            return
-        if "name" not in scheduler_config:
-            raise ValueError(f"Scheduler config must have a name: {scheduler_config}")
-        if "scheduler" not in scheduler_config:
-            raise ValueError(
-                f"Scheduler config must have a scheduler: {scheduler_config}"
-            )
-        name = scheduler_config["name"]
-        if name == "default":
-            logger.debug(f"User selected the default scheduler. Not setting one.")
-            return
-
-        scheduler_name = scheduler_config["scheduler"]
-
-        scheduler_module = self.SCHEDULER_MAPPINGS[scheduler_name]
-        if scheduler_name == "DPMSolverMultistepScheduler":
-            logger.debug(
-                f"Setting algorithm_type to dpmsolver++ for {name} scheduler, {scheduler_name}."
-            )
-            pipe.scheduler = scheduler_module.from_config(
-                pipe.scheduler.config, algorithm_type="dpmsolver++"
-            )
-        else:
-            pipe.scheduler = scheduler_module.from_config(pipe.scheduler.config)
-
     def get_controlnet_pipe(self):
         self.delete_pipes()
         pipeline = self.get_pipe(
             promptless_variation=True,
             user_config={},
-            scheduler_config={"name": "controlnet"},
             model_id="emilianJR/epiCRealism",
             use_safetensors=False
         )
@@ -416,7 +374,6 @@ class DiffusionPipelineManager:
         self.delete_pipes(keep_model=refiner_model)
         pipeline = self.get_pipe(
             user_config={},
-            scheduler_config={"name": "fast"},
             model_id=refiner_model,
         )
         pipeline.vae = AutoencoderKL.from_pretrained('madebyollin/sdxl-vae-fp16-fix', torch_dtype=torch.float16, use_safetensors=True, use_auth_token=config.get_huggingface_api_key()).to(self.device)

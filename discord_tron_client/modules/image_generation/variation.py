@@ -20,7 +20,6 @@ from discord_tron_client.classes.debug import clean_traceback
 async def promptless_variation(payload, websocket):
     # We extract the features from the payload and pass them onto the actual generator
     user_config = payload["config"]
-    scheduler_config = payload["scheduler_config"]
     prompt = payload["image_prompt"]
     model_id = user_config["model"]
     # model_id = "lambdalabs/sd-image-variations-diffusers"
@@ -90,7 +89,6 @@ async def promptless_variation(payload, websocket):
         start_time = asyncio.get_running_loop().time()
         result = await pipeline_runner.generate_image(
             user_config=user_config,
-            scheduler_config=scheduler_config,
             model_id=model_id,
             prompt=prompt,
             side_x=resolution["width"],
@@ -172,7 +170,6 @@ def calculate_new_size_by_pixel_area(W: int, H: int, megapixels: float):
 async def prompt_variation(payload, websocket):
     # We extract the features from the payload and pass them onto the actual generator
     user_config = payload["config"]
-    scheduler_config = payload["scheduler_config"]
     prompt = payload["image_prompt"]
     model_id = user_config["model"]
     if 'ptx0' not in user_config["model"]:
@@ -242,7 +239,6 @@ async def prompt_variation(payload, websocket):
         start_time = asyncio.get_running_loop().time()
         output_images = await pipeline_runner.generate_image(
             user_config=user_config,
-            scheduler_config=scheduler_config,
             prompt=prompt + " " + positive_prompt,
             model_id=model_id,
             side_x=resolution["width"],

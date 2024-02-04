@@ -69,7 +69,6 @@ class PipelineRunner:
     async def _prepare_pipe_async(
         self,
         user_config: dict,
-        scheduler_config: dict,
         resolution,
         model_id: int,
         variation: bool = False,
@@ -81,7 +80,6 @@ class PipelineRunner:
             AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
             self._prepare_pipe,
             user_config,
-            scheduler_config,
             resolution,
             model_id,
             variation,
@@ -93,7 +91,6 @@ class PipelineRunner:
     def _prepare_pipe(
         self,
         user_config: dict,
-        scheduler_config: dict,
         resolution: dict,
         model_id: int,
         variation: bool = False,
@@ -103,7 +100,6 @@ class PipelineRunner:
         logging.info(f"Retrieving pipe for model {model_id}")
         pipe = self.pipeline_manager.get_pipe(
             user_config,
-            scheduler_config,
             model_id,
             prompt_variation=variation,
             promptless_variation=promptless_variation,
@@ -407,7 +403,6 @@ class PipelineRunner:
         self,
         model_id: int,
         user_config: dict,
-        scheduler_config: dict,
         prompt: str,
         side_x: int,
         side_y: int,
@@ -421,7 +416,6 @@ class PipelineRunner:
         resolution = {"width": side_x, "height": side_y}
         pipe = await self._prepare_pipe_async(
             user_config,
-            scheduler_config,
             resolution,
             model_id,
             prompt_variation,
@@ -622,11 +616,17 @@ class PipelineRunner:
         return preprocessed_images
 
     def _encode_image_metadata(self, image: Image, prompt, user_config, image_params):
+        model_id = user_config.get("model", "unknown")
+        sampler_string = self.pipeline_manager.last_pipe_scheduler.get(model_id, "unknown")
+        # Remove "DiscreteScheduler" from the string:
+        sampler_string = sampler_string.replace("DiscreteScheduler", "")
         attributes = {
             "prompt": prompt,
             "original_user": str(user_config["user_id"]),
             "guidance_scaling": str(image_params.get("guidance_scaling", 7.5)),
             "seed": str(image_params["seed"]),
+            "model_hash": self.pipeline_manager.pipeline_versions.get(model_id, "unknown"),
+            "sampler": sampler_string,
         }
         if not user_config.get("encode_metadata", True) or not hasattr(
             image, "save"

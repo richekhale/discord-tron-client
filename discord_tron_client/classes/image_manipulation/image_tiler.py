@@ -69,7 +69,7 @@ class ImageTiler:
 
         return stitched_image
 
-    async def process_image(self, user_config, scheduler_config, model_id, prompt, side_x, side_y, negative_prompt, steps, debug_dir=None):
+    async def process_image(self, user_config, model_id, prompt, side_x, side_y, negative_prompt, steps, debug_dir=None):
         tiles = self._split_image()
         processed_tiles = []
         id = 0
@@ -77,7 +77,6 @@ class ImageTiler:
             id += 1
             processed_tile = await self.processing_function(
                                     user_config=user_config,
-                                    scheduler_config=scheduler_config,
                                     model_id=model_id,
                                     prompt=prompt,
                                     side_x=side_x,

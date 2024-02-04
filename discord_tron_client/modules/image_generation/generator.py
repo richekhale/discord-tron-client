@@ -23,7 +23,6 @@ async def generate_image(payload, websocket):
         # Grab a beginning timestamp:
         start_time = asyncio.get_event_loop().time()
         user_config = payload["config"]
-        scheduler_config = payload["scheduler_config"]
         prompt = payload["image_prompt"]
         model_id = user_config["model"]
         resolution = user_config["resolution"]
@@ -82,7 +81,6 @@ async def generate_image(payload, websocket):
             resolution = {"width": 1024, "height": 1024}
         output_images = await pipeline_runner.generate_image(
             user_config=user_config,
-            scheduler_config=scheduler_config,
             prompt=prompt,
             model_id=model_id,
             side_x=resolution["width"],

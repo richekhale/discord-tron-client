@@ -68,8 +68,6 @@ class DiscordMessage(WebsocketMessage):
     def print_prompt(payload, execute_duration = "unknown"):
         system_hw = hardware.get_machine_info()
         user_config = payload["config"]
-        scheduler_config = payload["scheduler_config"]
-        scheduler_name = scheduler_config["name"]
         prompt = payload["image_prompt"]
         model_id = user_config["model"]
         resolution = user_config["resolution"]
