@@ -134,12 +134,16 @@ async def generate_image(payload, websocket):
         # discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=DiscordMessage.print_prompt(payload), image_url_list=url_list)
         execute_duration = end_time - start_time
         websocket = AppConfig.get_websocket()
+        attributes = {
+            "last_modified": pipeline_manager.pipeline_versions.get(model_id, {}).get("last_modified", "unknown"),
+            "latest_hash": pipeline_manager.pipeline_versions.get(model_id, {}).get('latest_hash', "unknown hash")
+        }
         discord_msg = DiscordMessage(
             websocket=websocket,
             context=payload["discord_first_message"],
             module_command="create_thread",
             name=truncated_prompt,
-            message=DiscordMessage.print_prompt(payload, execute_duration=execute_duration),
+            message=DiscordMessage.print_prompt(payload, execute_duration=execute_duration, attributes=attributes),
             image_url_list=url_list,
         )
         await websocket.send(discord_msg.to_json())

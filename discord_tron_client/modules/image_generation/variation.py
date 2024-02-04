@@ -110,11 +110,14 @@ async def promptless_variation(payload, websocket):
             module_command="delete",
         )
         await websocket.send(discord_msg.to_json())
+        attributes = {
+            "last_modified": pipeline_manager.pipeline_versions.get(model_id, {}).get("last_modified", "unknown"),
+        }
         discord_msg = DiscordMessage(
             websocket=websocket,
             context=payload["discord_first_message"],
             module_command="send",
-            message=DiscordMessage.print_prompt(payload, execute_duration=total_time),
+            message=DiscordMessage.print_prompt(payload, execute_duration=total_time, attributes=attributes),
             image=result,
         )
         await websocket.send(discord_msg.to_json())
@@ -271,11 +274,14 @@ async def prompt_variation(payload, websocket):
             module_command="delete",
         )
         await websocket.send(discord_msg.to_json())
+        attributes = {
+            "last_modified": pipeline_manager.pipeline_versions.get(model_id, {}).get("last_modified", "unknown"),
+        }
         discord_msg = DiscordMessage(
             websocket=websocket,
             context=payload["discord_first_message"],
             module_command="send",
-            message=DiscordMessage.print_prompt(payload, execute_duration=total_time),
+            message=DiscordMessage.print_prompt(payload, execute_duration=total_time, attributes=attributes),
             image_url_list=url_list,
         )
         await websocket.send(discord_msg.to_json())

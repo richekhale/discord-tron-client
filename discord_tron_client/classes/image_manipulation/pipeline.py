@@ -625,7 +625,8 @@ class PipelineRunner:
             "original_user": str(user_config["user_id"]),
             "guidance_scaling": str(image_params.get("guidance_scaling", 7.5)),
             "seed": str(image_params["seed"]),
-            "model_hash": self.pipeline_manager.pipeline_versions.get(model_id, "unknown"),
+            "model_hash": self.pipeline_manager.pipeline_versions.get(model_id, {}).get('latest_hash', 'unknown'),
+            "last_modified": self.pipeline_manager.pipeline_versions.get(model_id, {}).get('last_modified', 'unknown'),
             "sampler": sampler_string,
         }
         if not user_config.get("encode_metadata", True) or not hasattr(

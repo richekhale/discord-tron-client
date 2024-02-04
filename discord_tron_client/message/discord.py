@@ -65,7 +65,7 @@ class DiscordMessage(WebsocketMessage):
         return b64_image
 
     @staticmethod
-    def print_prompt(payload, execute_duration = "unknown"):
+    def print_prompt(payload, execute_duration = "unknown", attributes: Dict = None):
         system_hw = hardware.get_machine_info()
         user_config = payload["config"]
         prompt = payload["image_prompt"]
@@ -78,7 +78,13 @@ class DiscordMessage(WebsocketMessage):
         negative_prompt = user_config["negative_prompt"]
         positive_prompt = user_config["positive_prompt"]
         author_id = payload["discord_context"]["author"]["id"]
-        
+        last_modified = 'unknown date'
+        if attributes and "last_modified" in attributes:
+            last_modified = attributes.get('last_modified', last_modified)
+        latest_hash = 'unknown hash'
+        if attributes and "latest_hash" in attributes:
+            latest_hash = attributes.get('latest_hash', latest_hash)
+
         latent_refiner = "Off"
         if "latent_refiner" in user_config and user_config.get('latent_refiner'):
             latent_refiner = "On"
@@ -120,9 +126,9 @@ class DiscordMessage(WebsocketMessage):
                 f"<@{author_id}>\n"
                 f"**Prompt**: {prompt[:255]}{truncate_suffix}\n"
                 f"**Settings**: `!seed {seed}`, `!guidance {user_config['guidance_scaling']}`, `!guidance_rescale {guidance_rescale}`, `!steps {steps}`, `!strength {strength}`, `!resolution {resolution_string}`\n"
-                f"**Model**: `{model_id}`\n{refiner_status}"
+                f"**Model**: `{model_id}` (`{latest_hash}` {last_modified})\n{refiner_status}"
                 f"**{HardwareInfo.get_identifier()}**: {payload['gpu_power_consumption']}W power used in {execute_time} seconds via {system_hw['gpu_type']} ({vmem}G)\n" #, on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
-                f"**Job ID:** `{payload['job_id']}`\n"
+                # f"**Job ID:** `{payload['job_id']}`\n"
             )
         except Exception as e:
             return(f"Error generating prompt configuration: {e}")

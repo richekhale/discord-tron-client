@@ -202,6 +202,15 @@ class DiffusionPipelineManager:
             logger.error(f"Could not get model metadata: {e}")
             return None
 
+    def get_repo_last_modified(
+        self,
+        model_id: str
+    ) -> str:
+        from huggingface_hub import model_info
+        model_info = model_info(model_id)
+        last_modified = str(model_info.last_modified).split("+")[0]
+        return last_modified
+
     def is_model_latest(
         self,
         model_id: str
@@ -210,13 +219,15 @@ class DiffusionPipelineManager:
         if latest_hash is None:
             logger.debug(f"is_model_latest could not retrieve metadata: {latest_hash}")
             return None
-        current_hash = self.pipeline_versions.get(model_id, None)
-        test = latest_hash == current_hash
+        current_hash = self.pipeline_versions.get(model_id, {}).get("latest_hash", "unknown")
+        last_modified = self.pipeline_versions.get(model_id, {}).get("last_modified", "unknown")
+        latest_modified = self.get_repo_last_modified(model_id)
+        test = latest_hash == current_hash and last_modified == latest_modified
         if test:
-            logger.debug(f"Model {model_id} is the latest version.")
+            logger.debug(f"Model {model_id} is the latest version, modified on {last_modified}.")
             return True
-        logger.debug(f"Model {model_id} is not the latest. Setting version from {self.pipeline_versions.get(model_id, None)} to {latest_hash}")
-        self.pipeline_versions[model_id] = latest_hash
+        logger.debug(f"Model {model_id} is not the latest. Setting version from {current_hash} to {latest_hash}")
+        self.pipeline_versions[model_id] = {"latest_hash": latest_hash, "last_modified": latest_modified}
         return False
 
     def get_pipe(
@@ -256,9 +267,9 @@ class DiffusionPipelineManager:
             )
             self.clear_pipeline(model_id)
         # Let's check the current hash against the latest and delete the stored model if it needs an update.
-        logger.info(f"Checking the model version for {model_id}: currently we have {self.pipeline_versions.get(model_id, None)}")
+        logger.info(f"Checking the model version for {model_id}: currently we have {self.pipeline_versions.get(model_id, {}).get('latest_hash', 'unknown')}")
         if not self.is_model_latest(model_id):
-            new_revision = self.pipeline_versions.get(model_id, None)
+            new_revision = self.pipeline_versions.get(model_id, {}).get('latest_hash', None)
             if not new_revision:
                 raise ValueError(f"Could not get the latest revision for model {model_id}")
             logger.warn(
@@ -325,6 +336,10 @@ class DiffusionPipelineManager:
             logger.info(f"Keeping existing pipeline. Not creating any new ones.")
             self.pipelines[model_id].to(self.device)
         self.last_pipe_type[model_id] = pipe_type
+        self.last_pipe_scheduler[model_id] = self.pipelines[model_id].config["scheduler"][1]
+        logger.debug(
+            f"Model scheduler config: {self.pipelines[model_id].config['scheduler'][1]}"
+        )
         enable_tiling = user_config.get("enable_tiling", True)
         if hasattr(self.pipelines[model_id], 'vae') and enable_tiling:
             logger.warn(f"Enabling VAE tiling. This could cause artifacted outputs.")
@@ -364,6 +379,7 @@ class DiffusionPipelineManager:
         pipeline = self.get_pipe(
             promptless_variation=True,
             user_config={},
+            scheduler_config={"name": "controlnet"},
             model_id="emilianJR/epiCRealism",
             use_safetensors=False
         )
@@ -374,6 +390,7 @@ class DiffusionPipelineManager:
         self.delete_pipes(keep_model=refiner_model)
         pipeline = self.get_pipe(
             user_config={},
+            scheduler_config={"name": "fast"},
             model_id=refiner_model,
         )
         pipeline.vae = AutoencoderKL.from_pretrained('madebyollin/sdxl-vae-fp16-fix', torch_dtype=torch.float16, use_safetensors=True, use_auth_token=config.get_huggingface_api_key()).to(self.device)
