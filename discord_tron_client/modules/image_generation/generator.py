@@ -147,6 +147,7 @@ async def generate_image(payload, websocket):
             image_prompt=prompt,
             message=DiscordMessage.print_prompt(payload, execute_duration=execute_duration, attributes=attributes),
             image_url_list=url_list,
+            user_id=payload["discord_context"]["author"]["id"],
         )
         await websocket.send(discord_msg.to_json())
 
