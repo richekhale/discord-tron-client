@@ -67,6 +67,7 @@ class WebsocketMessage:
             "timestamp": self.timestamp,
             "data": self.data,
             "arguments": self.arguments,
+            "base_arguments": self.base_arguments,
         }
         logger.debug(f"Returning output: {output}")
         return output
