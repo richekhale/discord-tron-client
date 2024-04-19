@@ -11,6 +11,10 @@ class HardwareInfo:
     identifier = None
 
     def __init__(self):
+        self.is_mps = False
+        if torch.backends.mps.is_available():
+            logging.info(f"Apple MPS enabled.")
+            self.is_mps = True
         self.gpu_type = "Unknown type"
         self.cpu_type = "Unknown type"
         self.memory_amount = None
@@ -60,7 +64,9 @@ class HardwareInfo:
         self.get_gpu_info()
         self.get_cpu_info()
         self.get_memory_total()
+        logging.info(f"VRAM amount: {self.video_memory_amount}GiB")
         self.get_video_memory_info()
+        logging.info(f"VRAM amount: {self.video_memory_amount}GiB")
         self.get_disk_space()
         capabilities = {
             "llama": config.is_llama_enabled(),
@@ -79,6 +85,8 @@ class HardwareInfo:
         ):
             capabilities["gpu"] = True
             capabilities["variation"] = True
+        else:
+            logging.error(f"GPU not available. Video memory: {self.video_memory_amount}GiB")
         if int(self.memory_amount) >= 16:
             capabilities["memory"] = True
         if int(self.get_cpu_count()) >= 16:
@@ -93,6 +101,15 @@ class HardwareInfo:
         return limits
 
     def get_gpu_info(self):
+        if self.is_mps:
+            try:
+                # use darwin tools to get CPU name
+                output = subprocess.check_output(
+                    ["system_profiler", "SPHardwareDataType"]
+                )
+                self.gpu_type = output.decode().strip().split("Chip: ")[1]
+            except Exception as e:
+                raise ValueError("Failed to get GPU type: " + str(e))
         try:
             output = subprocess.check_output(
                 ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"]
@@ -117,6 +134,13 @@ class HardwareInfo:
 
     def get_cpu_count(self):
         try:
+            if self.is_mps:
+                # Read using Darwin CLI:
+                output = subprocess.check_output(
+                    ["system_profiler", "SPHardwareDataType"]
+                )
+                logging.info(f"MPS CPU check result: {output}")
+                return int(output.decode().strip().split("Total Number of Cores: ")[1])
             with open("/proc/cpuinfo") as f:
                 processor_count = 0
                 for line in f:
@@ -128,6 +152,16 @@ class HardwareInfo:
 
     def get_memory_total(self):
         try:
+            if self.is_mps:
+                # Read using Darwin CLI:
+                output = subprocess.check_output(
+                    ["system_profiler", "SPHardwareDataType"]
+                )
+                logging.info(f"MPS memory check result: {output}")
+                self.memory_amount = int(output.decode().strip().split("Memory: ")[1].split(" ")[0])
+                logging.info(f"Determined MPS memory amount: {self.memory_amount}GiB")
+                self.video_memory_amount = int(self.memory_amount * 0.67)
+                return self.memory_amount
             with open("/proc/meminfo") as f:
                 for line in f:
                     if line.startswith("MemTotal:"):
@@ -137,12 +171,21 @@ class HardwareInfo:
                         #     logging.warn(f"Enabling cuDNN benchmark. Could affect determinism. Obtain a GPU with more than 10G RAM to fix this.")
                         #     torch.backends.cudnn.benchmark = True
                         break
-        except:
-            self.memory_amount = "Unknown"
+        except Exception as e:
+            raise ValueError("Failed to get memory amount: " + str(e))
         return self.memory_amount
 
     def get_memory_free(self):
         try:
+            if self.is_mps:
+                # Read using Darwin CLI:
+                output = subprocess.check_output(
+                    ["system_profiler", "SPHardwareDataType"]
+                )
+                logging.info(f"MPS memory check result: {output}")
+                self.memory_free = int(output.decode().strip().split("Memory: ")[1].split(" ")[0])
+                logging.info(f"Determined MPS memory amount: {self.memory_free}GiB")
+                return self.memory_free
             with open("/proc/meminfo") as f:
                 for line in f:
                     if line.startswith("MemAvailable:"):
@@ -154,6 +197,15 @@ class HardwareInfo:
 
     def get_video_memory_info(self):
         try:
+            # Mac-specific logic:
+            if self.is_mps:
+                total_mem = self.get_memory_total() * 0.67
+                logging.info(f"Calculated VRAM for MPS at {total_mem}")
+                if not total_mem:
+                    raise ValueError("MPS memory check failed: " + total_mem)
+                self.video_memory_amount = total_mem
+                return int(self.video_memory_amount)
+
             output = subprocess.check_output(
                 [
                     "nvidia-smi",
@@ -162,8 +214,13 @@ class HardwareInfo:
                 ]
             )
             self.video_memory_amount = int(output.decode().strip()) / 1024
-        except:
+        except Exception as e:
+            import traceback
+            logging.error(
+                f"Caught exception during get_video_memory_info: {e}, traceback: {traceback.format_exc()}"
+            )
             self.video_memory_amount = "Unknown"
+            
         return self.video_memory_amount
 
     def get_concurrent_pipe_count(self):
@@ -183,6 +240,9 @@ class HardwareInfo:
 
     def get_gpu_power_consumption(self):
         try:
+            if self.is_mps:
+                return 0
+            
             output = subprocess.check_output(
                 [
                     "nvidia-smi",

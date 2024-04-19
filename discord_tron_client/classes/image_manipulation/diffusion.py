@@ -26,15 +26,19 @@ from PIL import Image
 import torch, gc, logging, diffusers, transformers
 logger = logging.getLogger('DiffusionPipelineManager')
 logger.setLevel('DEBUG')
-torch.backends.cudnn.deterministic = False
-torch.backends.cuda.matmul.allow_tf32 = True
-torch.backends.cudnn.allow_tf32 = True
-torch.backends.cudnn.benchmark = True
-torch.backends.cuda.enable_flash_sdp(True)
-if torch.backends.cuda.mem_efficient_sdp_enabled():
-    logger.info("CUDA SDP (scaled dot product attention) is enabled.")
-if torch.backends.cuda.math_sdp_enabled():
-    logger.info("CUDA MATH SDP (scaled dot product attention) is enabled.")
+if not torch.backends.mps.is_available():
+    torch.backends.cudnn.deterministic = False
+    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.backends.cudnn.allow_tf32 = True
+    torch.backends.cudnn.benchmark = True
+    torch.backends.cuda.enable_flash_sdp(True)
+    if torch.backends.cuda.mem_efficient_sdp_enabled():
+        logger.info("CUDA SDP (scaled dot product attention) is enabled.")
+    if torch.backends.cuda.math_sdp_enabled():
+        logger.info("CUDA MATH SDP (scaled dot product attention) is enabled.")
+else:
+    logger.info("MPS is enabled.")
+
 hardware = HardwareInfo()
 config = AppConfig()
 
@@ -51,7 +55,6 @@ class DiffusionPipelineManager:
         "DPMSolverMultistepScheduler": diffusers.DPMSolverMultistepScheduler,
         "PNDMScheduler": diffusers.PNDMScheduler,
         "EulerAncestralDiscreteScheduler": diffusers.EulerAncestralDiscreteScheduler,
-        "EulerDiscreteScheduler": diffusers.EulerDiscreteScheduler,
         "KDPM2AncestralDiscreteScheduler": diffusers.KDPM2AncestralDiscreteScheduler,
         "DDIMScheduler": diffusers.DDIMScheduler,
         "EulerDiscreteScheduler": diffusers.EulerDiscreteScheduler,
@@ -63,6 +66,8 @@ class DiffusionPipelineManager:
     def __init__(self):
         hw_limits = hardware.get_hardware_limits()
         self.torch_dtype = torch.float16
+        if torch.backends.mps.is_available():
+            self.torch_dtype = torch.float32
         self.is_memory_constrained = False
         self.model_id = None
         if (
@@ -76,7 +81,7 @@ class DiffusionPipelineManager:
                 f"Our GPU has less than 16GB of memory, so we will use memory constrained pipeline parameters for image generation, resulting in much higher CPU use to lower VMEM use."
             )
             self.is_memory_constrained = True
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
         self.last_pipe_type = {}  # { "model_id": "text2img", ... }
         self.last_pipe_scheduler = {}  # { "model_id": "default" }
         self.pipelines: Dict[str, Pipeline] = {}
@@ -379,7 +384,6 @@ class DiffusionPipelineManager:
         pipeline = self.get_pipe(
             promptless_variation=True,
             user_config={},
-            scheduler_config={"name": "controlnet"},
             model_id="emilianJR/epiCRealism",
             use_safetensors=False
         )
@@ -390,7 +394,6 @@ class DiffusionPipelineManager:
         self.delete_pipes(keep_model=refiner_model)
         pipeline = self.get_pipe(
             user_config={},
-            scheduler_config={"name": "fast"},
             model_id=refiner_model,
         )
         pipeline.vae = AutoencoderKL.from_pretrained('madebyollin/sdxl-vae-fp16-fix', torch_dtype=torch.float16, use_safetensors=True, use_auth_token=config.get_huggingface_api_key()).to(self.device)

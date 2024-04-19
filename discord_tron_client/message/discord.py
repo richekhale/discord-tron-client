@@ -24,6 +24,8 @@ class DiscordMessage(WebsocketMessage):
         image_url_list: list = None,
         audio_url: str = None,
         audio_data: str = None,
+        image_prompt: str = None,
+        image_model: str = None
     ):
         self.websocket = websocket
         if isinstance(context, DiscordMessage):
@@ -48,6 +50,10 @@ class DiscordMessage(WebsocketMessage):
             arguments["audio_url"] = audio_url
         if audio_data is not None:
             arguments["audio_data"] = audio_data
+        if image_prompt is not None:
+            arguments["image_prompt"] = image_prompt
+        if image_model is not None:
+            arguments["image_model"] = image_model
         super().__init__(
             message_type="discord",
             module_name="message",

@@ -143,6 +143,8 @@ async def generate_image(payload, websocket):
             context=payload["discord_first_message"],
             module_command="create_thread",
             name=truncated_prompt,
+            image_model=model_id,
+            image_prompt=prompt,
             message=DiscordMessage.print_prompt(payload, execute_duration=execute_duration, attributes=attributes),
             image_url_list=url_list,
         )
