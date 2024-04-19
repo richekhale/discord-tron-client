@@ -1,6 +1,10 @@
 import time, logging
 from PIL import Image
+from discord_tron_client.classes.app_config import AppConfig
 
+config = AppConfig()
+logger = logging.getLogger(__name__)
+logger.setLevel(config.get_log_level())
 
 class WebsocketMessage:
     def __init__(
@@ -64,6 +68,7 @@ class WebsocketMessage:
             "data": self.data,
             "arguments": self.arguments,
         }
+        logger.debug(f"Returning output: {output}")
         return output
 
     def to_json(self):
