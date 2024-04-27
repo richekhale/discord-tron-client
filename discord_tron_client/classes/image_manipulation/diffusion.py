@@ -300,8 +300,8 @@ class DiffusionPipelineManager:
                     f"After setting scheduler: {self.pipelines[model_id].scheduler}"
                 )
             # Additional offload settings that we apply to all pipelines.
-            from diffusers.pipelines import IFPipeline
-            if hasattr(self.pipelines[model_id], 'unet') and type(self.pipelines[model_id]) is not IFPipeline:
+            from diffusers.pipelines import IFPipeline, IFSuperResolutionPipeline
+            if hasattr(self.pipelines[model_id], 'unet') and type(self.pipelines[model_id]) not in [IFPipeline, IFSuperResolutionPipeline]:
                 self.pipelines[model_id].unet.to(memory_format=torch.channels_last)
                 self.pipelines[model_id].unet.set_attn_processor(AttnProcessor2_0()) # https://huggingface.co/docs/diffusers/optimization/torch2.0
             if (
