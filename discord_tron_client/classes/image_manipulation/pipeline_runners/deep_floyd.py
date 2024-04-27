@@ -177,7 +177,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             model_id, subfolder="text_encoder", device_map="auto", load_in_8bit=False, variant="fp16", torch_dtype=self.diffusion_manager.torch_dtype
         )
 
-    def _extract_parameters(self, prompt: str) -> dict:
+    def _extract_parameters(self, prompt: str) -> tuple:
         """
         Make a key-value dictionary by extracting --<key>=<value> from any --args passed into the prompt.
 
@@ -191,7 +191,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         """
         parameters = {}
         if "--" not in prompt:
-            return parameters
+            return prompt, parameters
         prompt = prompt.split("--")
         for p in prompt:
             if "=" in p:
@@ -200,7 +200,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             else:
                 parameters[p] = True
         logging.debug(f"Prompt parameters extracted from prompt {prompt}: {parameters}")
-        return prompt[0], parameters
+        return (prompt[0], parameters)
 
     def _embeds(self, prompt: str, negative_prompt: str):
         # DeepFloyd stage 1 can use a more efficient text encoder config.
