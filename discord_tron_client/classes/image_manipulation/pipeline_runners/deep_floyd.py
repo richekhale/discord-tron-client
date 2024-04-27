@@ -208,7 +208,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         width = (width // 8) * 8
         logging.debug(f'DeepFloyd stage 1 resolution after adjustment is {width}x{height}')
 
-        return width, height
+        return int(width), int(height)
 
     def _get_generators(self, user_config: dict):
         # Create four generators with a seed based on user_config['seed']. Increment for each generator.
