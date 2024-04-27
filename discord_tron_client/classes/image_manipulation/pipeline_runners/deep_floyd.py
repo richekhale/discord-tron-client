@@ -132,15 +132,8 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         return output
 
     def _invoke_stage1(
-        self, prompt_embed, negative_prompt_embed, user_config: dict, width=64, height=64
+        self, prompt_embed, negative_prompt_embed, user_config: dict, generators, width=64, height=64
     ):
-        # Create four generators with a seed based on user_config['seed']. Increment for each generator.
-        generators = [ ]
-        seed = int(user_config.get('seed', 0))
-        if int(seed) <= 0:
-            seed = random.randint(0, 42042042042)
-        for i in range(self.batch_size()):
-            generators.append(self.diffusion_manager._get_generator(user_config, override_seed=int(seed) + i))
         df_guidance_scale = user_config.get("df_guidance_scale_1", 9.2)
         logging.debug(f'Generating DeepFloyd Stage1 output at {width}x{height} and {df_guidance_scale} CFG.')
         deepfloyd_stage1_lora_model = config.get_config_value("deepfloyd_stage1_lora_model", None)
@@ -215,6 +208,17 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
 
         return width, height
 
+    def _get_generators(self, user_config: dict):
+        # Create four generators with a seed based on user_config['seed']. Increment for each generator.
+        generators = [ ]
+        seed = int(user_config.get('seed', 0))
+        if int(seed) <= 0:
+            seed = random.randint(0, 42042042042)
+        for i in range(self.batch_size()):
+            generators.append(self.diffusion_manager._get_generator(user_config, override_seed=int(seed) + i))
+
+        return generators
+
     def __call__(self, **args):
         # Get user_config and delete it from args, it doesn't get passed to the pipeline
         user_config = args.get("user_config", None)
@@ -226,6 +230,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         prompt_embeds, negative_embeds = self._embeds(
             [prompt] * self.batch_size(), [negative_prompt] * self.batch_size()
         )
+        generators = self._get_generators(user_config)
         try:
             logging.debug(f"Generating stage 1 output.")
             logging.debug(f"Shapes of embeds: {prompt_embeds.shape}, {negative_embeds.shape}")
@@ -236,9 +241,9 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                 width=width,
                 height=height,
                 user_config=user_config,
+                generators=generators
             )
             logging.debug(f"Generating DeepFloyd Stage2 output.")
-            generators = [ self.pipeline_manager._get_generator(user_config) for i in range(self.batch_size()) ]
             stage2_output = self._invoke_stage2(
                 image=stage1_output,
                 user_config=user_config,
