@@ -212,6 +212,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         )
         try:
             logging.debug(f"Generating stage 1 output.")
+            logging.debug(f"Shapes of embeds: {prompt_embeds.shape}, {negative_embeds.shape}")
             width, height = self._get_stage1_resolution(user_config)
             stage1_output = self._invoke_stage1(
                 prompt_embed=prompt_embeds,
