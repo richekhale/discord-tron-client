@@ -198,12 +198,12 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                 parameters[key] = value
             else:
                 parameters[p] = True
-
-        return parameters
+        logger.debug(f"Prompt parameters extracted from prompt {prompt}: {parameters}")
+        return prompt[0], parameters
 
     def _embeds(self, prompt: str, negative_prompt: str):
         # DeepFloyd stage 1 can use a more efficient text encoder config.
-        prompt_parameters = self._extract_parameters(prompt)
+        prompt, prompt_parameters = self._extract_parameters(prompt)
         if "nolora" in prompt_parameters:
             self.stage1_should_fuse = False
         else:
