@@ -19,7 +19,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             diffusion_manager=diffusion_manager,
         )
         self.stage1 = stage1                        # DeepFloyd/IF-I-XL-v1.0
-        self.stage1_fused = True
+        self.stage1_fused = False
         self.stage2 = None                          # DeepFloyd/IF-II-L-v1.0
         self.stage3 = None                          # Upscaler
         self.safety_modules = {
@@ -77,6 +77,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         user_config,
         prompt_embeds,
         negative_embeds,
+        generators,
         width=64,
         height=64,
         output_type="pt",
@@ -94,6 +95,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             height=s2_height,
             num_images_per_prompt=1,
             guidance_scale=user_config.get("df_guidance_scale_2", 5.7),
+            generator=generators
         ).images
         logging.debug(f'Generating DeepFloyd Stage2 output has completed.')
         self._cleanup_pipes()
@@ -236,11 +238,13 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                 user_config=user_config,
             )
             logging.debug(f"Generating DeepFloyd Stage2 output.")
+            generators = [ self.pipeline_manager._get_generator(user_config) for i in range(self.batch_size()) ]
             stage2_output = self._invoke_stage2(
                 image=stage1_output,
                 user_config=user_config,
                 prompt_embeds=prompt_embeds,
                 negative_embeds=negative_embeds,
+                generator=generators,
                 width=width,
                 height=height,
                 output_type="pil" if not user_config.get("df_x4_upscaler", True) else "pt"
@@ -277,7 +281,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                     negative_prompt=negative_prompt,
                     controlnet_strength=user_config.get("df_controlnet_strength", 1.0),
                 )
-            if not df_latent_refiner and not df_x4_upscaler:
+            if stage3_output is None:
                 return stage2_output
             return stage3_output
         except Exception as e:
