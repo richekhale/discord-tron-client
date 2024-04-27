@@ -20,6 +20,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         )
         self.stage1 = stage1                        # DeepFloyd/IF-I-XL-v1.0
         self.stage1_fused = False
+        self.stage1_should_fuse = True
         self.stage2 = None                          # DeepFloyd/IF-II-L-v1.0
         self.stage3 = None                          # Upscaler
         self.safety_modules = {
@@ -137,7 +138,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         df_guidance_scale = user_config.get("df_guidance_scale_1", 9.2)
         logging.debug(f'Generating DeepFloyd Stage1 output at {width}x{height} and {df_guidance_scale} CFG.')
         deepfloyd_stage1_lora_model = config.get_config_value("deepfloyd_stage1_lora_model", None)
-        if deepfloyd_stage1_lora_model is not None and not self.stage1_fused:
+        if deepfloyd_stage1_lora_model is not None and not self.stage1_fused and self.stage1_should_fuse:
             deepfloyd_stage1_lora_model_path = config.get_config_value("deepfloyd_stage1_lora_model_path", "pytorch_lora_weights.safetensors")
             logging.debug(f"Loading DeepFloyd Stage1 Lora model from {deepfloyd_stage1_lora_model_path}")
             self.stage1.load_lora_weights(deepfloyd_stage1_lora_model, weight_name=deepfloyd_stage1_lora_model_path)
@@ -174,10 +175,39 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         self.stage1.text_encoder = transformers.T5EncoderModel.from_pretrained(
             model_id, subfolder="text_encoder", device_map="auto", load_in_8bit=False, variant="fp16", torch_dtype=self.diffusion_manager.torch_dtype
         )
-        
+
+    def _extract_parameters(self, prompt: str) -> dict:
+        """
+        Make a key-value dictionary by extracting --<key>=<value> from any --args passed into the prompt.
+
+        The args come at the end of the prompt, eg.:
+
+        a picture of a photograph --nolora --guidance_after=0.3
+
+        If a param just passes the `--<key>` without a value, it will be set to True.
+
+        We don't use the prompt as a parameter, it should not be in the returned values.
+        """
+        parameters = {}
+        if "--" not in prompt:
+            return parameters
+        prompt = prompt.split("--")
+        for p in prompt:
+            if "=" in p:
+                key, value = p.split("=")
+                parameters[key] = value
+            else:
+                parameters[p] = True
+
+        return parameters
 
     def _embeds(self, prompt: str, negative_prompt: str):
         # DeepFloyd stage 1 can use a more efficient text encoder config.
+        prompt_parameters = self._extract_parameters(prompt)
+        if "nolora" in prompt_parameters:
+            self.stage1_should_fuse = False
+        else:
+            self.stage1_should_fuse = True
         logging.debug(f'Configuring DeepFloyd text encoder via stage1 pipeline.')
         self._setup_text_encoder()
         logging.debug(f'Generating DeepFloyd text embeds, using stage1 text_encoder.')
