@@ -19,6 +19,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             diffusion_manager=diffusion_manager,
         )
         self.stage1 = stage1                        # DeepFloyd/IF-I-XL-v1.0
+        self.stage1_fused = True
         self.stage2 = None                          # DeepFloyd/IF-II-L-v1.0
         self.stage3 = None                          # Upscaler
         self.safety_modules = {
@@ -57,7 +58,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         return output
 
     def _setup_stage2(self, user_config):
-        stage2_model = "DeepFloyd/IF-II-L-v1.0"
+        stage2_model = "DeepFloyd/IF-II-M-v1.0"
         logging.debug(f'Configuring DF-IF Stage II Pipeline: {stage2_model}')
         if self.stage2 is not None:
             logging.info(f"Keeping existing {stage2_model} model with {type(self.stage2)} pipeline.")
@@ -140,6 +141,13 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             generators.append(self.diffusion_manager._get_generator(user_config, override_seed=int(seed) + i))
         df_guidance_scale = user_config.get("df_guidance_scale_1", 9.2)
         logging.debug(f'Generating DeepFloyd Stage1 output at {width}x{height} and {df_guidance_scale} CFG.')
+        deepfloyd_stage1_lora_model = config.get_config_value("deepfloyd_stage1_lora_model", None)
+        if deepfloyd_stage1_lora_model is not None and not self.stage1_fused:
+            deepfloyd_stage1_lora_model_path = config.get_config_value("deepfloyd_stage1_lora_model_path", "pytorch_lora_weights.safetensors")
+            logging.debug(f"Loading DeepFloyd Stage1 Lora model from {deepfloyd_stage1_lora_model_path}")
+            self.stage1.load_lora_weights(deepfloyd_stage1_lora_model, weight_name=deepfloyd_stage1_lora_model_path)
+            self.stage1_fused = True
+
         output = self.stage1(
             prompt_embeds=prompt_embed,
             negative_prompt_embeds=negative_prompt_embed,
@@ -150,6 +158,12 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             height=height,
             num_images_per_prompt=1,
         ).images
+        deepfloyd_stage1_lora_model = config.get_config_value("deepfloyd_stage1_lora_model", None)
+        if deepfloyd_stage1_lora_model is not None and not self.stage1_fused:
+            logging.debug(f"Unloading DeepFloyd Stage1 Lora model")
+            self.stage1.unload_lora_weights()
+            self.stage1_fused = False
+
         logging.debug(f'Generating DeepFloyd Stage1 output has completed.')
         self._cleanup_pipes()
         return output
