@@ -161,6 +161,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                 self.stage1.unload_lora_weights()
             except Exception as e:
                 logging.warning(f"Possible error unloading DeepFloyd stage I LoRA: {e}")
+                self.stage1 = None
             self.stage1_fused = False
 
         logging.debug(f'Generating DeepFloyd Stage1 output has completed.')
@@ -198,7 +199,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                 parameters[key] = value
             else:
                 parameters[p] = True
-        logger.debug(f"Prompt parameters extracted from prompt {prompt}: {parameters}")
+        logging.debug(f"Prompt parameters extracted from prompt {prompt}: {parameters}")
         return prompt[0], parameters
 
     def _embeds(self, prompt: str, negative_prompt: str):
