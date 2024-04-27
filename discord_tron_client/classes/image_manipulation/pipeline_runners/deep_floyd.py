@@ -156,7 +156,10 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         deepfloyd_stage1_lora_model = config.get_config_value("deepfloyd_stage1_lora_model", None)
         if deepfloyd_stage1_lora_model is not None and self.stage1_fused:
             logging.debug(f"Unloading DeepFloyd Stage1 Lora model")
-            self.stage1.unload_lora_weights()
+            try:
+                self.stage1.unload_lora_weights()
+            except Exception as e:
+                logging.warning(f"Possible error unloading DeepFloyd stage I LoRA: {e}")
             self.stage1_fused = False
 
         logging.debug(f'Generating DeepFloyd Stage1 output has completed.')
@@ -191,8 +194,8 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         # Grab the aspect ratio of the user_config['resolution']['width']xuser_config['resolution']['height'],
         # and then use that to ensure that the smaller side is 64px, while the larger side is 64px * aspect_ratio.
         # This has to support portrait or landscape, as well as square images.
-        width = user_config.get("resolution", {}).get("width", 768)
-        height = user_config.get("resolution", {}).get("height", 768)
+        width = user_config.get("resolution", {}).get("width", 1024)
+        height = user_config.get("resolution", {}).get("height", 1024)
         logging.debug(f'DeepFloyd stage 1 resolution before adjustment is {width}x{height}')
         aspect_ratio = width / height
         # Portrait
