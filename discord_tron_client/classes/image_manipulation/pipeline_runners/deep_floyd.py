@@ -249,7 +249,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                 user_config=user_config,
                 prompt_embeds=prompt_embeds,
                 negative_embeds=negative_embeds,
-                generator=generators,
+                generators=generators,
                 width=width,
                 height=height,
                 output_type="pil" if not user_config.get("df_x4_upscaler", True) else "pt"
