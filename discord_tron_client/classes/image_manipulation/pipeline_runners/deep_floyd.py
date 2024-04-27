@@ -154,7 +154,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             num_images_per_prompt=1,
         ).images
         deepfloyd_stage1_lora_model = config.get_config_value("deepfloyd_stage1_lora_model", None)
-        if deepfloyd_stage1_lora_model is not None and not self.stage1_fused:
+        if deepfloyd_stage1_lora_model is not None and self.stage1_fused:
             logging.debug(f"Unloading DeepFloyd Stage1 Lora model")
             self.stage1.unload_lora_weights()
             self.stage1_fused = False
