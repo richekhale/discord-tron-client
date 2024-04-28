@@ -1,7 +1,7 @@
 from discord_tron_client.classes.image_manipulation.pipeline_runners.base_runner import (
     BasePipelineRunner,
 )
-from diffusers import DiffusionPipeline
+from diffusers import DiffusionPipeline, IFPipeline
 from PIL import Image
 import logging, random, torch
 from typing import Union, List, Optional
@@ -352,7 +352,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         logging.debug(f'Configuring DeepFloyd text encoder via stage1 pipeline.')
         self._setup_text_encoder()
         logging.debug(f'Generating DeepFloyd text embeds, using stage1 text_encoder.')
-        self.stage1.encode_prompt = encode_prompt_with_max_seq_len
+        self.stage1.encode_prompt = encode_prompt_with_max_seq_len.__get__(self.stage1, IFPipeline)
         embeds = self.stage1.encode_prompt(prompt, negative_prompt, max_sequence_len=512, device=self.diffusion_manager.device)
         logging.debug(f'Generating DeepFloyd text embeds has completed.')
         if self.should_offload():
