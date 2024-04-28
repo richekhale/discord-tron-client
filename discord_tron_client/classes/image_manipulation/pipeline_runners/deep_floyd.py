@@ -177,7 +177,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             model_id, subfolder="text_encoder", device_map="auto", load_in_8bit=False, variant="fp16", torch_dtype=self.diffusion_manager.torch_dtype
         )
 
-    def _extract_parameters(self, prompt: str) -> tuple:
+    def _extract_parameters(self, prompts: str) -> tuple:
         """
         Extracts key-value parameters from a prompt string using a more robust regular expression.
 
@@ -189,23 +189,28 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                 - The original prompt with parameters removed.
                 - A dictionary of extracted key-value parameters.
         """
+        if type(prompts) is not list:
+            prompts = [prompts]
         def normalize_prompt(prompt):
             return prompt.replace('\u00A0', ' ').replace('\u200B', ' ')
-        prompt = normalize_prompt(prompt)
+        for idx, prompt in enumerate(prompts):
+            prompt = normalize_prompt(prompt)
 
-        parameters = {}
-        if "--" in prompt:
-            # Improved regular expression for parameter extraction
-            param_pattern = r"--(\w+)(?:=(.*))?" 
-            matches = re.findall(param_pattern, prompt)
+            parameters = {}
+            if "--" in prompt:
+                # Improved regular expression for parameter extraction
+                param_pattern = r"--(\w+)(?:=(.*))?" 
+                matches = re.findall(param_pattern, prompt)
 
-            for key, value in matches:
-                parameters[key] = value or True  # Handle values or True flags
+                for key, value in matches:
+                    parameters[key] = value or True  # Handle values or True flags
 
-            # Reconstruct the prompt without parameters
-            prompt = re.sub(param_pattern, '', prompt).strip()
+                # Reconstruct the prompt without parameters
+                prompt = re.sub(param_pattern, '', prompt).strip()
 
-        logging.debug(f"Prompt parameters extracted from prompt {prompt}: {parameters}")
+                prompts[idx] = prompt
+
+            logging.debug(f"Prompt parameters extracted from prompt {prompt}: {parameters}")
         return prompt, parameters
 
     def _embeds(self, prompt: str, negative_prompt: str):
