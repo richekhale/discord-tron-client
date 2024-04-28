@@ -353,7 +353,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         self._setup_text_encoder()
         logging.debug(f'Generating DeepFloyd text embeds, using stage1 text_encoder.')
         self.stage1.encode_prompt = encode_prompt_with_max_seq_len
-        embeds = self.stage1.encode_prompt(prompt, negative_prompt, max_sequence_length=512)
+        embeds = self.stage1.encode_prompt(prompt, negative_prompt, max_sequence_len=512)
         logging.debug(f'Generating DeepFloyd text embeds has completed.')
         if self.should_offload():
             # Clean up the text encoder to save VRAM.
