@@ -75,7 +75,7 @@ class BasePipelineRunner:
 
                 for key, value in matches:
                     # Clean up the value by removing any trailing spaces
-                    parameters[key] = value.strip()
+                    parameters[key] = value.strip() if value.strip() != "" else True
 
                 # Reconstruct the prompt without parameters
                 prompt = re.sub(param_pattern, '', prompt).strip()
