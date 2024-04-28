@@ -189,6 +189,9 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                 - The original prompt with parameters removed.
                 - A dictionary of extracted key-value parameters.
         """
+        def normalize_prompt(prompt):
+            return prompt.replace('\u00A0', ' ').replace('\u200B', ' ')
+        prompt = normalize_prompt(prompt)
 
         parameters = {}
         if "--" in prompt:
