@@ -92,7 +92,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             image=image,
             prompt_embeds=prompt_embeds,
             negative_prompt_embeds=negative_embeds,
-            num_inference_steps=max(50, self.parameters.get("steps_2", user_config.get("df_inference_steps_2", 20))),
+            num_inference_steps=max(50, int(self.parameters.get("steps_2", user_config.get("df_inference_steps_2", 20)))),
             output_type=output_type,
             width=s2_width,
             height=s2_height,
@@ -151,7 +151,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         output = self.stage1(
             prompt_embeds=prompt_embed,
             negative_prompt_embeds=negative_prompt_embed,
-            num_inference_steps=max(50, self.parameters.get("steps_1", user_config.get("df_inference_steps_1", 30))),
+            num_inference_steps=max(50, int(self.parameters.get("steps_1", user_config.get("df_inference_steps_1", 30)))),
             generator=generators,
             guidance_scale=df_guidance_scale,
             output_type="pt",
