@@ -1,6 +1,6 @@
 from PIL import Image
 from diffusers import DiffusionPipeline
-import torch, logging, gc
+import torch, logging, gc, re
 from discord_tron_client.classes.app_config import AppConfig
 from discord_tron_client.classes.hardware import HardwareInfo
 config = AppConfig()
