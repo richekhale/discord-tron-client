@@ -21,6 +21,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         self.stage1 = stage1                        # DeepFloyd/IF-I-XL-v1.0
         self.stage1_fused = False
         self.stage1_should_fuse = True
+        self.stage1_lora_scale = 1.0
         self.stage2 = None                          # DeepFloyd/IF-II-L-v1.0
         self.stage3 = None                          # Upscaler
         self.safety_modules = {
@@ -138,11 +139,13 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         df_guidance_scale = user_config.get("df_guidance_scale_1", 9.2)
         logging.debug(f'Generating DeepFloyd Stage1 output at {width}x{height} and {df_guidance_scale} CFG.')
         deepfloyd_stage1_lora_model = config.get_config_value("deepfloyd_stage1_lora_model", None)
+        cross_attention_kwargs = None
         if deepfloyd_stage1_lora_model is not None and not self.stage1_fused and self.stage1_should_fuse:
             deepfloyd_stage1_lora_model_path = config.get_config_value("deepfloyd_stage1_lora_model_path", "pytorch_lora_weights.safetensors")
             logging.debug(f"Loading DeepFloyd Stage1 Lora model from {deepfloyd_stage1_lora_model_path}")
             self.stage1.load_lora_weights(deepfloyd_stage1_lora_model, weight_name=deepfloyd_stage1_lora_model_path)
             self.stage1_fused = True
+            cross_attention_kwargs = {"scale": self.stage1_lora_scale}
 
         output = self.stage1(
             prompt_embeds=prompt_embed,
@@ -220,6 +223,8 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             self.stage1_should_fuse = False
         else:
             self.stage1_should_fuse = True
+        if "lora_scale" in prompt_parameters:
+            self.stage1_lora_scale = float(prompt_parameters["lora_scale"])
         logging.debug(f'Configuring DeepFloyd text encoder via stage1 pipeline.')
         self._setup_text_encoder()
         logging.debug(f'Generating DeepFloyd text embeds, using stage1 text_encoder.')
