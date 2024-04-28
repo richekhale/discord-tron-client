@@ -45,3 +45,39 @@ class BasePipelineRunner:
     
     def batch_size(self):
         return config.get_config_value('df_batch_size', 1)
+
+    def _extract_parameters(self, prompts: str) -> tuple:
+        """
+        Extracts key-value parameters from a prompt string using a more robust regular expression.
+
+        Args:
+            prompt (str): The prompt string potentially containing parameters.
+
+        Returns:
+            tuple: A tuple containing: 
+                - The original prompt with parameters removed.
+                - A dictionary of extracted key-value parameters.
+        """
+        if type(prompts) is not list:
+            prompts = [prompts]
+        def normalize_prompt(prompt):
+            return prompt.replace('\u00A0', ' ').replace('\u200B', ' ')
+        for idx, prompt in enumerate(prompts):
+            prompt = normalize_prompt(prompt)
+
+            parameters = {}
+            if "--" in prompt:
+                # Improved regular expression for parameter extraction
+                param_pattern = r"--(\w+)(?:=(.*))?" 
+                matches = re.findall(param_pattern, prompt)
+
+                for key, value in matches:
+                    parameters[key] = value or True  # Handle values or True flags
+
+                # Reconstruct the prompt without parameters
+                prompt = re.sub(param_pattern, '', prompt).strip()
+
+                prompts[idx] = prompt
+
+            logging.debug(f"Prompt parameters extracted from prompt {prompt}: {parameters}")
+        return prompt, parameters

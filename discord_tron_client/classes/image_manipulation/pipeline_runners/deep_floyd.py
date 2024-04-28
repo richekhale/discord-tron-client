@@ -21,7 +21,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         self.stage1 = stage1                        # DeepFloyd/IF-I-XL-v1.0
         self.stage1_fused = False
         self.stage1_should_fuse = True
-        self.stage1_lora_scale = 1.0
+        self.stage1_lora_scale = 0.25
         self.stage2 = None                          # DeepFloyd/IF-II-L-v1.0
         self.stage3 = None                          # Upscaler
         self.safety_modules = {
@@ -92,6 +92,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             image=image,
             prompt_embeds=prompt_embeds,
             negative_prompt_embeds=negative_embeds,
+            num_inference_steps=max(50, self.parameters.get("steps_2", user_config.get("df_inference_steps_2", 20))),
             output_type=output_type,
             width=s2_width,
             height=s2_height,
@@ -150,6 +151,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         output = self.stage1(
             prompt_embeds=prompt_embed,
             negative_prompt_embeds=negative_prompt_embed,
+            num_inference_steps=max(50, self.parameters.get("steps_1", user_config.get("df_inference_steps_1", 30))),
             generator=generators,
             guidance_scale=df_guidance_scale,
             output_type="pt",
@@ -158,8 +160,8 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             num_images_per_prompt=1,
             cross_attention_kwargs=cross_attention_kwargs
         ).images
-        deepfloyd_stage1_lora_model = config.get_config_value("deepfloyd_stage1_lora_model", None)
-        if deepfloyd_stage1_lora_model is not None and self.stage1_fused:
+
+        if self.stage1_fused:
             logging.debug(f"Unloading DeepFloyd Stage1 Lora model")
             try:
                 self.stage1.unload_lora_weights()
@@ -181,42 +183,6 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             model_id, subfolder="text_encoder", device_map="auto", load_in_8bit=False, variant="fp16", torch_dtype=self.diffusion_manager.torch_dtype
         )
 
-    def _extract_parameters(self, prompts: str) -> tuple:
-        """
-        Extracts key-value parameters from a prompt string using a more robust regular expression.
-
-        Args:
-            prompt (str): The prompt string potentially containing parameters.
-
-        Returns:
-            tuple: A tuple containing: 
-                - The original prompt with parameters removed.
-                - A dictionary of extracted key-value parameters.
-        """
-        if type(prompts) is not list:
-            prompts = [prompts]
-        def normalize_prompt(prompt):
-            return prompt.replace('\u00A0', ' ').replace('\u200B', ' ')
-        for idx, prompt in enumerate(prompts):
-            prompt = normalize_prompt(prompt)
-
-            parameters = {}
-            if "--" in prompt:
-                # Improved regular expression for parameter extraction
-                param_pattern = r"--(\w+)(?:=(.*))?" 
-                matches = re.findall(param_pattern, prompt)
-
-                for key, value in matches:
-                    parameters[key] = value or True  # Handle values or True flags
-
-                # Reconstruct the prompt without parameters
-                prompt = re.sub(param_pattern, '', prompt).strip()
-
-                prompts[idx] = prompt
-
-            logging.debug(f"Prompt parameters extracted from prompt {prompt}: {parameters}")
-        return prompt, parameters
-
     def _embeds(self, prompt: str, negative_prompt: str):
         # DeepFloyd stage 1 can use a more efficient text encoder config.
         prompt, prompt_parameters = self._extract_parameters(prompt)
@@ -236,7 +202,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             logging.info(f'Clearing up the DeepFloyd text encoder to save VRAM.')
             self.stage1.text_encoder = None
             self.clear_cuda_cache()
-        return embeds
+        return embeds, prompt_parameters
 
     def _get_stage1_resolution(self, user_config: dict):
         # Grab the aspect ratio of the user_config['resolution']['width']xuser_config['resolution']['height'],
@@ -280,10 +246,12 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         # Grab prompt embeds from T5.
         prompt = args.get("prompt", "")
         negative_prompt = args.get("negative_prompt", "")
-        prompt_embeds, negative_embeds = self._embeds(
+        embeds, parameters = self._embeds(
             [prompt] * self.batch_size(), [negative_prompt] * self.batch_size()
         )
+        prompt_embeds, negative_embeds = embeds
         generators = self._get_generators(user_config)
+        self.parameters = parameters
         try:
             logging.debug(f"Generating stage 1 output.")
             logging.debug(f"Shapes of embeds: {prompt_embeds.shape}, {negative_embeds.shape}")
