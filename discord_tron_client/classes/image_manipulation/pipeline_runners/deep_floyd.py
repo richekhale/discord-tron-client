@@ -97,7 +97,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             width=s2_width,
             height=s2_height,
             num_images_per_prompt=1,
-            guidance_scale=user_config.get("df_guidance_scale_2", 5.7),
+            guidance_scale=float(user_config.get("df_guidance_scale_2", 5.7)),
             generator=generators
         ).images
         logging.debug(f'Generating DeepFloyd Stage2 output has completed.')
@@ -137,7 +137,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
     def _invoke_stage1(
         self, prompt_embed, negative_prompt_embed, user_config: dict, generators, width=64, height=64
     ):
-        df_guidance_scale = self.parameters.get("df_guidance_scale_1", user_config.get("df_guidance_scale_1", 9.2))
+        df_guidance_scale = float(self.parameters.get("df_guidance_scale_1", user_config.get("df_guidance_scale_1", 9.2)))
         logging.debug(f'Generating DeepFloyd Stage1 output at {width}x{height} and {df_guidance_scale} CFG.')
         deepfloyd_stage1_lora_model = self.parameters.get('lora', config.get_config_value("deepfloyd_stage1_lora_model", None))
         cross_attention_kwargs = None
