@@ -3,7 +3,7 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners.base_runner
 )
 from diffusers import DiffusionPipeline
 from PIL import Image
-import logging, random
+import logging, random, re
 
 from discord_tron_client.classes.app_config import AppConfig
 from discord_tron_client.classes.hardware import HardwareInfo
@@ -179,28 +179,31 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
 
     def _extract_parameters(self, prompt: str) -> tuple:
         """
-        Make a key-value dictionary by extracting --<key>=<value> from any --args passed into the prompt.
+        Extracts key-value parameters from a prompt string using a more robust regular expression.
 
-        The args come at the end of the prompt, eg.:
+        Args:
+            prompt (str): The prompt string potentially containing parameters.
 
-        a picture of a photograph --nolora --guidance_after=0.3
-
-        If a param just passes the `--<key>` without a value, it will be set to True.
-
-        We don't use the prompt as a parameter, it should not be in the returned values.
+        Returns:
+            tuple: A tuple containing: 
+                - The original prompt with parameters removed.
+                - A dictionary of extracted key-value parameters.
         """
+
         parameters = {}
-        if "--" not in prompt:
-            return prompt, parameters
-        prompt = prompt.split("--")
-        for p in prompt:
-            if "=" in p:
-                key, value = p.split("=")
-                parameters[key] = value
-            else:
-                parameters[p] = True
+        if "--" in prompt:
+            # Improved regular expression for parameter extraction
+            param_pattern = r"--(\w+)(?:=(.*))?" 
+            matches = re.findall(param_pattern, prompt)
+
+            for key, value in matches:
+                parameters[key] = value or True  # Handle values or True flags
+
+            # Reconstruct the prompt without parameters
+            prompt = re.sub(param_pattern, '', prompt).strip()
+
         logging.debug(f"Prompt parameters extracted from prompt {prompt}: {parameters}")
-        return (prompt[0], parameters)
+        return prompt, parameters
 
     def _embeds(self, prompt: str, negative_prompt: str):
         # DeepFloyd stage 1 can use a more efficient text encoder config.
