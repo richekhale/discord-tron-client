@@ -120,14 +120,14 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
 
     def _invoke_stage3(self, prompt: str, negative_prompt: str, image: Image, user_config: dict, output_type: str = "pil"):
         self._setup_stage3(user_config)
-        user_strength = user_config.get("deepfloyd_stage3_strength", 1.0)
+        user_strength = self.parameters.get("df_stage3_strength", user_config.get("df_stage3_strength", 1.0))
         logging.debug(f'Generating DeepFloyd Stage3 output.')
         output = self.stage3(
             prompt=[prompt] * len(image),
             negative_prompt=[negative_prompt] * len(image),
             image=image,
             noise_level=(100 * user_strength),
-            guidance_scale=user_config.get("df_guidance_scale_3", 5.6),
+            guidance_scale=self.parameters.get("df_guidance_scale_3", user_config.get("df_guidance_scale_3", 5.6)),
             output_type=output_type
         ).images
         logging.debug(f'Generating DeepFloyd Stage3 output has completed.')
@@ -137,9 +137,9 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
     def _invoke_stage1(
         self, prompt_embed, negative_prompt_embed, user_config: dict, generators, width=64, height=64
     ):
-        df_guidance_scale = user_config.get("df_guidance_scale_1", 9.2)
+        df_guidance_scale = self.parameters.get("df_guidance_scale_1", user_config.get("df_guidance_scale_1", 9.2))
         logging.debug(f'Generating DeepFloyd Stage1 output at {width}x{height} and {df_guidance_scale} CFG.')
-        deepfloyd_stage1_lora_model = config.get_config_value("deepfloyd_stage1_lora_model", None)
+        deepfloyd_stage1_lora_model = self.parameters.get('lora', config.get_config_value("deepfloyd_stage1_lora_model", None))
         cross_attention_kwargs = None
         if deepfloyd_stage1_lora_model is not None and not self.stage1_fused and self.stage1_should_fuse:
             deepfloyd_stage1_lora_model_path = config.get_config_value("deepfloyd_stage1_lora_model_path", "pytorch_lora_weights.safetensors")
@@ -296,7 +296,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                 )
             df_esrgan_upscaler = user_config.get("df_esrgan_upscaler", False)
             if df_esrgan_upscaler:
-                stage3_output = self.pipeline_manager.upscale_image(stage3_output)
+                stage3_output = self.pipeline_manager.upscale_image(stage3_output or stage2_output or stage1_output)
             df_controlnet_upscaler = user_config.get("df_controlnet_upscaler", False)
             if df_controlnet_upscaler:
                 stage3_output = self.diffusion_manager._controlnet_all_images(
