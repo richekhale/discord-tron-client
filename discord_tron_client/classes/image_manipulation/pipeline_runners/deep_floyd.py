@@ -156,6 +156,7 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
             width=width,
             height=height,
             num_images_per_prompt=1,
+            cross_attention_kwargs=cross_attention_kwargs
         ).images
         deepfloyd_stage1_lora_model = config.get_config_value("deepfloyd_stage1_lora_model", None)
         if deepfloyd_stage1_lora_model is not None and self.stage1_fused:
