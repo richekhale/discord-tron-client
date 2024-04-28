@@ -60,19 +60,22 @@ class BasePipelineRunner:
         """
         if type(prompts) is not list:
             prompts = [prompts]
+
         def normalize_prompt(prompt):
             return prompt.replace('\u00A0', ' ').replace('\u200B', ' ')
+
         for idx, prompt in enumerate(prompts):
             prompt = normalize_prompt(prompt)
 
             parameters = {}
             if "--" in prompt:
                 # Improved regular expression for parameter extraction
-                param_pattern = r"--(\w+)(?:=(.*))?" 
+                param_pattern = r"--(\w+)=?([^--]*)"
                 matches = re.findall(param_pattern, prompt)
 
                 for key, value in matches:
-                    parameters[key] = value or True  # Handle values or True flags
+                    # Clean up the value by removing any trailing spaces
+                    parameters[key] = value.strip()
 
                 # Reconstruct the prompt without parameters
                 prompt = re.sub(param_pattern, '', prompt).strip()
@@ -80,4 +83,5 @@ class BasePipelineRunner:
                 prompts[idx] = prompt
 
             logging.debug(f"Prompt parameters extracted from prompt {prompt}: {parameters}")
-        return prompt, parameters
+
+        return prompts[0] if len(prompts) == 1 else prompts, parameters
