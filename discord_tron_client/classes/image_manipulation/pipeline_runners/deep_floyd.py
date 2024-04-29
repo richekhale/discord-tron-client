@@ -421,6 +421,8 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         # Grab prompt embeds from T5.
         prompt = args.get("prompt", "")
         negative_prompt = user_config.get("negative_prompt", "")
+        logging.debug(f"Positive prompt: {prompt}")
+        logging.debug(f"Negative prompt: {negative_prompt}")
         embeds, parameters = self._embeds(
             [prompt] * self.batch_size(), [negative_prompt] * self.batch_size()
         )
