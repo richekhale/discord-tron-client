@@ -1,7 +1,7 @@
 from discord_tron_client.classes.image_manipulation.pipeline_runners.base_runner import (
     BasePipelineRunner,
 )
-from diffusers import DiffusionPipeline, IFPipeline
+from diffusers import DiffusionPipeline, IFPipeline, DDPMScheduler, DPMSolverMultistepScheduler
 from PIL import Image
 import logging, random, torch
 from typing import Union, List, Optional
@@ -12,6 +12,11 @@ from discord_tron_client.classes.hardware import HardwareInfo
 
 hardware_info = HardwareInfo()
 config = AppConfig()
+
+scheduler_map = {
+    "multistep": DPMSolverMultistepScheduler,
+    "ddpm": DDPMScheduler,
+}
 
 @torch.no_grad()
 def encode_prompt_with_max_seq_len(
@@ -89,7 +94,7 @@ def encode_prompt_with_max_seq_len(
             text_input_ids, untruncated_ids
         ):
             removed_text = self.tokenizer.batch_decode(untruncated_ids[:, max_length - 1 : -1])
-            logger.warning(
+            logging.warning(
                 "The following part of your input was truncated because CLIP can only handle sequences up to"
                 f" {max_length} tokens: {removed_text}"
             )
@@ -358,6 +363,15 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         self.stage1.encode_prompt = encode_prompt_with_max_seq_len.__get__(self.stage1, IFPipeline)
         embeds = self.stage1.encode_prompt(prompt, negative_prompt, max_sequence_len=self.max_sequence_len, device=self.pipeline_manager.device)
         logging.debug(f'Generating DeepFloyd text embeds has completed.')
+        self.stage1.scheduler = scheduler_map[prompt_parameters.get('scheduler', 'ddpm')].from_config(
+            self.stage1.scheduler.config,
+            timestep_spacing=prompt_parameters.get("timestep_spacing", "trailing")
+            dynamic_thresholding_ratio=prompt_parameters.get("dynamic_thresholding_ratio", 0.95),
+            sample_max_value=prompt_parameters.get("sample_max_value", 1.5),
+            steps_offset=prompt_parameters.get("steps_offset", 0),
+            thresholding=prompt_parameters.get("thresholding", false),
+            variance_type=prompt_parameters.get("variance_type", "learned_range"),
+        )
         if self.should_offload():
             # Clean up the text encoder to save VRAM.
             logging.info(f'Clearing up the DeepFloyd text encoder to save VRAM.')
