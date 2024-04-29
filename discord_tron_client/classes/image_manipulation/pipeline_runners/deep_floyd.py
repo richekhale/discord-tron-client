@@ -365,11 +365,11 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
         logging.debug(f'Generating DeepFloyd text embeds has completed.')
         self.stage1.scheduler = scheduler_map[prompt_parameters.get('scheduler', 'ddpm')].from_config(
             self.stage1.scheduler.config,
-            timestep_spacing=prompt_parameters.get("timestep_spacing", "trailing")
+            timestep_spacing=prompt_parameters.get("timestep_spacing", "trailing"),
             dynamic_thresholding_ratio=prompt_parameters.get("dynamic_thresholding_ratio", 0.95),
             sample_max_value=prompt_parameters.get("sample_max_value", 1.5),
             steps_offset=prompt_parameters.get("steps_offset", 0),
-            thresholding=prompt_parameters.get("thresholding", false),
+            thresholding=prompt_parameters.get("thresholding", False),
             variance_type=prompt_parameters.get("variance_type", "learned_range"),
         )
         if self.should_offload():
