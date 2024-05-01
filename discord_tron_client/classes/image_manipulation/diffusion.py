@@ -166,6 +166,9 @@ class DiffusionPipelineManager:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
         if hasattr(pipeline, "watermark") and pipeline.watermark is not None:
             pipeline.watermark = None
+        if hasattr(pipeline, "watermarker") and pipeline.watermarker is not None:
+            pipeline.watermarker = None
+
         return pipeline
 
     def upscale_image(self, image: Image):
