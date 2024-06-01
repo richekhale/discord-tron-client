@@ -9,6 +9,8 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
         # Get user_config and delete it from args, it doesn't get passed to the pipeline
         user_config = args.get("user_config", None)
         del args["user_config"]
+        # Use the prompt parameters to override args now
+        args.update(prompt_parameters)
         logging.debug(f'Args (minus user_config) for SDXL Base: {args}')
         if user_config.get("prompt_weighting", True) and config.enable_compel():
             # SDXL, when using prompt embeds, only generates 1 image per prompt.
@@ -17,12 +19,16 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
             for unwanted_arg in ["prompt", "negative_prompt"]:
                 if unwanted_arg in args:
                     del args[unwanted_arg]
+            if "clip_skip" in args and config.enable_compel():
+                args["prompt_embeds"], args["negative_embeds"], args["pooled_embeds"], args["negative_pooled_embeds"] = self.diffusion_manager.prompt_manager.process_long_prompt(
+                    positive_prompt=args["prompt"], negative_prompt=args["negative_prompt"]
+                )
         else:
             # Remove unwanted arguments for this condition
             for unwanted_arg in ["prompt_embeds", "negative_prompt_embeds", "pooled_prompt_embeds", "negative_pooled_prompt_embeds"]:
                 if unwanted_arg in args:
                     del args[unwanted_arg]
-        
+
         # Convert specific arguments to desired types
         if "num_inference_steps" in args:
             args["num_inference_steps"] = int(float(args["num_inference_steps"]))
@@ -30,13 +36,7 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
             args["guidance_scale"] = float(args["guidance_scale"])
         if "guidance_rescale" in args:
             args["guidance_rescale"] = float(args["guidance_rescale"])
-
-        # Use the prompt parameters to override args now
-        args.update(prompt_parameters)
         if "clip_skip" in args:
-            args["prompt_embeds"], args["negative_embeds"], args["pooled_embeds"], args["negative_pooled_embeds"] = self.diffusion_manager.prompt_manager.process_long_prompt(
-                positive_prompt=args["prompt"], negative_prompt=args["negative_prompt"]
-            )
             args["clip_skip"] = int(args["clip_skip"])
         
         # Call the pipeline with arguments and return the images
