@@ -7,7 +7,7 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
         self.pipeline = pipeline
 
     def __call__(self, **args):
-        prompt, prompt_parameters = self._extract_parameters(prompt)
+        args["prompt"], prompt_parameters = self._extract_parameters(args["prompt"])
         # Get user_config and delete it from args, it doesn't get passed to the pipeline
         user_config = args.get("user_config", None)
         del args["user_config"]
