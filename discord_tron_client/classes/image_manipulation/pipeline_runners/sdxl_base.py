@@ -7,6 +7,7 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
         self.pipeline = pipeline
 
     def __call__(self, **args):
+        prompt, prompt_parameters = self._extract_parameters(prompt)
         # Get user_config and delete it from args, it doesn't get passed to the pipeline
         user_config = args.get("user_config", None)
         del args["user_config"]
@@ -31,6 +32,9 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
             args["guidance_scale"] = float(args["guidance_scale"])
         if "guidance_rescale" in args:
             args["guidance_rescale"] = float(args["guidance_rescale"])
+
+        # Use the prompt parameters to override args now
+        args.update(prompt_parameters)
         
         # Call the pipeline with arguments and return the images
         return self.pipeline(**args).images
