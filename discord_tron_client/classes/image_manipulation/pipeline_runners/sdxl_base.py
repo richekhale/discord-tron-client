@@ -8,6 +8,12 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
 
     def __call__(self, **args):
         args["prompt"], prompt_parameters = self._extract_parameters(args["prompt"])
+        if "clip_skip" in args:
+            args["prompt_embeds"], args["negative_embeds"], args["pooled_embeds"], args["negative_pooled_embeds"] = self.pipeline_manager.prompt_manager.process_long_prompt(
+                positive_prompt=args["prompt"], negative_prompt=args["negative_prompt"]
+            )
+            args["clip_skip"] = int(args["clip_skip"])
+
         # Get user_config and delete it from args, it doesn't get passed to the pipeline
         user_config = args.get("user_config", None)
         del args["user_config"]
