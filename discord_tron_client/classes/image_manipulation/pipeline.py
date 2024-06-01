@@ -273,11 +273,11 @@ class PipelineRunner:
                 logging.info(f'Running text2img with batch_size {batch_size} via model {user_model}.')
                 # text2img workflow
                 if type(pipe) is diffusers.StableDiffusionXLPipeline or "ptx0/s1" in user_model or "stable-diffusion-xl" in user_model or "-xl" in user_model:
-                    pipeline_runner = runner_map["sdxl_base"](pipeline=pipe)
+                    pipeline_runner = runner_map["sdxl_base"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
                 elif "ptx0/s2" in user_model or "xl-refiner" in user_model:
-                    pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe)
+                    pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
                 elif "kandinsky-2-2" in user_model:
-                    pipeline_runner = runner_map["kandinsky_2.2"](pipeline=pipe)
+                    pipeline_runner = runner_map["kandinsky_2.2"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
                 elif "DeepFloyd" in user_model:
                     pipeline_runner = runner_map["deep_floyd"](stage1=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
                     # DeepFloyd pipeline handles all of this.

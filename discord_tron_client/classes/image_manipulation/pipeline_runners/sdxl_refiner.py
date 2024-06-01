@@ -6,9 +6,6 @@ from discord_tron_client.classes.app_config import AppConfig
 config = AppConfig()
 
 class SdxlRefinerPipelineRunner(BasePipelineRunner):
-    def __init__(self, pipeline):
-        self.pipeline = pipeline
-
     def __call__(self, **args):
         user_config = args.get("user_config", None)
         del args["user_config"]  # This doesn't get passed to Diffusers.

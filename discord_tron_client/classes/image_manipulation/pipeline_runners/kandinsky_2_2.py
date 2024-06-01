@@ -4,9 +4,6 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners.base_runner
 import logging
 
 class KandinskyTwoTwoPipelineRunner(BasePipelineRunner):
-    def __init__(self, pipeline):
-        self.pipeline = pipeline
-
     def __call__(self, **args):
         # Get user_config and delete it from args, it doesn't get passed to the pipeline
         user_config = args.get("user_config", None)
