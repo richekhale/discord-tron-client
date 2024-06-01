@@ -3,10 +3,6 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners import Base
 from discord_tron_client.classes.app_config import AppConfig
 config = AppConfig()
 class SdxlBasePipelineRunner(BasePipelineRunner):
-    def __init__(self, **kwargs):
-        # run super init
-        super().__init__(**kwargs)
-
     def __call__(self, **args):
         args["prompt"], prompt_parameters = self._extract_parameters(args["prompt"])
 
@@ -38,7 +34,7 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
         # Use the prompt parameters to override args now
         args.update(prompt_parameters)
         if "clip_skip" in args:
-            args["prompt_embeds"], args["negative_embeds"], args["pooled_embeds"], args["negative_pooled_embeds"] = self.pipeline_manager.prompt_manager.process_long_prompt(
+            args["prompt_embeds"], args["negative_embeds"], args["pooled_embeds"], args["negative_pooled_embeds"] = self.diffusion_manager.prompt_manager.process_long_prompt(
                 positive_prompt=args["prompt"], negative_prompt=args["negative_prompt"]
             )
             args["clip_skip"] = int(args["clip_skip"])
