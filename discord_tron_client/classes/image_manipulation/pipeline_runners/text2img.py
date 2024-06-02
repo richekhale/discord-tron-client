@@ -1,11 +1,14 @@
 from discord_tron_client.classes.image_manipulation.pipeline_runners.base_runner import BasePipelineRunner
 from discord_tron_client.classes.app_config import AppConfig
-import logging
+from diffusers import ConsistencyDecoderVAE
+import logging, torch
 config = AppConfig()
 
 class Text2ImgPipelineRunner(BasePipelineRunner):
     def __init__(self, pipeline):
         self.pipeline = pipeline
+        if hasattr(pipeline, 'vae'):
+            pipeline.vae = ConsistencyDecoderVAE.from_pretrained("openai/consistency-decoder", torch_dtype=torch.float16)
 
     def __call__(self, **args):
         # Get user_config and delete it from args, it doesn't get passed to the pipeline
