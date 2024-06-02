@@ -7,8 +7,8 @@ config = AppConfig()
 class Text2ImgPipelineRunner(BasePipelineRunner):
     def __init__(self, pipeline):
         self.pipeline = pipeline
-        if hasattr(pipeline, 'vae'):
-            pipeline.vae = ConsistencyDecoderVAE.from_pretrained("openai/consistency-decoder").to(dtype=torch.bfloat16, device="cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+        # if hasattr(pipeline, 'vae'):
+        #     pipeline.vae = ConsistencyDecoderVAE.from_pretrained("openai/consistency-decoder").to(dtype=torch.bfloat16, device="cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 
     def __call__(self, **args):
         # Get user_config and delete it from args, it doesn't get passed to the pipeline
