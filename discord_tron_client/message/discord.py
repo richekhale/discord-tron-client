@@ -95,8 +95,10 @@ class DiscordMessage(WebsocketMessage):
             latest_hash = attributes.get('latest_hash', latest_hash)
 
         latent_refiner = "Off"
+        latent_refiner_enabled = False
         if "latent_refiner" in user_config and user_config.get('latent_refiner'):
             latent_refiner = "On"
+            latent_refiner_enabled = True
         if "refiner_strength" in user_config:
             refiner_strength = str(user_config.get('refiner_strength'))
         if "refiner_guidance" in user_config:
@@ -124,9 +126,8 @@ class DiscordMessage(WebsocketMessage):
         else:
             execute_time = round(execute_duration, 2)
         resolution_string = f"{resolution['width']}x{resolution['height']}"
-        refiner_status = f"**SDXL Refiner**: {latent_refiner}\n"
-        if "terminus" in model_id:
-            refiner_status = ""
+        if latent_refiner_enabled:
+            refiner_status = f"**SDXL Refiner**: {latent_refiner}\n"
         truncate_suffix = ""
         if len(prompt) > 255:
             truncate_suffix = "..(truncated).."
