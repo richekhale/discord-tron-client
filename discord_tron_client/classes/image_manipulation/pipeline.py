@@ -558,7 +558,7 @@ class PipelineRunner:
         negative_pooled_embed = None
         if self.config.enable_compel():
             logging.info(f'SDXL Refiner is using Compel prompt embed weighting.')
-            refiner_prompt_manager = self._get_prompt_manager(pipe, use_second_encoder_only=True)
+            refiner_prompt_manager = self._get_prompt_manager(pipe, use_second_encoder_only=not hasattr(pipe, "text_encoder") and hasattr(pipe, "text_encoder_2"))
             prompt_embed, negative_embed, pooled_embed, negative_pooled_embed = refiner_prompt_manager.process_long_prompt(
                 positive_prompt=prompt, negative_prompt=negative_prompt
             )
