@@ -406,6 +406,7 @@ class DiffusionPipelineManager:
         pipeline = self.get_pipe(
             user_config={},
             model_id=refiner_model,
+            prompt_variation=True
         )
         pipeline.vae = AutoencoderKL.from_pretrained('madebyollin/sdxl-vae-fp16-fix', torch_dtype=self.torch_dtype, use_safetensors=True, use_auth_token=config.get_huggingface_api_key()).to(self.device)
         return pipeline
