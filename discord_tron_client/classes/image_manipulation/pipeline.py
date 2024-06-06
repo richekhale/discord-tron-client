@@ -551,14 +551,14 @@ class PipelineRunner:
         # Get the image width/height from 'image' if it's provided
         logging.info(f"Running SDXL Refiner..")
         pipe = self.pipeline_manager.get_sdxl_refiner_pipe()
-        pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe)
+        pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
         prompt_embed = None
         negative_embed = None
         pooled_embed = None
         negative_pooled_embed = None
         if self.config.enable_compel():
             logging.info(f'SDXL Refiner is using Compel prompt embed weighting.')
-            refiner_prompt_manager = self._get_prompt_manager(pipe, use_second_encoder_only=not hasattr(pipe, "text_encoder") and hasattr(pipe, "text_encoder_2"))
+            refiner_prompt_manager = self._get_prompt_manager(pipe, use_second_encoder_only=((not hasattr(pipe, "text_encoder") or pipe.text_encoder is None) and hasattr(pipe, "text_encoder_2")))
             prompt_embed, negative_embed, pooled_embed, negative_pooled_embed = refiner_prompt_manager.process_long_prompt(
                 positive_prompt=prompt, negative_prompt=negative_prompt
             )
