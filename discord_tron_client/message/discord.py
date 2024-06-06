@@ -103,6 +103,7 @@ class DiscordMessage(WebsocketMessage):
             refiner_strength = str(user_config.get('refiner_strength'))
         if "refiner_guidance" in user_config:
             refiner_guidance = str(user_config.get('refiner_guidance'))
+        refiner_guidance_rescale = str(user_config.get('refiner_guidance_rescale', 0.7))
         if "aesthetic_score" in user_config:
             aesthetic_score = str(user_config.get('aesthetic_score'))
         if "negative_aesthetic_score" in user_config:
@@ -111,7 +112,7 @@ class DiscordMessage(WebsocketMessage):
             refiner_strength = str(user_config.get('refiner_strength'))
         guidance_rescale = user_config.get("guidance_rescale")
         if latent_refiner == "On":
-            latent_refiner = f"{latent_refiner}, `!settings refiner_strength {refiner_strength}` ({float(refiner_strength) * float(steps)}), `!settings refiner_guidance {refiner_guidance}`, `!settings aesthetic_score {aesthetic_score}`, `!settings negative_aesthetic_score {negative_aesthetic_score}`"
+            latent_refiner = f"{latent_refiner}, `!settings refiner_strength {refiner_strength}` ({float(refiner_strength) * float(steps)}), `!settings refiner_guidance {refiner_guidance}`, `!settings aesthetic_score {aesthetic_score}`, `!settings negative_aesthetic_score {negative_aesthetic_score}`, `!settings refiner_guidance_rescale {refiner_guidance_rescale}`"
         if (model_id == "ptx0/s1" or model_id == "ptx0/sdxl-base")and latent_refiner == "Off":
             model_id = "SDXL Base"
         elif (model_id == "ptx0/s1" or model_id == "ptx0/sdxl-base")and latent_refiner != "Off":

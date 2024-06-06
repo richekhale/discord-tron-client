@@ -578,7 +578,7 @@ class PipelineRunner:
             output_type="pil",
             num_images_per_prompt=1,
             guidance_scale=float(user_config.get("refiner_guidance", 7.5)),
-            guidance_rescale=float(user_config.get("refiner_guidance_rescale", 0.0)),
+            guidance_rescale=float(user_config.get("refiner_guidance_rescale", 0.7)),
             strength=float(user_config.get("refiner_strength", 0.5)),
             aesthetic_score=float(user_config.get("aesthetic_score", 10.0)),
             negative_aesthetic_score=float(
