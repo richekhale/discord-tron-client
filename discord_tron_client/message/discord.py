@@ -127,6 +127,7 @@ class DiscordMessage(WebsocketMessage):
         else:
             execute_time = round(execute_duration, 2)
         resolution_string = f"{resolution['width']}x{resolution['height']}"
+        refiner_status = ""
         if latent_refiner_enabled:
             refiner_status = f"**SDXL Refiner**: {latent_refiner}\n"
         truncate_suffix = ""
