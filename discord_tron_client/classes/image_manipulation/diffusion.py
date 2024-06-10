@@ -108,9 +108,9 @@ class DiffusionPipelineManager:
         # if custom_text_encoder is not None and custom_text_encoder == -1:
         #     # Disable text encoder.
         #     extra_args["text_encoder"] = None
-        if custom_text_encoder is not None:
-            # Use a custom text encoder.
-            extra_args["text_encoder"] = custom_text_encoder
+        # if custom_text_encoder is not None:
+        #     # Use a custom text encoder.
+        #     extra_args["text_encoder"] = custom_text_encoder
         if safety_modules is not None:
             for key in safety_modules:
                 extra_args[key] = safety_modules[key]
@@ -340,14 +340,14 @@ class DiffusionPipelineManager:
                     )
                 if hasattr(self.pipelines[model_id], 'controlnet') and config.enable_compile():
                     self.pipelines[model_id].controlnet = torch.compile(self.pipelines[model_id].controlnet, fullgraph=True)
-                if hasattr(self.pipelines[model_id], 'text_encoder') and type(self.pipelines[model_id].text_encoder) == transformers.T5EncoderModel and config.enable_compile():
-                    logger.info('Found T5 encoder model. Compiling...')
-                    self.pipelines[model_id].text_encoder = torch.compile(
-                        self.pipelines[model_id].text_encoder,
-                        fullgraph=True,
-                    )
-                elif hasattr(self.pipelines[model_id], 'text_encoder'):
-                    logger.warning(f'Torch compile on text encoder type {type(self.pipelines[model_id].text_encoder)} is not yet supported.')
+                # if hasattr(self.pipelines[model_id], 'text_encoder') and type(self.pipelines[model_id].text_encoder) == transformers.T5EncoderModel and config.enable_compile():
+                #     logger.info('Found T5 encoder model. Compiling...')
+                #     self.pipelines[model_id].text_encoder = torch.compile(
+                #         self.pipelines[model_id].text_encoder,
+                #         fullgraph=True,
+                #     )
+                # elif hasattr(self.pipelines[model_id], 'text_encoder'):
+                #     logger.warning(f'Torch compile on text encoder type {type(self.pipelines[model_id].text_encoder)} is not yet supported.')
         else:
             logger.info(f"Keeping existing pipeline. Not creating any new ones.")
             self.pipelines[model_id].to(self.device)
