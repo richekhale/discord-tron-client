@@ -225,6 +225,9 @@ class HardwareInfo:
 
     def get_concurrent_pipe_count(self):
         memory_amount = self.get_machine_info()["video_memory_amount"]
+        custom_value = AppConfig.get_config_value("concurrent_pipes", None)
+        if custom_value is not None:
+            return int(custom_value)
         if memory_amount == "Unknown":
             # If we do not know how much vmem we have, that is a bad sign.
             return 1
