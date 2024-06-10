@@ -105,10 +105,10 @@ class DiffusionPipelineManager:
             'safety_checker': None,
             'requires_safety_checker': None,
         }
-        if custom_text_encoder is not None and custom_text_encoder == -1:
-            # Disable text encoder.
-            extra_args["text_encoder"] = None
-        elif custom_text_encoder is not None:
+        # if custom_text_encoder is not None and custom_text_encoder == -1:
+        #     # Disable text encoder.
+        #     extra_args["text_encoder"] = None
+        if custom_text_encoder is not None:
             # Use a custom text encoder.
             extra_args["text_encoder"] = custom_text_encoder
         if safety_modules is not None:
