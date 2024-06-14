@@ -3,6 +3,7 @@ from diffusers import (
     StableDiffusionImageVariationPipeline,
     StableDiffusionControlNetPipeline,
     ControlNetModel,
+    StableDiffusion3Pipeline,
     StableDiffusionUpscalePipeline,
     StableDiffusionKDiffusionPipeline,
     DiffusionPipeline,

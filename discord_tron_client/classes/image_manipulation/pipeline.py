@@ -21,6 +21,7 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners import (
     SdxlRefinerPipelineRunner,
     KandinskyTwoTwoPipelineRunner,
     DeepFloydPipelineRunner,
+    SD3PipelineRunner,
     runner_map,
 )
 
@@ -274,6 +275,8 @@ class PipelineRunner:
                 # text2img workflow
                 if type(pipe) is diffusers.StableDiffusionXLPipeline or "ptx0/s1" in user_model or "stable-diffusion-xl" in user_model or "-xl" in user_model:
                     pipeline_runner = runner_map["sdxl_base"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+                elif type(pipe) is diffusers.StableDiffusion3Pipeline:
+                    pipeline_runner = runner_map["sd3"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
                 elif "ptx0/s2" in user_model or "xl-refiner" in user_model:
                     pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
                 elif "kandinsky-2-2" in user_model:
