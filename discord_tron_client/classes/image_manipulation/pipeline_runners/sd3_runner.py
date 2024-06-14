@@ -13,7 +13,7 @@ class SD3PipelineRunner(BasePipelineRunner):
         args.update(prompt_parameters)
         logging.debug(f'Args (minus user_config) for SD3: {args}')
         # Remove unwanted arguments for this condition
-        for unwanted_arg in ["prompt_embeds", "negative_prompt_embeds", "pooled_prompt_embeds", "negative_pooled_prompt_embeds", "guidance_rescale", "clip_skip"]:
+        for unwanted_arg in ["prompt_embeds", "negative_prompt_embeds", "pooled_prompt_embeds", "negative_pooled_prompt_embeds", "guidance_rescale", "clip_skip", "denoising_start", "denoising_end"]:
             if unwanted_arg in args:
                 del args[unwanted_arg]
 
