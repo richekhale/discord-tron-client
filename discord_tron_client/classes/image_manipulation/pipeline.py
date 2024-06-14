@@ -468,7 +468,7 @@ class PipelineRunner:
     def _get_prompt_manager(
         self, pipe, device="cpu", use_second_encoder_only: bool = False
     ):
-        is_gpu = next(pipe.unet.parameters()).is_cuda
+        is_gpu = hasattr(pipe, 'unet') and next(pipe.unet.parameters()).is_cuda
         if is_gpu:
             if device == "cpu":
                 logging.warning(
@@ -559,7 +559,7 @@ class PipelineRunner:
         negative_embed = None
         pooled_embed = None
         negative_pooled_embed = None
-        if self.config.enable_compel():
+        if self.config.enable_compel() and hasattr(pipe, 'unet'):
             logging.info(f'SDXL Refiner is using Compel prompt embed weighting.')
             refiner_prompt_manager = self._get_prompt_manager(pipe, use_second_encoder_only=((not hasattr(pipe, "text_encoder") or pipe.text_encoder is None) and hasattr(pipe, "text_encoder_2")))
             prompt_embed, negative_embed, pooled_embed, negative_pooled_embed = refiner_prompt_manager.process_long_prompt(
