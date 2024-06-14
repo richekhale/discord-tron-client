@@ -525,8 +525,9 @@ class PipelineRunner:
         #     prompt_embed, negative_embed = controlnet_prompt_manager.process_long_prompt(
         #         positive_prompt=prompt, negative_prompt=negative_prompt
         #     )
-        pipe.vae.disable_tiling()
-        pipe.vae.disable_slicing()
+        if not hasattr(pipe, 'transformer'):
+            pipe.vae.disable_tiling()
+            pipe.vae.disable_slicing()
         new_image = pipe(
             # prompt_embeds=prompt_embed,
             # negative_prompt_embeds=negative_embed,
