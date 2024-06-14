@@ -358,11 +358,11 @@ class DiffusionPipelineManager:
             f"Model scheduler config: {self.pipelines[model_id].config['scheduler'][1]}"
         )
         enable_tiling = user_config.get("enable_tiling", True)
-        if hasattr(self.pipelines[model_id], 'vae') and enable_tiling:
+        if hasattr(self.pipelines[model_id], 'vae') and not hasattr(self.pipelines[model_id], 'transformer') and enable_tiling:
             logger.warn(f"Enabling VAE tiling. This could cause artifacted outputs.")
             self.pipelines[model_id].vae.enable_tiling()
             self.pipelines[model_id].vae.enable_slicing()
-        elif hasattr(self.pipelines[model_id], 'vae'):
+        elif hasattr(self.pipelines[model_id], 'vae') and not hasattr(self.pipelines[model_id], 'transformer'):
             self.pipelines[model_id].vae.disable_tiling()
             self.pipelines[model_id].vae.disable_slicing()
         return self.pipelines[model_id]
