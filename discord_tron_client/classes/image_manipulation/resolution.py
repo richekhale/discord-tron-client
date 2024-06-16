@@ -9,6 +9,7 @@ hardware = HardwareInfo()
 class ResolutionManager:
     resolutions = [
         # 1:1 aspect ratio
+        {"width": 512, "height": 512},
         {"width": 768, "height": 768},
         {"width": 1024, "height": 1024, "default_max": True},
         {"width": 1280, "height": 1280},
