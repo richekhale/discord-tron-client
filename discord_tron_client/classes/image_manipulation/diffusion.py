@@ -24,7 +24,7 @@ from discord_tron_client.classes.image_manipulation.face_upscale import (
     use_upscaler,
 )
 from PIL import Image
-import torch, gc, logging, diffusers, transformers
+import torch, gc, logging, diffusers, transformers, os
 logger = logging.getLogger('DiffusionPipelineManager')
 logger.setLevel('DEBUG')
 if not torch.backends.mps.is_available():
@@ -200,19 +200,29 @@ class DiffusionPipelineManager:
     def get_model_latest_hash(
         self,
         model_id: str,
-        unet_model_name: str = "unet/diffusion_pytorch_model.safetensors"
+        subfolder: str = "unet",
+        unet_model_name: str = "diffusion_pytorch_model.safetensors"
     ) -> str:
         from huggingface_hub import get_hf_file_metadata, hf_hub_url
-        url = hf_hub_url(repo_id=model_id, filename=unet_model_name)
-        logger.debug(f"Retrieving metadata from URL: {url}")
         try:
+            url = hf_hub_url(repo_id=model_id, filename=os.path.join(subfolder, unet_model_name))
+            logger.debug(f"Retrieving metadata from URL: {url}")
             metadata = get_hf_file_metadata(url)
             result = metadata.commit_hash
             logger.debug(f"Commit hash retrieved: {result}")
             return result
         except Exception as e:
+            url = hf_hub_url(repo_id=model_id, filename=os.path.join("transformer", unet_model_name))
             logger.error(f"Could not get model metadata: {e}")
-            return False
+            try:
+                metadata = get_hf_file_metadata(url)
+                result = metadata.commit_hash
+                logger.debug(f"Commit hash retrieved: {result}")
+                return result
+            except Exception as e:
+                logger.error(f"Could not get model metadata: {e}")
+                return False
+
 
     def get_repo_last_modified(
         self,
