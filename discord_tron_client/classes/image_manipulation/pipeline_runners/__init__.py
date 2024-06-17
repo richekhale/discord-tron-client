@@ -6,6 +6,7 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners.sdxl_refine
 from discord_tron_client.classes.image_manipulation.pipeline_runners.kandinsky_2_2 import KandinskyTwoTwoPipelineRunner
 from discord_tron_client.classes.image_manipulation.pipeline_runners.deep_floyd import DeepFloydPipelineRunner
 from discord_tron_client.classes.image_manipulation.pipeline_runners.sd3_runner import SD3PipelineRunner
+from discord_tron_client.classes.image_manipulation.pipeline_runners.pixart import PixArtPipelineRunner
 
 runner_map = {
     "text2img": Text2ImgPipelineRunner,
@@ -15,4 +16,5 @@ runner_map = {
     "kandinsky_2.2": KandinskyTwoTwoPipelineRunner,
     "deep_floyd": DeepFloydPipelineRunner,
     "sd3": SD3PipelineRunner,
+    "pxrt": PixArtPipelineRunner
 }
