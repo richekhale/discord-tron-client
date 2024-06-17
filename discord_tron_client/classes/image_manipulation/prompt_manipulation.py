@@ -148,7 +148,7 @@ class PromptManipulation:
                 returned_embeddings_type=ReturnedEmbeddingsType.LAST_HIDDEN_STATES_NORMALIZED,
             )
     def should_enable(self, pipeline, user_config: dict = None):
-        if (type(pipeline).__name__ == "KandinskyV22Pipeline"):
+        if (type(pipeline).__name__ == "KandinskyV22Pipeline") or (type(pipeline).__name__ == "PixArtSigmaPipeline"):
             # KandinskyV22Pipeline doesn't use the prompt manager.
             return False
         if user_config is not None and "DeepFloyd" in user_config.get('model', ''):
