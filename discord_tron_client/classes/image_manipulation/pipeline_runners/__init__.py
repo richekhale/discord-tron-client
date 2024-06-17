@@ -16,5 +16,5 @@ runner_map = {
     "kandinsky_2.2": KandinskyTwoTwoPipelineRunner,
     "deep_floyd": DeepFloydPipelineRunner,
     "sd3": SD3PipelineRunner,
-    "pxrt": PixArtPipelineRunner
+    "pixart": PixArtPipelineRunner
 }
