@@ -919,7 +919,7 @@ develop = false
 [package.dependencies]
 filelock = "*"
 huggingface-hub = ">=0.23.2"
-importlib-metadata = "*"
+importlib_metadata = "*"
 numpy = "*"
 Pillow = "*"
 regex = "!=2019.12.17"
@@ -927,7 +927,7 @@ requests = "*"
 safetensors = ">=0.3.1"
 
 [package.extras]
-dev = ["GitPython (<3.1.19)", "Jinja2", "accelerate (>=0.29.3)", "compel (==0.1.8)", "datasets", "flax (>=0.4.1)", "hf-doc-builder (>=0.3.0)", "invisible-watermark (>=0.2.0)", "isort (>=5.5.4)", "jax (>=0.4.1)", "jaxlib (>=0.4.1)", "k-diffusion (>=0.0.12)", "librosa", "parameterized", "peft (>=0.6.0)", "protobuf (>=3.20.3,<4)", "pytest", "pytest-timeout", "pytest-xdist", "requests-mock (==1.10.0)", "ruff (==0.1.5)", "safetensors (>=0.3.1)", "scipy", "sentencepiece (>=0.1.91,!=0.1.92)", "tensorboard", "torch (>=1.4)", "torchvision", "transformers (>=4.41.2)", "urllib3 (<=2.0.0)"]
+dev = ["GitPython (<3.1.19)", "Jinja2", "Jinja2", "accelerate (>=0.29.3)", "accelerate (>=0.29.3)", "compel (==0.1.8)", "datasets", "datasets", "flax (>=0.4.1)", "hf-doc-builder (>=0.3.0)", "hf-doc-builder (>=0.3.0)", "invisible-watermark (>=0.2.0)", "isort (>=5.5.4)", "jax (>=0.4.1)", "jaxlib (>=0.4.1)", "k-diffusion (>=0.0.12)", "librosa", "parameterized", "peft (>=0.6.0)", "protobuf (>=3.20.3,<4)", "pytest", "pytest-timeout", "pytest-xdist", "requests-mock (==1.10.0)", "ruff (==0.1.5)", "safetensors (>=0.3.1)", "scipy", "sentencepiece (>=0.1.91,!=0.1.92)", "tensorboard", "torch (>=1.4)", "torchvision", "transformers (>=4.41.2)", "urllib3 (<=2.0.0)"]
 docs = ["hf-doc-builder (>=0.3.0)"]
 flax = ["flax (>=0.4.1)", "jax (>=0.4.1)", "jaxlib (>=0.4.1)"]
 quality = ["hf-doc-builder (>=0.3.0)", "isort (>=5.5.4)", "ruff (==0.1.5)", "urllib3 (<=2.0.0)"]
@@ -937,9 +937,9 @@ training = ["Jinja2", "accelerate (>=0.29.3)", "datasets", "peft (>=0.6.0)", "pr
 
 [package.source]
 type = "git"
-url = "https://github.com/huggingface/diffusers"
-reference = "HEAD"
-resolved_reference = "f96e4a16adb4c31bab4c0a3d0d145ed2b086ecb0"
+url = "https://github.com/bghira/diffusers"
+reference = "feature/lavender-flow-complete"
+resolved_reference = "d3f98ce23b3e798c152da3039268d848585d635e"
 
 [[package]]
 name = "discord-py-slash-command"
@@ -5701,4 +5701,4 @@ reference = "default"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "62407bd0744e96b6fc1fb64f62cae6d03378ab91d09fd031bb86e1d2cd2fbc13"
+content-hash = "b468ce6764858ac37647a2f98a4fd0653f1daeea65d850a7844fd2f9a2be6161"
