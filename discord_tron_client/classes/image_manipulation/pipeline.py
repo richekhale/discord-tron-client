@@ -279,6 +279,8 @@ class PipelineRunner:
                     pipeline_runner = runner_map["sd3"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
                 elif type(pipe) is diffusers.pipelines.PixArtSigmaPipeline:
                     pipeline_runner = runner_map["pixart"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+                elif type(pipe) is diffusers.pipelines.AuraFlowPipeline:
+                    pipeline_runner = runner_map["aura"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
                 elif "ptx0/s2" in user_model or "xl-refiner" in user_model:
                     pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
                 elif "kandinsky-2-2" in user_model:

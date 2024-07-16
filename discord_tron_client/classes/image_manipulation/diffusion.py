@@ -12,6 +12,7 @@ from diffusers import (
     UniPCMultistepScheduler,
     AutoPipelineForText2Image,
     KandinskyV22CombinedPipeline,
+    AuraFlowPipeline,
     StableDiffusionXLImg2ImgPipeline,
 )
 from diffusers.models.attention_processor import AttnProcessor2_0
