@@ -110,6 +110,10 @@ class DiscordMessage(WebsocketMessage):
             negative_aesthetic_score = str(user_config.get('negative_aesthetic_score'))
         if "refiner_strength" in user_config:
             refiner_strength = str(user_config.get('refiner_strength'))
+        stage1_guidance = ""
+        if "stage1" in user_config.get("model"):
+            stage1_guidance = f"\n**Stage 2 Guidance**: `!settings refiner_guidance {refiner_guidance}`"
+
         guidance_rescale = user_config.get("guidance_rescale")
         if latent_refiner == "On":
             latent_refiner = f"{latent_refiner}, `!settings refiner_strength {refiner_strength}` ({float(refiner_strength) * float(steps)}), `!settings refiner_guidance {refiner_guidance}`, `!settings aesthetic_score {aesthetic_score}`, `!settings negative_aesthetic_score {negative_aesthetic_score}`, `!settings refiner_guidance_rescale {refiner_guidance_rescale}`"
@@ -137,7 +141,7 @@ class DiscordMessage(WebsocketMessage):
             return (
                 f"<@{author_id}>\n"
                 f"**Prompt**: {prompt[:255]}{truncate_suffix}\n"
-                f"**Settings**: `!seed {seed}`, `!guidance {user_config['guidance_scaling']}`, `!guidance_rescale {guidance_rescale}`, `!steps {steps}`, `!strength {strength}`, `!resolution {resolution_string}`\n"
+                f"**Settings**: `!seed {seed}`, `!guidance {user_config['guidance_scaling']}`, `!guidance_rescale {guidance_rescale}`, `!steps {steps}`, `!strength {strength}`, `!resolution {resolution_string}`{stage1_guidance}\n"
                 f"**Model**: `{model_id}` (`{latest_hash}` {last_modified})\n{refiner_status}"
                 f"**{HardwareInfo.get_identifier()}**: {payload['gpu_power_consumption']}W power used in {execute_time} seconds via {system_hw['gpu_type']} ({vmem}G)\n" #, on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
                 # f"**Job ID:** `{payload['job_id']}`\n"

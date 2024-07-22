@@ -41,7 +41,7 @@ class PixArtPipelineRunner(BasePipelineRunner):
             del args["denoising_end"]
         if "denoising_start" in args:
             del args["denoising_start"]
-        stage_2_guidance = args["guidance_scale"]
+        stage_2_guidance = user_config.get("refiner_guidance", args["guidance_scale"])
         if "stage_2_guidance" in prompt_parameters:
             stage_2_guidance = prompt_parameters["stage_2_guidance"]
             del prompt_parameters["stage_2_guidance"]
