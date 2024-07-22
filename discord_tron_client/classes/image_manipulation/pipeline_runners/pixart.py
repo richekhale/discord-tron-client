@@ -64,7 +64,7 @@ class PixArtPipelineRunner(BasePipelineRunner):
             args["denoising_end"] = None
             args["denoising_start"] = split_schedule_interval
             args["output_type"] = "pil"
-            args["guidance_scale"] = stage_2_guidance
+            args["guidance_scale"] = float(stage_2_guidance)
             args["strength"] = None
             logging.debug(f'Running refiner pipeline with adjusted args: {args}')
             refiner_images = self.refiner_pipeline(latents=base_images, **args).images
