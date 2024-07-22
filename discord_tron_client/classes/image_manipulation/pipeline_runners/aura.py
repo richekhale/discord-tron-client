@@ -11,7 +11,7 @@ class AuraPipelineRunner(BasePipelineRunner):
         del args["user_config"]
         # Use the prompt parameters to override args now
         args.update(prompt_parameters)
-        logging.debug(f'Args (minus user_config) for SD3: {args}')
+        logging.debug(f'Args (minus user_config) for AuraFlow: {args}')
         # Remove unwanted arguments for this condition
         for unwanted_arg in ["prompt_embeds", "negative_prompt_embeds", "pooled_prompt_embeds", "negative_pooled_prompt_embeds", "guidance_rescale", "clip_skip", "denoising_start", "denoising_end"]:
             if unwanted_arg in args:

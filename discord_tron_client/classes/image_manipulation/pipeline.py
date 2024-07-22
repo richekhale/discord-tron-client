@@ -3,6 +3,7 @@ from torch.cuda import OutOfMemoryError
 from tqdm import tqdm
 from discord_tron_client.classes.app_config import AppConfig
 from discord_tron_client.classes.hardware import HardwareInfo
+from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.pixart import PixArtSigmaPipeline
 from discord_tron_client.classes.image_manipulation.resolution import ResolutionManager
 from discord_tron_client.classes.image_manipulation import upscaler as upscaling_helper
 from discord_tron_client.classes.image_manipulation.prompt_manipulation import (
@@ -270,28 +271,30 @@ class PipelineRunner:
                     logging.debug(
                         f"Final inference step: {denoising_start}, steps: {steps}"
                     )
-            if not promptless_variation and image is None:
-                logging.info(f'Running text2img with batch_size {batch_size} via model {user_model}.')
-                # text2img workflow
-                if type(pipe) is diffusers.StableDiffusionXLPipeline or "ptx0/s1" in user_model or "stable-diffusion-xl" in user_model or "-xl" in user_model:
-                    pipeline_runner = runner_map["sdxl_base"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
-                elif type(pipe) is diffusers.StableDiffusion3Pipeline:
-                    pipeline_runner = runner_map["sd3"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
-                elif type(pipe) is diffusers.pipelines.PixArtSigmaPipeline:
-                    pipeline_runner = runner_map["pixart"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
-                elif type(pipe) is diffusers.pipelines.AuraFlowPipeline:
-                    pipeline_runner = runner_map["aura"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
-                elif "ptx0/s2" in user_model or "xl-refiner" in user_model:
-                    pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
-                elif "kandinsky-2-2" in user_model:
-                    pipeline_runner = runner_map["kandinsky_2.2"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
-                elif "DeepFloyd" in user_model:
-                    pipeline_runner = runner_map["deep_floyd"](stage1=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
-                    # DeepFloyd pipeline handles all of this.
-                    use_latent_result = False
-                    image_return_type = "pil"
-                else:
-                    pipeline_runner = runner_map["text2img"](pipeline=pipe)
+            logging.info(f'Running text2img with batch_size {batch_size} via model {user_model}.')
+            # text2img workflow
+            if type(pipe) is diffusers.StableDiffusionXLPipeline or "ptx0/s1" in user_model or "stable-diffusion-xl" in user_model or "-xl" in user_model:
+                pipeline_runner = runner_map["sdxl_base"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+            elif type(pipe) is diffusers.StableDiffusion3Pipeline:
+                pipeline_runner = runner_map["sd3"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+            elif type(pipe) is PixArtSigmaPipeline:
+                use_latent_result = False
+                pipeline_runner = runner_map["pixart"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+            elif type(pipe) is diffusers.pipelines.AuraFlowPipeline:
+                pipeline_runner = runner_map["aura"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+            elif "ptx0/s2" in user_model or "xl-refiner" in user_model:
+                pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+            elif "kandinsky-2-2" in user_model:
+                pipeline_runner = runner_map["kandinsky_2.2"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+            elif "DeepFloyd" in user_model:
+                pipeline_runner = runner_map["deep_floyd"](stage1=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+                # DeepFloyd pipeline handles all of this.
+                use_latent_result = False
+                image_return_type = "pil"
+            else:
+                logging.debug(f"Received type of pipeline: {type(pipe)}")
+                pipeline_runner = runner_map["text2img"](pipeline=pipe)
+            if image is None:
                 preprocessed_images = pipeline_runner(
                     prompt=positive_prompt,
                     negative_prompt=negative_prompt,
@@ -324,22 +327,30 @@ class PipelineRunner:
                     user_config=user_config,
                     generator=generator,
                 )
-            elif not upscaler and not promptless_variation and image is not None:
-                logging.info(f'Running img2img with batch_size {batch_size} via model {user_model}.')
+            elif not upscaler and not promptless_variation:
+                logging.info(f'Running img2img with batch_size {batch_size} via model {user_model}, image output type {image_return_type}.')
                 # Img2Img workflow
                 guidance_scale = 7.5
-                new_image = pipe(
-                    prompt=positive_prompt,
-                    negative_prompt=negative_prompt,
-                    num_images_per_prompt=batch_size,
+                new_image = pipeline_runner(
                     image=image,
                     strength=user_config["strength"],
-                    num_inference_steps=user_config.get("steps", 20),
-                    denoising_end=0.8 if use_latent_result else None,
+                    prompt=positive_prompt,
+                    negative_prompt=negative_prompt,
+                    user_config=user_config,
+                    prompt_embeds=None,
+                    negative_prompt_embeds=None,
+                    pooled_prompt_embeds=None,
+                    negative_pooled_prompt_embeds=None,
+                    num_images_per_prompt=batch_size,
+                    height=None,
+                    width=None,
+                    num_inference_steps=int(float(steps)),
+                    denoising_end=denoising_start,
+                    guidance_rescale=float(user_config.get("guidance_rescale", 0.3)),
+                    guidance_scale=float(guidance_scale),
                     output_type=image_return_type,
-                    guidance_scale=guidance_scale,
-                    guidance_rescale=float(user_config.get("guidance_rescale", 0.7)),
-                ).images
+                    generator=generator,
+                )
                 if use_latent_result:
                     new_image = self._refiner_pipeline(
                         images=new_image,

@@ -16,6 +16,7 @@ from diffusers import (
     StableDiffusionXLImg2ImgPipeline,
 )
 from diffusers.models.attention_processor import AttnProcessor2_0
+from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.pixart import PixArtSigmaPipeline
 from diffusers import DiffusionPipeline as Pipeline
 from typing import Dict
 from discord_tron_client.classes.hardware import HardwareInfo
@@ -48,6 +49,7 @@ config = AppConfig()
 class DiffusionPipelineManager:
     PIPELINE_CLASSES = {
         "text2img": DiffusionPipeline,
+        "pixart": PixArtSigmaPipeline,
         "kandinsky-2.2": KandinskyV22CombinedPipeline,
         "prompt_variation": StableDiffusionXLImg2ImgPipeline,
         "variation": StableDiffusionPipeline,
@@ -68,8 +70,8 @@ class DiffusionPipelineManager:
     def __init__(self):
         hw_limits = hardware.get_hardware_limits()
         self.torch_dtype = torch.bfloat16
-        if torch.backends.mps.is_available():
-            self.torch_dtype = torch.float16
+        # if torch.backends.mps.is_available():
+        #     self.torch_dtype = torch.float16
         self.is_memory_constrained = False
         self.model_id = None
         if (
@@ -102,6 +104,8 @@ class DiffusionPipelineManager:
 
     def create_pipeline(self, model_id: str, pipe_type: str, use_safetensors: bool = True, custom_text_encoder = None, safety_modules: dict = None) -> Pipeline:
         pipeline_class = self.PIPELINE_CLASSES[pipe_type]
+        if "pixart" in model_id:
+            pipeline_class = self.PIPELINE_CLASSES["pixart"]
         extra_args = {
             'feature_extractor': None,
             'safety_checker': None,
@@ -128,7 +132,8 @@ class DiffusionPipelineManager:
             logger.debug(
                 f"Passing args into ControlNet: {extra_args} for {model_id}"
             )
-            pipeline = self.PIPELINE_CLASSES["text2img"].from_pretrained(
+            pipeline_cls = self.PIPELINE_CLASSES["variation"]
+            pipeline = pipeline_cls.from_pretrained(
                 model_id,
                 torch_dtype=self.torch_dtype,
                 custom_pipeline="stable_diffusion_controlnet_img2img",
@@ -138,7 +143,7 @@ class DiffusionPipelineManager:
             )
         elif pipe_type in ["prompt_variation"]:
             # Use the long prompt weighting pipeline.
-            logger.debug(f"Creating a LPW pipeline for {model_id}")
+            logger.debug(f"Creating a prompt_variation pipeline for {model_id}")
             if model_id in self.pipelines:
                 # reuse the components from an already-defined model
                 extra_args = self.pipelines[model_id].components
