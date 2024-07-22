@@ -41,6 +41,11 @@ class PixArtPipelineRunner(BasePipelineRunner):
             del args["denoising_end"]
         if "denoising_start" in args:
             del args["denoising_start"]
+        stage_2_guidance = args["guidance_scale"]
+        if "stage_2_guidance" in prompt_parameters:
+            stage_2_guidance = prompt_parameters["stage_2_guidance"]
+            del prompt_parameters["stage_2_guidance"]
+
         args["prompt"] = args["prompt"].strip()
         user_seed = user_config.get("seed", 0)
         if user_seed == -1:
@@ -59,6 +64,7 @@ class PixArtPipelineRunner(BasePipelineRunner):
             args["denoising_end"] = None
             args["denoising_start"] = split_schedule_interval
             args["output_type"] = "pil"
+            args["guidance_scale"] = stage_2_guidance
             args["strength"] = None
             logging.debug(f'Running refiner pipeline with adjusted args: {args}')
             refiner_images = self.refiner_pipeline(latents=base_images, **args).images
