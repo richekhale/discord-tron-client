@@ -174,9 +174,10 @@ async def prompt_variation(payload, websocket):
     # We extract the features from the payload and pass them onto the actual generator
     user_config = payload["config"]
     prompt = payload["image_prompt"]
-    model_id = user_config["model"]
-    if 'ptx0' not in user_config["model"]:
-        model_id = "ptx0/sdxl-base"
+    # model_id = user_config["model"]
+    # if 'ptx0' not in user_config["model"]:
+        # model_id = "ptx0/sdxl-base"
+    model_id = "ptx0/terminus-xl-velocity-v2"
     resolution = user_config["resolution"]
     negative_prompt = user_config["negative_prompt"]
     steps = user_config["steps"]
