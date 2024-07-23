@@ -18,18 +18,18 @@ class Text2ImgPipelineRunner(BasePipelineRunner):
             del args["pooled_prompt_embeds"]
         if "negative_pooled_prompt_embeds" in args:
             del args["negative_pooled_prompt_embeds"]
-        if user_config.get("prompt_weighting", True) and config.enable_compel():
-            # Remove unwanted arguments for this condition
-            for unwanted_arg in ["prompt", "negative_prompt"]:
-                if unwanted_arg in args:
-                    del args[unwanted_arg]
-            logging.debug(f'Removing unwanted args: {unwanted_arg}')
-        else:
-            # Remove unwanted arguments for this condition
-            for unwanted_arg in ["prompt_embeds", "negative_prompt_embeds"]:
-                if unwanted_arg in args:
-                    del args[unwanted_arg]
-            logging.debug(f'Removing unwanted args: {unwanted_arg}')
+        # if user_config.get("prompt_weighting", True) and config.enable_compel():
+        #     # Remove unwanted arguments for this condition
+        #     for unwanted_arg in ["prompt", "negative_prompt"]:
+        #         if unwanted_arg in args:
+        #             del args[unwanted_arg]
+        #     logging.debug(f'Removing unwanted args: {unwanted_arg}')
+        # else:
+        # Remove unwanted arguments for this condition
+        for unwanted_arg in ["prompt_embeds", "negative_prompt_embeds"]:
+            if unwanted_arg in args:
+                del args[unwanted_arg]
+        logging.debug(f'Removing unwanted args: {unwanted_arg}')
 
         # Convert specific arguments to desired types
         if "num_inference_steps" in args:
