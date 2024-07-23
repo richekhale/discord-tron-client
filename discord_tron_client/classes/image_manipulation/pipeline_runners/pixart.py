@@ -53,7 +53,7 @@ class PixArtPipelineRunner(BasePipelineRunner):
         elif user_seed == 0:
             import time
             user_seed = time.time()
-        args["generator"] = torch.Generator().manual_seed(user_seed)
+        args["generator"] = self.diffusion_manager.get_generator(user_config=user_config)
         
         # Call the pipeline with arguments and return the images
         args = {"output_type": output_type, "denoising_end": split_schedule_interval, **args}
