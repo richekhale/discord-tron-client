@@ -14,7 +14,7 @@ class PixArtPipelineRunner(BasePipelineRunner):
         output_type = "pil"
         should_run_stage_2 = False
         split_schedule_interval = None
-        if user_config.get("latent_refiner", False) or "stage1" in user_config.get("model", "") or "vpred-zsnr" in user_config.get("model", ""):
+        if user_config.get("latent_refiner", False) or "stage-1" in user_config.get("model", "") or "stage1" in user_config.get("model", "") or "vpred-zsnr" in user_config.get("model", ""):
             # If latent refiner is enabled, we need to run the refiner pipeline first
             output_type = "latent"
             should_run_stage_2 = True
