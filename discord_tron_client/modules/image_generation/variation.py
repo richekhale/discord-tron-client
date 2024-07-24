@@ -178,6 +178,7 @@ async def prompt_variation(payload, websocket):
     # if 'ptx0' not in user_config["model"]:
         # model_id = "ptx0/sdxl-base"
     model_id = "ptx0/terminus-xl-velocity-v2"
+    user_config["model"] = model_id
     resolution = user_config["resolution"]
     negative_prompt = user_config["negative_prompt"]
     steps = user_config["steps"]
