@@ -67,6 +67,10 @@ class PipelineRunner:
         self.websocket = websocket
         self.model_config = model_config
         self.prompt_manager = None
+        self.pipeline_runner = {
+            "model": None,
+            "runner": None,
+        }
 
     async def _prepare_pipe_async(
         self,
@@ -273,7 +277,9 @@ class PipelineRunner:
                     )
             logging.info(f'Running text2img with batch_size {batch_size} via model {user_model}.')
             # text2img workflow
-            if type(pipe) is diffusers.StableDiffusionXLPipeline or "ptx0/s1" in user_model or "stable-diffusion-xl" in user_model or "-xl" in user_model:
+            if self.pipeline_runner["model"] is not None and self.pipeline_runner["runner"] is not None and self.pipeline_runner["model"] == user_model:
+                pipeline_runner = self.pipeline_runner["runner"]
+            elif type(pipe) is diffusers.StableDiffusionXLPipeline or "ptx0/s1" in user_model or "stable-diffusion-xl" in user_model or "-xl" in user_model:
                 pipeline_runner = runner_map["sdxl_base"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
             elif type(pipe) is diffusers.StableDiffusion3Pipeline:
                 pipeline_runner = runner_map["sd3"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
@@ -294,6 +300,9 @@ class PipelineRunner:
             else:
                 logging.debug(f"Received type of pipeline: {type(pipe)}")
                 pipeline_runner = runner_map["text2img"](pipeline=pipe)
+            if self.pipeline_runner["model"] is None or self.pipeline_runner["model"] != user_model:
+                self.pipeline_runner["model"] = user_model
+                self.pipeline_runner["runner"] = pipeline_runner
             if image is None:
                 preprocessed_images = pipeline_runner(
                     prompt=positive_prompt,
