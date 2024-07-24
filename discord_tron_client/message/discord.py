@@ -111,7 +111,7 @@ class DiscordMessage(WebsocketMessage):
         if "refiner_strength" in user_config:
             refiner_strength = str(user_config.get('refiner_strength'))
         stage1_guidance = ""
-        if "stage1" in user_config.get("model"):
+        if "stage1" in user_config.get("model") or "stage-1" in user_config.get("model"):
             stage1_guidance = f"\n**Stage 2 Guidance**: `!settings refiner_guidance {refiner_guidance}`"
 
         guidance_rescale = user_config.get("guidance_rescale")
