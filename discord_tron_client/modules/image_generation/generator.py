@@ -52,6 +52,7 @@ async def generate_image(payload, websocket):
                 websocket=websocket,
                 model_config=model_config,
             )
+            AppConfig.set_pipeline_runner(pipeline_runner)
         else:
             pipeline_runner.update(
                 model_manager=model_manager,
