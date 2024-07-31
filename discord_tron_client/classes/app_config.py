@@ -8,6 +8,7 @@ class AppConfig:
     main_loop = None
     main_api_client = None
     main_pipelinemanager = None
+    main_pipelinerunner = None
     main_websocket = None
     image_processing_executor = None
 
@@ -79,6 +80,14 @@ class AppConfig:
     @classmethod
     def get_pipeline_manager(cls):
         return cls.main_pipelinemanager
+
+    @classmethod
+    def set_pipeline_runner(cls, pipelinerunner):
+        cls.main_pipelinerunner = pipelinerunner
+
+    @classmethod
+    def get_pipeline_runner(cls):
+        return cls.main_pipelinerunner
 
     def get_config_value(self, key, default_value=None):
         # Always ensure we get up-to-date values.

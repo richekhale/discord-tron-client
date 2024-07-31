@@ -41,15 +41,27 @@ async def generate_image(payload, websocket):
         await websocket.send(discord_msg.to_json())
         model_manager = TransformerModelManager()
         pipeline_manager = AppConfig.get_pipeline_manager()
-        pipeline_runner = pipeline.PipelineRunner(
-            model_manager=model_manager,
-            pipeline_manager=pipeline_manager,
-            app_config=config,
-            user_config=user_config,
-            discord_msg=discord_msg,
-            websocket=websocket,
-            model_config=model_config,
-        )
+        pipeline_runner = AppConfig.get_pipeline_runner()
+        if pipeline_runner is None:
+            pipeline_runner = pipeline.PipelineRunner(
+                model_manager=model_manager,
+                pipeline_manager=pipeline_manager,
+                app_config=config,
+                user_config=user_config,
+                discord_msg=discord_msg,
+                websocket=websocket,
+                model_config=model_config,
+            )
+        else:
+            pipeline_runner.update(
+                model_manager=model_manager,
+                pipeline_manager=pipeline_manager,
+                app_config=config,
+                user_config=user_config,
+                discord_msg=discord_msg,
+                websocket=websocket,
+                model_config=model_config,
+            )
         # Attach a positive prompt weight to the end so that it's more likely to show up this way.
         prompt = prompt + " " + positive_prompt
         image = None
