@@ -54,15 +54,14 @@ async def generate_image(payload, websocket):
             )
             AppConfig.set_pipeline_runner(pipeline_runner)
         else:
-            pipeline_runner.update(
-                model_manager=model_manager,
-                pipeline_manager=pipeline_manager,
-                app_config=config,
-                user_config=user_config,
-                discord_msg=discord_msg,
-                websocket=websocket,
-                model_config=model_config,
-            )
+            pipeline_runner.model_manager=model_manager
+            pipeline_runner.pipeline_manager=pipeline_manager
+            pipeline_runner.config=config
+            pipeline_runner.user_config=user_config
+            pipeline_runner.discord_msg=discord_msg
+            pipeline_runner.websocket=websocket
+            pipeline_runner.model_config=model_config
+            await pipeline_runner.reset_bar(discord_msg=discord_msg, websocket=websocket)
         # Attach a positive prompt weight to the end so that it's more likely to show up this way.
         prompt = prompt + " " + positive_prompt
         image = None

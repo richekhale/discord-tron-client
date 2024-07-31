@@ -72,6 +72,22 @@ class PipelineRunner:
             "runner": None,
         }
 
+    async def reset_bar(self, discord_msg, websocket):
+        # An object to manage a progress bar for Discord.
+        main_loop = asyncio.get_event_loop()
+        self.progress_bar_message = DiscordMessage(
+            websocket=websocket, context=discord_msg, module_command="edit"
+        )
+        self.progress_bar = DiscordProgressBar(
+            websocket=websocket,
+            websocket_message=self.progress_bar_message,
+            progress_bar_steps=100,
+            progress_bar_length=20,
+            discord_first_message=discord_msg,
+        )
+        self.tqdm_capture = TqdmCapture(self.progress_bar, main_loop)
+
+
     async def _prepare_pipe_async(
         self,
         user_config: dict,
