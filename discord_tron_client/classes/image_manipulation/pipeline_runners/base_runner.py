@@ -1,6 +1,6 @@
 from PIL import Image
 from diffusers import DiffusionPipeline
-import torch, logging, gc, re
+import torch, logging, gc, re, os
 from discord_tron_client.classes.app_config import AppConfig
 from discord_tron_client.classes.hardware import HardwareInfo
 from huggingface_hub import hf_hub_download
@@ -102,6 +102,7 @@ class BasePipelineRunner:
         adapter_filename = "pytorch_lora_weights.safetensors"
         cache_dir = config.get_huggingface_model_path()
         path_to_adapter = f"{cache_dir}/{self.clean_adapter_name(adapter_path)}"
+        os.makedirs(path_to_adapter, exist_ok=True)
         hf_hub_download(
             repo_id=adapter_path, filename=adapter_filename, local_dir=cache_dir
         )
