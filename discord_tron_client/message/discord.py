@@ -117,8 +117,9 @@ class DiscordMessage(WebsocketMessage):
             stage1_guidance = f"\n**Stage 2 Guidance**: `!settings refiner_guidance {refiner_guidance}`"
         
         flux_adapter = user_config.get('flux_adapter_1')
+        flux_adapter_text = ""
         if "black-forest-labs" in model_id and flux_adapter:
-            model_id = f"!model {model_id}`, **Flux Capacitor** `!settings flux_adapter_1 {flux_adapter}"
+            flux_adapter_text = f"\n**Flux Adapter**: `!settings flux_adapter_1 {flux_adapter}`\n"
 
         guidance_rescale = user_config.get("guidance_rescale")
         if latent_refiner == "On":
@@ -155,7 +156,7 @@ class DiscordMessage(WebsocketMessage):
                 f"<@{author_id}>\n"
                 f"**Prompt**: {prompt[:255]}{truncate_suffix}\n"
                 f"**Settings**: `!seed {seed}`, `!guidance {user_config['guidance_scaling']}`, `!guidance_rescale {guidance_rescale}`, `!steps {steps}`, `!strength {strength}`, `!resolution {resolution_string}`{stage1_guidance}\n"
-                f"**Model**: `{model_id}` (`{latest_hash}` {last_modified})\n{refiner_status}"
+                f"**Model**: `{model_id}` (`{latest_hash}` {last_modified})\n{refiner_status}{flux_adapter_text}"
                 f"**{HardwareInfo.get_identifier()}**: {payload['gpu_power_consumption']}W power used in {execute_time} seconds via {system_hw['gpu_type']} ({vmem}G)\n"  # , on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
                 # f"**Job ID:** `{payload['job_id']}`\n"
             )
