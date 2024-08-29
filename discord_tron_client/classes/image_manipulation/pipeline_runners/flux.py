@@ -29,7 +29,7 @@ class FluxPipelineRunner(BasePipelineRunner):
         self.clear_adapters()
         for i in range:
             user_adapter = user_config.get(f"flux_adapter_{i}", None)
-            if user_adapter is not None:
+            if user_adapter is not None and user_adapter != "":
                 pieces = user_adapter.split(":")
                 adapter_strength = 1
                 adapter_type = "lora"
