@@ -148,8 +148,9 @@ class BasePipelineRunner:
             if fuse_adapter:
                 lycoris_wrapper.merge_to()
             else:
-                lycoris_wrapper.to(self.pipeline.transformer.device)
+                # lycoris_wrapper.to(self.pipeline.transformer.device)
                 lycoris_wrapper.apply_to()
+                self.pipeline.to(self.pipeline_manager.device)
         self.loaded_adapters[clean_adapter_name] = {
             "adapter_type": adapter_type,
             "adapter_path": adapter_path,
@@ -162,14 +163,15 @@ class BasePipelineRunner:
         """remove any loaded_adapters from the pipeline"""
         loaded_adapters = self.loaded_adapters.items()
         for clean_adapter_name, config in loaded_adapters:
-            if config["adapter_type"] == "lora":
+            if config.get("adapter_type") == "lora":
                 if config.get("is_fused", False):
                     self.pipeline.unfuse_lora()
                 self.pipeline.unload_lora_weights(clean_adapter_name)
-            if config["adapter_type"] == "lycoris":
+            if config.get("adapter_type") == "lycoris":
                 lycoris_wrapper = config.get("lycoris_wrapper")
                 if not lycoris_wrapper:
                     continue
                 lycoris_wrapper.restore()
-            del self.loaded_adapters[clean_adapter_name]
+            self.loaded_adapters[clean_adapter_name] = None
         self.pipeline.unload_lora_weights()
+        self.loaded_adapters = {}
