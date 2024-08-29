@@ -57,8 +57,8 @@ class FluxPipelineRunner(BasePipelineRunner):
                     self.load_adapter(
                         adapter_type, adapter_path, adapter_strength, fuse_adapter=False
                     )
-                except:
-                    logging.error(f"Failed to download adapter {adapter_path}")
+                except Exception as e:
+                    logging.error(f"Failed to download adapter {adapter_path}: {e}")
                     continue
 
         # Call the pipeline with arguments and return the images
