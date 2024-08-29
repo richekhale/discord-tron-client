@@ -8,6 +8,7 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners.deep_floyd 
 from discord_tron_client.classes.image_manipulation.pipeline_runners.sd3_runner import SD3PipelineRunner
 from discord_tron_client.classes.image_manipulation.pipeline_runners.aura import AuraPipelineRunner
 from discord_tron_client.classes.image_manipulation.pipeline_runners.pixart import PixArtPipelineRunner
+from discord_tron_client.classes.image_manipulation.pipeline_runners.flux import FluxPipelineRunner
 
 runner_map = {
     "text2img": Text2ImgPipelineRunner,
@@ -19,4 +20,5 @@ runner_map = {
     "sd3": SD3PipelineRunner,
     "pixart": PixArtPipelineRunner,
     "aura": AuraPipelineRunner,
+    "flux": FluxPipelineRunner,
 }

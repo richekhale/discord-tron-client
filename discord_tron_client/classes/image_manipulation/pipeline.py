@@ -23,6 +23,7 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners import (
     KandinskyTwoTwoPipelineRunner,
     DeepFloydPipelineRunner,
     SD3PipelineRunner,
+    FluxPipelineRunner,
     runner_map,
 )
 
@@ -299,6 +300,8 @@ class PipelineRunner:
                 pipeline_runner = runner_map["sdxl_base"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
             elif type(pipe) is diffusers.StableDiffusion3Pipeline:
                 pipeline_runner = runner_map["sd3"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+            elif type(pipe) is diffusers.FluxPipeline:
+                pipeline_runner = runner_map["flux"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
             elif type(pipe) is PixArtSigmaPipeline:
                 use_latent_result = False
                 pipeline_runner = runner_map["pixart"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)

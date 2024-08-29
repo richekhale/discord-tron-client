@@ -3,11 +3,13 @@ from diffusers import DiffusionPipeline
 import torch, logging, gc, re
 from discord_tron_client.classes.app_config import AppConfig
 from discord_tron_client.classes.hardware import HardwareInfo
+from huggingface_hub import hf_hub_download
 config = AppConfig()
 hardware_info = HardwareInfo()
 
 class BasePipelineRunner:
     def __init__(self, **kwargs):
+        self.loaded_adapters = {}
         self.pipeline = None
         self.pipeline_manager = None
         self.diffusion_manager = None
@@ -85,3 +87,57 @@ class BasePipelineRunner:
             logging.debug(f"Prompt parameters extracted from prompt {prompt}: {parameters}")
 
         return prompts[0] if len(prompts) == 1 else prompts, parameters
+
+    def download_adapter(self, adapter_type: str, adapter_path: str):
+        """download from huggingface hub if the adapter_type is not eg. lora"""
+
+        adapter_filename = "pytorch_lora_weights.safetensors"
+        cache_dir = AppConfig.get_huggingface_model_path()
+        path_to_adapter = f"{cache_dir}/{adapter_path}"
+        hf_hub_download(repo_id=adapter_path, filename=adapter_filename, local_dir=cache_dir)
+
+        return path_to_adapter
+
+    def load_adapter(self, adapter_type: str, adapter_path: str, adapter_strength: float = 1.0, fuse_adapter: bool = False):
+        """load the adapter from the path"""
+        # remove / and other chars from the adapter name
+        clean_adapter_name = adapter_path.replace("/", "_").replace("\\", "_").replace(":", "_")
+        lycoris_wrapper = None
+        if adapter_type == "lora":
+            self.pipeline.load_lora_weights(pretrained_model_name_or_path=adapter_path, adapter_name=clean_adapter_name)
+            if fuse_adapter:
+                self.pipeline.fuse_lora_weights(adapter_names=[clean_adapter_name], lora_scale=adapter_strength)
+        if adapter_type == "lycoris":
+            from lycoris import create_lycoris_from_weights
+            model_to_patch = getattr(self.pipeline, "transformer", getattr(self.pipeline, "unet", None))
+            path_to_adapter = self.download_adapter(adapter_type, adapter_path)
+            adapter_filename = "pytorch_lora_weights.safetensors"
+            lycoris_wrapper, _ = create_lycoris_from_weights(multiplier=adapter_strength, file=path_to_adapter, module=model_to_patch)
+            if fuse_adapter:
+                lycoris_wrapper.merge_to()
+            else:
+                lycoris_wrapper.apply_to()
+        self.loaded_adapters[clean_adapter_name] = {
+            "adapter_type": adapter_type,
+            "adapter_path": adapter_path,
+            "adapter_strength": adapter_strength,
+            "is_fused": fuse_adapter,
+            "lycoris_wrapper": lycoris_wrapper
+        }
+
+
+    def clear_adapters(self):
+        """remove any loaded_adapters from the pipeline"""
+        loaded_adapters = self.loaded_adapters.items()
+        for clean_adapter_name, config in loaded_adapters:
+            if config["adapter_type"] == "lora":
+                if config.get("is_fused", False):
+                    self.pipeline.unfuse_lora()
+                self.pipeline.unload_lora_weights(clean_adapter_name)
+            if config["adapter_type"] == "lycoris":
+                lycoris_wrapper = config.get("lycoris_wrapper")
+                if not lycoris_wrapper:
+                    continue
+                lycoris_wrapper.restore()
+            del self.loaded_adapters[clean_adapter_name]
+        self.pipeline.unload_lora_weights()
