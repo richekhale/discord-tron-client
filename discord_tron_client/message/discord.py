@@ -118,7 +118,7 @@ class DiscordMessage(WebsocketMessage):
         
         flux_adapter = user_config.get('flux_adapter_1')
         if "black-forest-labs" in model_id and flux_adapter:
-            model_id = f"!model {model_id}`, **Flux Capacitor** `!settings flux_adapter_1 {flux_adapter}`"
+            model_id = f"!model {model_id}`, **Flux Capacitor** `!settings flux_adapter_1 {flux_adapter}"
 
         guidance_rescale = user_config.get("guidance_rescale")
         if latent_refiner == "On":
