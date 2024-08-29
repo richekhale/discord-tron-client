@@ -150,7 +150,7 @@ class BasePipelineRunner:
             else:
                 # lycoris_wrapper.to(self.pipeline.transformer.device)
                 lycoris_wrapper.apply_to()
-                self.pipeline.to(self.pipeline_manager.device)
+                lycoris_wrapper.to(device=self.pipeline_manager.device, dtype=self.pipeline_manager.torch_dtype)
         self.loaded_adapters[clean_adapter_name] = {
             "adapter_type": adapter_type,
             "adapter_path": adapter_path,
