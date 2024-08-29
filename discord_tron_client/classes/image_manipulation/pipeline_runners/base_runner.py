@@ -4,8 +4,10 @@ import torch, logging, gc, re
 from discord_tron_client.classes.app_config import AppConfig
 from discord_tron_client.classes.hardware import HardwareInfo
 from huggingface_hub import hf_hub_download
+
 config = AppConfig()
 hardware_info = HardwareInfo()
+
 
 class BasePipelineRunner:
     def __init__(self, **kwargs):
@@ -13,23 +15,24 @@ class BasePipelineRunner:
         self.pipeline = None
         self.pipeline_manager = None
         self.diffusion_manager = None
-        if 'pipeline' in kwargs:
-            self.pipeline = kwargs['pipeline']
-        if 'pipeline_manager' in kwargs:
-            self.pipeline_manager = kwargs['pipeline_manager']
+        if "pipeline" in kwargs:
+            self.pipeline = kwargs["pipeline"]
+        if "pipeline_manager" in kwargs:
+            self.pipeline_manager = kwargs["pipeline_manager"]
         else:
-            raise ValueError('Pipeline manager is required for pipeline runners.')
-        if 'diffusion_manager' in kwargs:
-            self.diffusion_manager = kwargs['diffusion_manager']
+            raise ValueError("Pipeline manager is required for pipeline runners.")
+        if "diffusion_manager" in kwargs:
+            self.diffusion_manager = kwargs["diffusion_manager"]
         else:
-            raise ValueError('Pipeline manager is required for pipeline runners.')
-
+            raise ValueError("Pipeline manager is required for pipeline runners.")
 
     def run(self) -> Image:
         raise NotImplementedError
-    
+
     def _cleanup_pipes(self, keep_model: str = None):
-        logging.debug(f'Removing pipes from pipeline manager, via BasePipelineRunner._cleanup_pipes(keep_model={keep_model})')
+        logging.debug(
+            f"Removing pipes from pipeline manager, via BasePipelineRunner._cleanup_pipes(keep_model={keep_model})"
+        )
         return self.pipeline_manager.delete_pipes(keep_model=keep_model)
 
     def clear_cuda_cache(self):
@@ -42,11 +45,14 @@ class BasePipelineRunner:
             logging.debug(
                 f"NOT clearing CUDA cache. Config option `cuda_cache_clear` is not set, or is False."
             )
+
     def should_offload(self):
-        return hardware_info.should_offload() or hardware_info.should_sequential_offload()
-    
+        return (
+            hardware_info.should_offload() or hardware_info.should_sequential_offload()
+        )
+
     def batch_size(self):
-        return config.get_config_value('df_batch_size', 1)
+        return config.get_config_value("df_batch_size", 1)
 
     def _extract_parameters(self, prompts: str) -> tuple:
         """
@@ -56,7 +62,7 @@ class BasePipelineRunner:
             prompt (str): The prompt string potentially containing parameters.
 
         Returns:
-            tuple: A tuple containing: 
+            tuple: A tuple containing:
                 - The original prompt with parameters removed.
                 - A dictionary of extracted key-value parameters.
         """
@@ -64,7 +70,7 @@ class BasePipelineRunner:
             prompts = [prompts]
 
         def normalize_prompt(prompt):
-            return prompt.replace('\u00A0', ' ').replace('\u200B', ' ')
+            return prompt.replace("\u00A0", " ").replace("\u200B", " ")
 
         for idx, prompt in enumerate(prompts):
             prompt = normalize_prompt(prompt)
@@ -80,11 +86,13 @@ class BasePipelineRunner:
                     parameters[key] = value.strip() if value.strip() != "" else True
 
                 # Reconstruct the prompt without parameters
-                prompt = re.sub(param_pattern, '', prompt).strip()
+                prompt = re.sub(param_pattern, "", prompt).strip()
 
                 prompts[idx] = prompt
 
-            logging.debug(f"Prompt parameters extracted from prompt {prompt}: {parameters}")
+            logging.debug(
+                f"Prompt parameters extracted from prompt {prompt}: {parameters}"
+            )
 
         return prompts[0] if len(prompts) == 1 else prompts, parameters
 
@@ -94,25 +102,45 @@ class BasePipelineRunner:
         adapter_filename = "pytorch_lora_weights.safetensors"
         cache_dir = AppConfig.get_huggingface_model_path()
         path_to_adapter = f"{cache_dir}/{adapter_path}"
-        hf_hub_download(repo_id=adapter_path, filename=adapter_filename, local_dir=cache_dir)
+        hf_hub_download(
+            repo_id=adapter_path, filename=adapter_filename, local_dir=cache_dir
+        )
 
         return path_to_adapter
 
-    def load_adapter(self, adapter_type: str, adapter_path: str, adapter_strength: float = 1.0, fuse_adapter: bool = False):
+    def load_adapter(
+        self,
+        adapter_type: str,
+        adapter_path: str,
+        adapter_strength: float = 1.0,
+        fuse_adapter: bool = False,
+    ):
         """load the adapter from the path"""
         # remove / and other chars from the adapter name
-        clean_adapter_name = adapter_path.replace("/", "_").replace("\\", "_").replace(":", "_")
+        clean_adapter_name = (
+            adapter_path.replace("/", "_").replace("\\", "_").replace(":", "_")
+        )
         lycoris_wrapper = None
         if adapter_type == "lora":
-            self.pipeline.load_lora_weights(pretrained_model_name_or_path=adapter_path, adapter_name=clean_adapter_name)
+            self.pipeline.load_lora_weights(
+                pretrained_model_name_or_path=adapter_path,
+                adapter_name=clean_adapter_name,
+            )
             if fuse_adapter:
-                self.pipeline.fuse_lora_weights(adapter_names=[clean_adapter_name], lora_scale=adapter_strength)
+                self.pipeline.fuse_lora_weights(
+                    adapter_names=[clean_adapter_name], lora_scale=adapter_strength
+                )
         if adapter_type == "lycoris":
             from lycoris import create_lycoris_from_weights
-            model_to_patch = getattr(self.pipeline, "transformer", getattr(self.pipeline, "unet", None))
+
+            model_to_patch = getattr(
+                self.pipeline, "transformer", getattr(self.pipeline, "unet", None)
+            )
             path_to_adapter = self.download_adapter(adapter_type, adapter_path)
             adapter_filename = "pytorch_lora_weights.safetensors"
-            lycoris_wrapper, _ = create_lycoris_from_weights(multiplier=adapter_strength, file=path_to_adapter, module=model_to_patch)
+            lycoris_wrapper, _ = create_lycoris_from_weights(
+                multiplier=adapter_strength, file=path_to_adapter, module=model_to_patch
+            )
             if fuse_adapter:
                 lycoris_wrapper.merge_to()
             else:
@@ -122,9 +150,8 @@ class BasePipelineRunner:
             "adapter_path": adapter_path,
             "adapter_strength": adapter_strength,
             "is_fused": fuse_adapter,
-            "lycoris_wrapper": lycoris_wrapper
+            "lycoris_wrapper": lycoris_wrapper,
         }
-
 
     def clear_adapters(self):
         """remove any loaded_adapters from the pipeline"""

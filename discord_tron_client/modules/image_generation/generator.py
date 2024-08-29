@@ -54,14 +54,16 @@ async def generate_image(payload, websocket):
             )
             AppConfig.set_pipeline_runner(pipeline_runner)
         else:
-            pipeline_runner.model_manager=model_manager
-            pipeline_runner.pipeline_manager=pipeline_manager
-            pipeline_runner.config=config
-            pipeline_runner.user_config=user_config
-            pipeline_runner.discord_msg=discord_msg
-            pipeline_runner.websocket=websocket
-            pipeline_runner.model_config=model_config
-            await pipeline_runner.reset_bar(discord_msg=discord_msg, websocket=websocket)
+            pipeline_runner.model_manager = model_manager
+            pipeline_runner.pipeline_manager = pipeline_manager
+            pipeline_runner.config = config
+            pipeline_runner.user_config = user_config
+            pipeline_runner.discord_msg = discord_msg
+            pipeline_runner.websocket = websocket
+            pipeline_runner.model_config = model_config
+            await pipeline_runner.reset_bar(
+                discord_msg=discord_msg, websocket=websocket
+            )
         # Attach a positive prompt weight to the end so that it's more likely to show up this way.
         prompt = prompt + " " + positive_prompt
         image = None
@@ -72,7 +74,9 @@ async def generate_image(payload, websocket):
             image = Image.open(
                 io.BytesIO(requests.get(payload["image_data"], timeout=10).content)
             )
-            image = image.resize((resolution["width"], resolution["height"]), resample=Image.LANCZOS)
+            image = image.resize(
+                (resolution["width"], resolution["height"]), resample=Image.LANCZOS
+            )
             try:
                 background = Image.new("RGBA", image.size, (255, 255, 255))
                 alpha_composite = Image.alpha_composite(background, image)
@@ -86,7 +90,10 @@ async def generate_image(payload, websocket):
             module_command="delete",
         )
         await websocket.send(discord_msg.to_json())
-        if "overridden_user_id" in payload and payload["overridden_user_id"] is not None:
+        if (
+            "overridden_user_id" in payload
+            and payload["overridden_user_id"] is not None
+        ):
             payload["discord_context"]["author"]["id"] = payload["overridden_user_id"]
         user_config["user_id"] = payload["discord_context"]["author"]["id"]
         if "width" not in resolution or "height" not in resolution:
@@ -103,7 +110,7 @@ async def generate_image(payload, websocket):
             upscaler=upscaler,
         )
         end_time = asyncio.get_event_loop().time()
-        
+
         websocket = AppConfig.get_websocket()
         discord_msg = DiscordMessage(
             websocket=websocket,
@@ -147,8 +154,12 @@ async def generate_image(payload, websocket):
         execute_duration = end_time - start_time
         websocket = AppConfig.get_websocket()
         attributes = {
-            "last_modified": pipeline_manager.pipeline_versions.get(model_id, {}).get("last_modified", "unknown"),
-            "latest_hash": pipeline_manager.pipeline_versions.get(model_id, {}).get('latest_hash', "unknown hash")
+            "last_modified": pipeline_manager.pipeline_versions.get(model_id, {}).get(
+                "last_modified", "unknown"
+            ),
+            "latest_hash": pipeline_manager.pipeline_versions.get(model_id, {}).get(
+                "latest_hash", "unknown hash"
+            ),
         }
         discord_msg = DiscordMessage(
             websocket=websocket,
@@ -157,7 +168,9 @@ async def generate_image(payload, websocket):
             name=truncated_prompt,
             image_model=model_id,
             image_prompt=prompt,
-            message=DiscordMessage.print_prompt(payload, execute_duration=execute_duration, attributes=attributes),
+            message=DiscordMessage.print_prompt(
+                payload, execute_duration=execute_duration, attributes=attributes
+            ),
             image_url_list=url_list,
             user_id=payload["discord_context"]["author"]["id"],
         )
@@ -169,8 +182,11 @@ async def generate_image(payload, websocket):
         try:
             s = str(e)
             if "out of memory" in s:
-                logging.error("The exception occurred because we ran out of memory. Clearing CUDA.")
+                logging.error(
+                    "The exception occurred because we ran out of memory. Clearing CUDA."
+                )
                 import torch, gc
+
                 torch.cuda.empty_cache()
                 gc.collect()
                 pipeline_manager.delete_pipes()

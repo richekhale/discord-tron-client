@@ -1,10 +1,7 @@
 from huggingface_hub import get_hf_file_metadata, hf_hub_url, model_info
 
 repo_id = "ptx0/terminus-xl-gamma-training"
-url = hf_hub_url(
-    repo_id=repo_id,
-    filename="unet/diffusion_pytorch_model.safetensors"
-)
+url = hf_hub_url(repo_id=repo_id, filename="unet/diffusion_pytorch_model.safetensors")
 print(f"URL: {url}\n")
 metadata = get_hf_file_metadata(url)
 model_info = model_info(repo_id)

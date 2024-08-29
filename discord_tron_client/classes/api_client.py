@@ -4,6 +4,7 @@ from discord_tron_client.classes.app_config import AppConfig
 from PIL import Image
 import urllib3
 
+
 class ApiClient:
     def __init__(self, auth: Auth, config: AppConfig):
         self.auth = auth
@@ -41,37 +42,34 @@ class ApiClient:
         files: dict = None,
         send_auth: bool = True,
     ):
+        try:
+            logging.debug(
+                f"Sending POST request to {endpoint} with files {files} and headers {self.headers} using params {params}"
+            )
+            if params is None:
+                params = {}
+            if send_auth:
+                self.headers = self._set_auth_header()
+            url = self.base_url + endpoint
+            response = requests.post(
+                url,
+                timeout=60,
+                params=params,
+                verify=self.verify_ssl,
+                files=files,
+                headers=self.headers,
+            )
+            return self.handle_response(response)
+        except Exception as e:
+            logging.error("Error in ApiClient.post: " + str(e))
             try:
-                logging.debug(f'Sending POST request to {endpoint} with files {files} and headers {self.headers} using params {params}')
-                if params is None:
-                    params = {}
-                if send_auth:
-                    self.headers = self._set_auth_header()
-                url = self.base_url + endpoint
-                response = requests.post(
-                    url,
-                    timeout=60,
-                    params=params,
-                    verify=self.verify_ssl,
-                    files=files,
-                    headers=self.headers,
-                )
-                return self.handle_response(response)
-            except Exception as e:
-                logging.error("Error in ApiClient.post: " + str(e))
-                try:
-                    if "Authentication required" in str(e):
-                        logging.error(
-                            "Error is authentication related. Refreshing auth."
-                        )
-                        self.update_auth()
-                    raise e
-                except Exception as e2:
-                    logging.error(
-                        "Error in ApiClient.post when checking error: " + str(e2)
-                    )
-                    raise e2
-
+                if "Authentication required" in str(e):
+                    logging.error("Error is authentication related. Refreshing auth.")
+                    self.update_auth()
+                raise e
+            except Exception as e2:
+                logging.error("Error in ApiClient.post when checking error: " + str(e2))
+                raise e2
 
     def send_file(self, endpoint: str, file_path: str):
         with open(file_path, "rb") as f:
@@ -95,7 +93,13 @@ class ApiClient:
         )
         return response
 
-    async def send_pil_image(self, endpoint: str, image: Image, send_auth: bool = True, image_metadata: dict = {}):
+    async def send_pil_image(
+        self,
+        endpoint: str,
+        image: Image,
+        send_auth: bool = True,
+        image_metadata: dict = {},
+    ):
         buffer = io.BytesIO()
         image.save(buffer, format="PNG")
         attempt = 0
@@ -103,6 +107,7 @@ class ApiClient:
             try:
                 buffer.seek(0)
                 import asyncio
+
                 loop = asyncio.get_event_loop()
                 response = await loop.run_in_executor(
                     AppConfig.get_image_worker_thread(),  # Use a dedicated image processing thread worker.
@@ -115,13 +120,14 @@ class ApiClient:
                 return response
             except Exception as e:
                 attempt += 1
-                sleep_time = 2 ** attempt
+                sleep_time = 2**attempt
                 logging.error(
                     f"Error in ApiClient.post. Sleeping for {sleep_time} seconds."
                 )
                 time.sleep(sleep_time)
                 if attempt >= 15:
                     raise Exception(f"Upload failed after 15 attempts")
+
     def send_buffer(self, endpoint: str, buffer: io.BytesIO):
         response = self.post(endpoint, files={"file": buffer})
         return response

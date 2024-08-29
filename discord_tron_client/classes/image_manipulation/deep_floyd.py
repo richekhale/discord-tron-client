@@ -11,8 +11,9 @@ from transformers import AutoModel
 from diffusers import DiffusionPipeline
 from diffusers.utils import pt_to_pil
 import torch
+
 logger = logging.getLogger()
-logger.setLevel('DEBUG')
+logger.setLevel("DEBUG")
 
 torch_backend = "cuda"
 if not torch.backends.mps.is_available():
@@ -42,6 +43,7 @@ deepfloyd_stage2 = True
 # prompt = "a stunning and impossible caustics experiment, suspended liquids, amorphous liquid forms, high intensity light rays, unreal engine 5, raytracing, 4k, laser dot fields, curving light energy beams, glowing energetic caustic liquids, thousands of prismatic bubbles, quantum entangled light rays from other dimensions, negative width height, recursive dimensional portals"
 generator = torch.Generator(device=device)
 generator.manual_seed(int(0))
+
 
 def resize_for_condition_image(input_image: Image, resolution: int):
     input_image = input_image.convert("RGB")
@@ -154,6 +156,6 @@ def generate(
         image[0].save("/notebooks/_/if_stage_III.png")
     logging.debug(f"Saved output.")
 
+
 if __name__ == "__main__":
     generate()
-    

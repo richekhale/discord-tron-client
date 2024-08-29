@@ -16,7 +16,9 @@ from diffusers import (
     StableDiffusionXLImg2ImgPipeline,
 )
 from diffusers.models.attention_processor import AttnProcessor2_0
-from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.pixart import PixArtSigmaPipeline
+from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.pixart import (
+    PixArtSigmaPipeline,
+)
 from diffusers import DiffusionPipeline as Pipeline
 from typing import Dict
 from discord_tron_client.classes.hardware import HardwareInfo
@@ -27,8 +29,9 @@ from discord_tron_client.classes.image_manipulation.face_upscale import (
 )
 from PIL import Image
 import torch, gc, logging, diffusers, transformers, os
-logger = logging.getLogger('DiffusionPipelineManager')
-logger.setLevel('DEBUG')
+
+logger = logging.getLogger("DiffusionPipelineManager")
+logger.setLevel("DEBUG")
 if not torch.backends.mps.is_available():
     torch.backends.cudnn.deterministic = False
     torch.backends.cuda.matmul.allow_tf32 = True
@@ -85,7 +88,13 @@ class DiffusionPipelineManager:
                 f"Our GPU has less than 16GB of memory, so we will use memory constrained pipeline parameters for image generation, resulting in much higher CPU use to lower VMEM use."
             )
             self.is_memory_constrained = True
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+        self.device = torch.device(
+            "cuda"
+            if torch.cuda.is_available()
+            else "mps"
+            if torch.backends.mps.is_available()
+            else "cpu"
+        )
         self.last_pipe_type = {}  # { "model_id": "text2img", ... }
         self.last_pipe_scheduler = {}  # { "model_id": "default" }
         self.pipelines: Dict[str, Pipeline] = {}
@@ -102,14 +111,21 @@ class DiffusionPipelineManager:
         else:
             logger.warning(f"Model {model_id} did not have a cached pipeline to clear.")
 
-    def create_pipeline(self, model_id: str, pipe_type: str, use_safetensors: bool = True, custom_text_encoder = None, safety_modules: dict = None) -> Pipeline:
+    def create_pipeline(
+        self,
+        model_id: str,
+        pipe_type: str,
+        use_safetensors: bool = True,
+        custom_text_encoder=None,
+        safety_modules: dict = None,
+    ) -> Pipeline:
         pipeline_class = self.PIPELINE_CLASSES[pipe_type]
         if "pixart" in model_id:
             pipeline_class = self.PIPELINE_CLASSES["pixart"]
         extra_args = {
-            'feature_extractor': None,
-            'safety_checker': None,
-            'requires_safety_checker': None,
+            "feature_extractor": None,
+            "safety_checker": None,
+            "requires_safety_checker": None,
         }
         # if custom_text_encoder is not None and custom_text_encoder == -1:
         #     # Disable text encoder.
@@ -129,9 +145,7 @@ class DiffusionPipelineManager:
             logger.debug(
                 f"Passing the ControlNet into a StableDiffusionControlNetPipeline for {model_id}"
             )
-            logger.debug(
-                f"Passing args into ControlNet: {extra_args} for {model_id}"
-            )
+            logger.debug(f"Passing args into ControlNet: {extra_args} for {model_id}")
             pipeline_cls = self.PIPELINE_CLASSES["variation"]
             pipeline = pipeline_cls.from_pretrained(
                 model_id,
@@ -139,7 +153,7 @@ class DiffusionPipelineManager:
                 custom_pipeline="stable_diffusion_controlnet_img2img",
                 controlnet=controlnet,
                 use_safetensors=use_safetensors,
-                **extra_args
+                **extra_args,
             )
         elif pipe_type in ["prompt_variation"]:
             # Use the long prompt weighting pipeline.
@@ -151,7 +165,7 @@ class DiffusionPipelineManager:
                 model_id,
                 torch_dtype=self.torch_dtype,
                 use_safetensors=use_safetensors,
-                **extra_args
+                **extra_args,
             )
         elif pipe_type in ["text2img"]:
             logger.debug(f"Creating a txt2img pipeline for {model_id}")
@@ -160,17 +174,18 @@ class DiffusionPipelineManager:
                 torch_dtype=self.torch_dtype,
                 use_safetensors=use_safetensors,
                 use_auth_token=config.get_huggingface_api_key(),
-                variant=config.get_config_value('model_default_variant', None),
-                **extra_args
+                variant=config.get_config_value("model_default_variant", None),
+                **extra_args,
             )
             logger.debug(f"Model config: {pipeline.config}")
         else:
             logger.debug(f"Using standard pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
-                model_id, torch_dtype=self.torch_dtype,
+                model_id,
+                torch_dtype=self.torch_dtype,
                 use_safetensors=use_safetensors,
                 use_auth_token=config.get_huggingface_api_key(),
-                **extra_args
+                **extra_args,
             )
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
@@ -183,6 +198,7 @@ class DiffusionPipelineManager:
 
     def upscale_image(self, image: Image):
         self._initialize_upscaler_pipe()
+
         def resize_for_condition_image(input_image: Image, resolution: int):
             input_image = input_image.convert("RGB")
             W, H = input_image.size
@@ -207,18 +223,23 @@ class DiffusionPipelineManager:
         self,
         model_id: str,
         subfolder: str = "unet",
-        unet_model_name: str = "diffusion_pytorch_model.safetensors"
+        unet_model_name: str = "diffusion_pytorch_model.safetensors",
     ) -> str:
         from huggingface_hub import get_hf_file_metadata, hf_hub_url
+
         try:
-            url = hf_hub_url(repo_id=model_id, filename=os.path.join(subfolder, unet_model_name))
+            url = hf_hub_url(
+                repo_id=model_id, filename=os.path.join(subfolder, unet_model_name)
+            )
             logger.debug(f"Retrieving metadata from URL: {url}")
             metadata = get_hf_file_metadata(url)
             result = metadata.commit_hash
             logger.debug(f"Commit hash retrieved: {result}")
             return result
         except Exception as e:
-            url = hf_hub_url(repo_id=model_id, filename=os.path.join("transformer", unet_model_name))
+            url = hf_hub_url(
+                repo_id=model_id, filename=os.path.join("transformer", unet_model_name)
+            )
             logger.error(f"Could not get model metadata: {e}")
             try:
                 metadata = get_hf_file_metadata(url)
@@ -229,36 +250,43 @@ class DiffusionPipelineManager:
                 logger.error(f"Could not get model metadata: {e}")
                 return False
 
-
-    def get_repo_last_modified(
-        self,
-        model_id: str
-    ) -> str:
+    def get_repo_last_modified(self, model_id: str) -> str:
         from huggingface_hub import model_info
+
         model_info = model_info(model_id)
         last_modified = str(model_info.last_modified).split("+")[0]
         return last_modified
 
-    def is_model_latest(
-        self,
-        model_id: str
-    ) -> bool:
+    def is_model_latest(self, model_id: str) -> bool:
         latest_hash = self.get_model_latest_hash(model_id)
         if latest_hash is None:
             logger.debug(f"is_model_latest could not retrieve metadata: {latest_hash}")
             return None
         if latest_hash is False:
-            logger.debug(f"is_model_latest could not retrieve metadata: {latest_hash}, but we are assuming it's fine.")
+            logger.debug(
+                f"is_model_latest could not retrieve metadata: {latest_hash}, but we are assuming it's fine."
+            )
             return True
-        current_hash = self.pipeline_versions.get(model_id, {}).get("latest_hash", "unknown")
-        last_modified = self.pipeline_versions.get(model_id, {}).get("last_modified", "unknown")
+        current_hash = self.pipeline_versions.get(model_id, {}).get(
+            "latest_hash", "unknown"
+        )
+        last_modified = self.pipeline_versions.get(model_id, {}).get(
+            "last_modified", "unknown"
+        )
         latest_modified = self.get_repo_last_modified(model_id)
         test = latest_hash == current_hash and last_modified == latest_modified
         if test:
-            logger.debug(f"Model {model_id} is the latest version, modified on {last_modified}.")
+            logger.debug(
+                f"Model {model_id} is the latest version, modified on {last_modified}."
+            )
             return True
-        logger.debug(f"Model {model_id} is not the latest. Setting version from {current_hash} to {latest_hash}")
-        self.pipeline_versions[model_id] = {"latest_hash": latest_hash, "last_modified": latest_modified}
+        logger.debug(
+            f"Model {model_id} is not the latest. Setting version from {current_hash} to {latest_hash}"
+        )
+        self.pipeline_versions[model_id] = {
+            "latest_hash": latest_hash,
+            "last_modified": latest_modified,
+        }
         return False
 
     def get_pipe(
@@ -268,9 +296,9 @@ class DiffusionPipelineManager:
         prompt_variation: bool = False,
         promptless_variation: bool = False,
         upscaler: bool = False,
-        custom_text_encoder = None,
+        custom_text_encoder=None,
         safety_modules: dict = None,
-        use_safetensors: bool = True
+        use_safetensors: bool = True,
     ) -> Pipeline:
         self.delete_pipes(keep_model=model_id)
         pipe_type = (
@@ -299,19 +327,38 @@ class DiffusionPipelineManager:
             )
             self.clear_pipeline(model_id)
         # Let's check the current hash against the latest and delete the stored model if it needs an update.
-        logger.info(f"Checking the model version for {model_id}: currently we have {self.pipeline_versions.get(model_id, {}).get('latest_hash', 'unknown')}")
+        logger.info(
+            f"Checking the model version for {model_id}: currently we have {self.pipeline_versions.get(model_id, {}).get('latest_hash', 'unknown')}"
+        )
         if not self.is_model_latest(model_id):
-            new_revision = self.pipeline_versions.get(model_id, {}).get('latest_hash', None)
+            new_revision = self.pipeline_versions.get(model_id, {}).get(
+                "latest_hash", None
+            )
             if not new_revision:
-                raise ValueError(f"Could not get the latest revision for model {model_id}")
+                raise ValueError(
+                    f"Could not get the latest revision for model {model_id}"
+                )
             logger.warn(
                 f"Model {model_id} is not the latest version. Deleting the stored model. Retrieving {new_revision} from the cache."
             )
             self.clear_pipeline(model_id)
         if model_id not in self.pipelines:
-            logger.debug(f"Creating pipeline type {pipe_type} for model {model_id} with custom_text_encoder {type(custom_text_encoder)}")
-            self.pipelines[model_id] = self.create_pipeline(model_id, pipe_type, use_safetensors=use_safetensors, custom_text_encoder=custom_text_encoder, safety_modules=safety_modules)
-            if pipe_type in ["upscaler", "prompt_variation", "text2img", "kandinsky-2.2"]:
+            logger.debug(
+                f"Creating pipeline type {pipe_type} for model {model_id} with custom_text_encoder {type(custom_text_encoder)}"
+            )
+            self.pipelines[model_id] = self.create_pipeline(
+                model_id,
+                pipe_type,
+                use_safetensors=use_safetensors,
+                custom_text_encoder=custom_text_encoder,
+                safety_modules=safety_modules,
+            )
+            if pipe_type in [
+                "upscaler",
+                "prompt_variation",
+                "text2img",
+                "kandinsky-2.2",
+            ]:
                 pass
             elif pipe_type == "variation":
                 # I think this needs a specific scheduler set.
@@ -328,9 +375,14 @@ class DiffusionPipelineManager:
                 )
             # Additional offload settings that we apply to all pipelines.
             from diffusers.pipelines import IFPipeline, IFSuperResolutionPipeline
-            if hasattr(self.pipelines[model_id], 'unet') and type(self.pipelines[model_id]) not in [IFPipeline, IFSuperResolutionPipeline, StableDiffusion3Pipeline]:
+
+            if hasattr(self.pipelines[model_id], "unet") and type(
+                self.pipelines[model_id]
+            ) not in [IFPipeline, IFSuperResolutionPipeline, StableDiffusion3Pipeline]:
                 self.pipelines[model_id].unet.to(memory_format=torch.channels_last)
-                self.pipelines[model_id].unet.set_attn_processor(AttnProcessor2_0()) # https://huggingface.co/docs/diffusers/optimization/torch2.0
+                self.pipelines[model_id].unet.set_attn_processor(
+                    AttnProcessor2_0()
+                )  # https://huggingface.co/docs/diffusers/optimization/torch2.0
             if (
                 hasattr(self.pipelines[model_id], "enable_model_cpu_offload")
                 and hardware.should_offload()
@@ -348,15 +400,22 @@ class DiffusionPipelineManager:
                     f"Moving pipe to CUDA early, because no offloading is being used."
                 )
                 self.pipelines[model_id].to(self.device)
-                if config.enable_compile() and hasattr(self.pipelines[model_id], 'unet'):
+                if config.enable_compile() and hasattr(
+                    self.pipelines[model_id], "unet"
+                ):
                     torch._dynamo.config.suppress_errors = True
                     self.pipelines[model_id].unet = torch.compile(
                         self.pipelines[model_id].unet,
                         mode="reduce-overhead",
                         fullgraph=True,
                     )
-                if hasattr(self.pipelines[model_id], 'controlnet') and config.enable_compile():
-                    self.pipelines[model_id].controlnet = torch.compile(self.pipelines[model_id].controlnet, fullgraph=True)
+                if (
+                    hasattr(self.pipelines[model_id], "controlnet")
+                    and config.enable_compile()
+                ):
+                    self.pipelines[model_id].controlnet = torch.compile(
+                        self.pipelines[model_id].controlnet, fullgraph=True
+                    )
                 # if hasattr(self.pipelines[model_id], 'text_encoder') and type(self.pipelines[model_id].text_encoder) == transformers.T5EncoderModel and config.enable_compile():
                 #     logger.info('Found T5 encoder model. Compiling...')
                 #     self.pipelines[model_id].text_encoder = torch.compile(
@@ -369,16 +428,24 @@ class DiffusionPipelineManager:
             logger.info(f"Keeping existing pipeline. Not creating any new ones.")
             self.pipelines[model_id].to(self.device)
         self.last_pipe_type[model_id] = pipe_type
-        self.last_pipe_scheduler[model_id] = self.pipelines[model_id].config["scheduler"][1]
+        self.last_pipe_scheduler[model_id] = self.pipelines[model_id].config[
+            "scheduler"
+        ][1]
         logger.debug(
             f"Model scheduler config: {self.pipelines[model_id].config['scheduler'][1]}"
         )
         enable_tiling = user_config.get("enable_tiling", True)
-        if hasattr(self.pipelines[model_id], 'vae') and not hasattr(self.pipelines[model_id], 'transformer') and enable_tiling:
+        if (
+            hasattr(self.pipelines[model_id], "vae")
+            and not hasattr(self.pipelines[model_id], "transformer")
+            and enable_tiling
+        ):
             logger.warn(f"Enabling VAE tiling. This could cause artifacted outputs.")
             self.pipelines[model_id].vae.enable_tiling()
             self.pipelines[model_id].vae.enable_slicing()
-        elif hasattr(self.pipelines[model_id], 'vae') and not hasattr(self.pipelines[model_id], 'transformer'):
+        elif hasattr(self.pipelines[model_id], "vae") and not hasattr(
+            self.pipelines[model_id], "transformer"
+        ):
             self.pipelines[model_id].vae.disable_tiling()
             self.pipelines[model_id].vae.disable_slicing()
         return self.pipelines[model_id]
@@ -387,8 +454,12 @@ class DiffusionPipelineManager:
         total_allowed_concurrent = hardware.get_concurrent_pipe_count()
         # Loop by a range of 0 through len(self.pipelines):
         for model_id in list(self.pipelines.keys()):
-            if len(self.pipelines) > total_allowed_concurrent and (keep_model is None or keep_model != model_id):
-                logger.info(f'Deleting pipe for model {model_id}, as we had {len(self.pipelines)} pipes, and only {total_allowed_concurrent} are allowed.')
+            if len(self.pipelines) > total_allowed_concurrent and (
+                keep_model is None or keep_model != model_id
+            ):
+                logger.info(
+                    f"Deleting pipe for model {model_id}, as we had {len(self.pipelines)} pipes, and only {total_allowed_concurrent} are allowed."
+                )
                 del self.pipelines[model_id]
                 if model_id in self.last_pipe_scheduler:
                     del self.last_pipe_scheduler[model_id]
@@ -413,17 +484,22 @@ class DiffusionPipelineManager:
             promptless_variation=True,
             user_config={},
             model_id="emilianJR/epiCRealism",
-            use_safetensors=False
+            use_safetensors=False,
         )
         return pipeline
 
     def get_sdxl_refiner_pipe(self):
-        refiner_model = config.get_config_value('refiner_model', 'stabilityai/stable-diffusion-xl-refiner-1.0')
+        refiner_model = config.get_config_value(
+            "refiner_model", "stabilityai/stable-diffusion-xl-refiner-1.0"
+        )
         self.delete_pipes(keep_model=refiner_model)
         pipeline = self.get_pipe(
-            user_config={},
-            model_id=refiner_model,
-            prompt_variation=True
+            user_config={}, model_id=refiner_model, prompt_variation=True
         )
-        pipeline.vae = AutoencoderKL.from_pretrained('madebyollin/sdxl-vae-fp16-fix', torch_dtype=self.torch_dtype, use_safetensors=True, use_auth_token=config.get_huggingface_api_key()).to(self.device)
+        pipeline.vae = AutoencoderKL.from_pretrained(
+            "madebyollin/sdxl-vae-fp16-fix",
+            torch_dtype=self.torch_dtype,
+            use_safetensors=True,
+            use_auth_token=config.get_huggingface_api_key(),
+        ).to(self.device)
         return pipeline

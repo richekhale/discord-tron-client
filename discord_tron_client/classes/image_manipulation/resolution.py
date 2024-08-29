@@ -56,6 +56,7 @@ class ResolutionManager:
         # Terminus resolutions - 1152x960, 896x1152 (in sdxl section above)
         {"width": 1152, "height": 960},
     ]
+
     @staticmethod
     def get_resolutions_with_extra_data(aspectratio=None):
         # Return ResolutionManager.resolutions after adding more information to each row, such as whether we will attention scale that resolution, and its aspect ratio

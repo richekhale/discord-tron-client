@@ -86,7 +86,9 @@ class HardwareInfo:
             capabilities["gpu"] = True
             capabilities["variation"] = True
         else:
-            logging.error(f"GPU not available. Video memory: {self.video_memory_amount}GiB")
+            logging.error(
+                f"GPU not available. Video memory: {self.video_memory_amount}GiB"
+            )
         if int(self.memory_amount) >= 16:
             capabilities["memory"] = True
         if int(self.get_cpu_count()) >= 16:
@@ -158,7 +160,9 @@ class HardwareInfo:
                     ["system_profiler", "SPHardwareDataType"]
                 )
                 logging.info(f"MPS memory check result: {output}")
-                self.memory_amount = int(output.decode().strip().split("Memory: ")[1].split(" ")[0])
+                self.memory_amount = int(
+                    output.decode().strip().split("Memory: ")[1].split(" ")[0]
+                )
                 logging.info(f"Determined MPS memory amount: {self.memory_amount}GiB")
                 self.video_memory_amount = int(self.memory_amount * 0.67)
                 return self.memory_amount
@@ -183,7 +187,9 @@ class HardwareInfo:
                     ["system_profiler", "SPHardwareDataType"]
                 )
                 logging.info(f"MPS memory check result: {output}")
-                self.memory_free = int(output.decode().strip().split("Memory: ")[1].split(" ")[0])
+                self.memory_free = int(
+                    output.decode().strip().split("Memory: ")[1].split(" ")[0]
+                )
                 logging.info(f"Determined MPS memory amount: {self.memory_free}GiB")
                 return self.memory_free
             with open("/proc/meminfo") as f:
@@ -216,11 +222,12 @@ class HardwareInfo:
             self.video_memory_amount = int(output.decode().strip()) / 1024
         except Exception as e:
             import traceback
+
             logging.error(
                 f"Caught exception during get_video_memory_info: {e}, traceback: {traceback.format_exc()}"
             )
             self.video_memory_amount = "Unknown"
-            
+
         return self.video_memory_amount
 
     def get_concurrent_pipe_count(self):
@@ -245,7 +252,7 @@ class HardwareInfo:
         try:
             if self.is_mps:
                 return 0
-            
+
             output = subprocess.check_output(
                 [
                     "nvidia-smi",

@@ -202,7 +202,9 @@ class ImageUpscaler:
                 logging.info(f"Prev tile (merged image) size is {prev_tile.size}")
                 logging.info(f"Ups tile overlap size is {ups_tile_overlap.size}")
 
-                ups_tile_blend = Image.blend(prev_tile, ups_tile_overlap, self.blend_alpha)
+                ups_tile_blend = Image.blend(
+                    prev_tile, ups_tile_overlap, self.blend_alpha
+                )
 
                 merged_image.paste(ups_tile_blend, overlap_box)
 

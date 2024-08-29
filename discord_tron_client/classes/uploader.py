@@ -7,6 +7,7 @@ from typing import List
 from io import BytesIO
 import logging, json, asyncio, base64, urllib3
 from scipy.io.wavfile import write as write_wav
+
 urllib3.disable_warnings()
 config = AppConfig()
 

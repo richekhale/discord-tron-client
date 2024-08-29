@@ -3,7 +3,9 @@ from torch.cuda import OutOfMemoryError
 from tqdm import tqdm
 from discord_tron_client.classes.app_config import AppConfig
 from discord_tron_client.classes.hardware import HardwareInfo
-from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.pixart import PixArtSigmaPipeline
+from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.pixart import (
+    PixArtSigmaPipeline,
+)
 from discord_tron_client.classes.image_manipulation.resolution import ResolutionManager
 from discord_tron_client.classes.image_manipulation import upscaler as upscaling_helper
 from discord_tron_client.classes.image_manipulation.prompt_manipulation import (
@@ -87,7 +89,6 @@ class PipelineRunner:
             discord_first_message=discord_msg,
         )
         self.tqdm_capture = TqdmCapture(self.progress_bar, main_loop)
-
 
     async def _prepare_pipe_async(
         self,
@@ -190,13 +191,13 @@ class PipelineRunner:
             positive_prompt = user_config.get("positive_prompt", None)
             if positive_prompt is not None:
                 prompt = f"{prompt} {positive_prompt}"
-            user_style = user_config.get('style', None)
-            logging.debug(f'User prompt style: {user_style}')
-            if user_style is not None and user_style != 'base':
+            user_style = user_config.get("style", None)
+            logging.debug(f"User prompt style: {user_style}")
+            if user_style is not None and user_style != "base":
                 prompt, negative_prompt = PromptManipulation.stylize_prompt(
                     user_prompt=prompt,
                     user_negative=negative_prompt,
-                    user_style=user_style
+                    user_style=user_style,
                 )
             if (
                 self.prompt_manager is not None
@@ -282,7 +283,10 @@ class PipelineRunner:
                     raise ValueError("refiner_strength must be between 0.0 and 1.0")
 
                 image_return_type = "latent"
-                if not type(pipe) in [diffusers.StableDiffusionXLPipeline, diffusers.StableDiffusionXLImg2ImgPipeline]:
+                if not type(pipe) in [
+                    diffusers.StableDiffusionXLPipeline,
+                    diffusers.StableDiffusionXLImg2ImgPipeline,
+                ]:
                     # We can't send latents directly from a non-SDXL pipeline into the SDXL refiner.
                     image_return_type = "pil"
                     denoising_start = None
@@ -292,34 +296,80 @@ class PipelineRunner:
                     logging.debug(
                         f"Final inference step: {denoising_start}, steps: {steps}"
                     )
-            logging.info(f'Running text2img with batch_size {batch_size} via model {user_model}.')
+            logging.info(
+                f"Running text2img with batch_size {batch_size} via model {user_model}."
+            )
             # text2img workflow
-            if self.pipeline_runner["model"] is not None and self.pipeline_runner["runner"] is not None and self.pipeline_runner["model"] == user_model:
+            if (
+                self.pipeline_runner["model"] is not None
+                and self.pipeline_runner["runner"] is not None
+                and self.pipeline_runner["model"] == user_model
+            ):
                 pipeline_runner = self.pipeline_runner["runner"]
-            elif type(pipe) is diffusers.StableDiffusionXLPipeline or "ptx0/s1" in user_model or "stable-diffusion-xl" in user_model or "-xl" in user_model:
-                pipeline_runner = runner_map["sdxl_base"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+            elif (
+                type(pipe) is diffusers.StableDiffusionXLPipeline
+                or "ptx0/s1" in user_model
+                or "stable-diffusion-xl" in user_model
+                or "-xl" in user_model
+            ):
+                pipeline_runner = runner_map["sdxl_base"](
+                    pipeline=pipe,
+                    pipeline_manager=self.pipeline_manager,
+                    diffusion_manager=self,
+                )
             elif type(pipe) is diffusers.StableDiffusion3Pipeline:
-                pipeline_runner = runner_map["sd3"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+                pipeline_runner = runner_map["sd3"](
+                    pipeline=pipe,
+                    pipeline_manager=self.pipeline_manager,
+                    diffusion_manager=self,
+                )
             elif type(pipe) is diffusers.FluxPipeline:
-                pipeline_runner = runner_map["flux"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+                pipeline_runner = runner_map["flux"](
+                    pipeline=pipe,
+                    pipeline_manager=self.pipeline_manager,
+                    diffusion_manager=self,
+                )
             elif type(pipe) is PixArtSigmaPipeline:
                 use_latent_result = False
-                pipeline_runner = runner_map["pixart"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+                pipeline_runner = runner_map["pixart"](
+                    pipeline=pipe,
+                    pipeline_manager=self.pipeline_manager,
+                    diffusion_manager=self,
+                )
             elif type(pipe) is diffusers.pipelines.AuraFlowPipeline:
-                pipeline_runner = runner_map["aura"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+                pipeline_runner = runner_map["aura"](
+                    pipeline=pipe,
+                    pipeline_manager=self.pipeline_manager,
+                    diffusion_manager=self,
+                )
             elif "ptx0/s2" in user_model or "xl-refiner" in user_model:
-                pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+                pipeline_runner = runner_map["sdxl_refiner"](
+                    pipeline=pipe,
+                    pipeline_manager=self.pipeline_manager,
+                    diffusion_manager=self,
+                )
             elif "kandinsky-2-2" in user_model:
-                pipeline_runner = runner_map["kandinsky_2.2"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+                pipeline_runner = runner_map["kandinsky_2.2"](
+                    pipeline=pipe,
+                    pipeline_manager=self.pipeline_manager,
+                    diffusion_manager=self,
+                )
             elif "DeepFloyd" in user_model:
-                pipeline_runner = runner_map["deep_floyd"](stage1=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+                pipeline_runner = runner_map["deep_floyd"](
+                    stage1=pipe,
+                    pipeline_manager=self.pipeline_manager,
+                    diffusion_manager=self,
+                )
                 # DeepFloyd pipeline handles all of this.
                 use_latent_result = False
                 image_return_type = "pil"
             else:
                 logging.debug(f"Received type of pipeline: {type(pipe)}")
                 pipeline_runner = runner_map["text2img"](pipeline=pipe)
-            if self.pipeline_runner["model"] is None or self.pipeline_runner["model"] != user_model:
+            if (
+                self.pipeline_runner["model"] is None
+                or self.pipeline_runner["model"] != user_model
+            ):
                 self.pipeline_runner["model"] = user_model
                 self.pipeline_runner["runner"] = pipeline_runner
             if image is None:
@@ -342,7 +392,9 @@ class PipelineRunner:
                     generator=generator,
                 )
                 if use_latent_result:
-                    logging.info(f'Putting text2img latents into refiner at {(denoising_start or 1) * 100} percent of the way through the process..')
+                    logging.info(
+                        f"Putting text2img latents into refiner at {(denoising_start or 1) * 100} percent of the way through the process.."
+                    )
                     preprocessed_images = self._refiner_pipeline(
                         images=preprocessed_images,
                         user_config=user_config,
@@ -356,7 +408,9 @@ class PipelineRunner:
                     generator=generator,
                 )
             elif not upscaler and not promptless_variation:
-                logging.info(f'Running img2img with batch_size {batch_size} via model {user_model}, image output type {image_return_type}.')
+                logging.info(
+                    f"Running img2img with batch_size {batch_size} via model {user_model}, image output type {image_return_type}."
+                )
                 # Img2Img workflow
                 guidance_scale = 7.5
                 new_image = pipeline_runner(
@@ -511,7 +565,7 @@ class PipelineRunner:
     def _get_prompt_manager(
         self, pipe, device="cpu", use_second_encoder_only: bool = False
     ):
-        is_gpu = hasattr(pipe, 'unet') and next(pipe.unet.parameters()).is_cuda
+        is_gpu = hasattr(pipe, "unet") and next(pipe.unet.parameters()).is_cuda
         if is_gpu:
             if device == "cpu":
                 logging.warning(
@@ -550,7 +604,7 @@ class PipelineRunner:
         generator,
         prompt: str = None,
         negative_prompt: str = None,
-        controlnet_strength: float = None
+        controlnet_strength: float = None,
     ):
         # Get the image width/height from 'image' if it's provided
         logging.info(f"Running promptless variation with image.size {image.size}.")
@@ -568,7 +622,7 @@ class PipelineRunner:
         #     prompt_embed, negative_embed = controlnet_prompt_manager.process_long_prompt(
         #         positive_prompt=prompt, negative_prompt=negative_prompt
         #     )
-        if not hasattr(pipe, 'transformer'):
+        if not hasattr(pipe, "transformer"):
             pipe.vae.disable_tiling()
             pipe.vae.disable_slicing()
         new_image = pipe(
@@ -598,15 +652,30 @@ class PipelineRunner:
         # Get the image width/height from 'image' if it's provided
         logging.info(f"Running SDXL Refiner..")
         pipe = self.pipeline_manager.get_sdxl_refiner_pipe()
-        pipeline_runner = runner_map["sdxl_refiner"](pipeline=pipe, pipeline_manager=self.pipeline_manager, diffusion_manager=self)
+        pipeline_runner = runner_map["sdxl_refiner"](
+            pipeline=pipe,
+            pipeline_manager=self.pipeline_manager,
+            diffusion_manager=self,
+        )
         prompt_embed = None
         negative_embed = None
         pooled_embed = None
         negative_pooled_embed = None
-        if self.config.enable_compel() and hasattr(pipe, 'unet'):
-            logging.info(f'SDXL Refiner is using Compel prompt embed weighting.')
-            refiner_prompt_manager = self._get_prompt_manager(pipe, use_second_encoder_only=((not hasattr(pipe, "text_encoder") or pipe.text_encoder is None) and hasattr(pipe, "text_encoder_2")))
-            prompt_embed, negative_embed, pooled_embed, negative_pooled_embed = refiner_prompt_manager.process_long_prompt(
+        if self.config.enable_compel() and hasattr(pipe, "unet"):
+            logging.info(f"SDXL Refiner is using Compel prompt embed weighting.")
+            refiner_prompt_manager = self._get_prompt_manager(
+                pipe,
+                use_second_encoder_only=(
+                    (not hasattr(pipe, "text_encoder") or pipe.text_encoder is None)
+                    and hasattr(pipe, "text_encoder_2")
+                ),
+            )
+            (
+                prompt_embed,
+                negative_embed,
+                pooled_embed,
+                negative_pooled_embed,
+            ) = refiner_prompt_manager.process_long_prompt(
                 positive_prompt=prompt, negative_prompt=negative_prompt
             )
 
@@ -636,11 +705,17 @@ class PipelineRunner:
         )
 
     def _controlnet_all_images(
-        self, preprocessed_images: list, user_config: dict, generator, prompt: str = None, negative_prompt: str = None, controlnet_strength: float = None
+        self,
+        preprocessed_images: list,
+        user_config: dict,
+        generator,
+        prompt: str = None,
+        negative_prompt: str = None,
+        controlnet_strength: float = None,
     ):
         if controlnet_strength is None:
             controlnet_strength = user_config.get("tile_strength", 0.3)
-        logging.debug(f'User ControlNet strength: {controlnet_strength}')
+        logging.debug(f"User ControlNet strength: {controlnet_strength}")
         if float(controlnet_strength) == 0.0:
             # Zero strength = Zero CTU.
             return preprocessed_images
@@ -664,7 +739,9 @@ class PipelineRunner:
 
     def _encode_image_metadata(self, image: Image, prompt, user_config, image_params):
         model_id = user_config.get("model", "unknown")
-        sampler_string = self.pipeline_manager.last_pipe_scheduler.get(model_id, "unknown")
+        sampler_string = self.pipeline_manager.last_pipe_scheduler.get(
+            model_id, "unknown"
+        )
         # Remove "DiscreteScheduler" from the string:
         sampler_string = sampler_string.replace("DiscreteScheduler", "")
         attributes = {
@@ -672,13 +749,15 @@ class PipelineRunner:
             "original_user": str(user_config["user_id"]),
             "guidance_scaling": str(image_params.get("guidance_scaling", 7.5)),
             "seed": str(image_params["seed"]),
-            "model_hash": self.pipeline_manager.pipeline_versions.get(model_id, {}).get('latest_hash', 'unknown'),
-            "last_modified": self.pipeline_manager.pipeline_versions.get(model_id, {}).get('last_modified', 'unknown'),
+            "model_hash": self.pipeline_manager.pipeline_versions.get(model_id, {}).get(
+                "latest_hash", "unknown"
+            ),
+            "last_modified": self.pipeline_manager.pipeline_versions.get(
+                model_id, {}
+            ).get("last_modified", "unknown"),
             "sampler": sampler_string,
         }
-        if not user_config.get("encode_metadata", True) or not hasattr(
-            image, "save"
-        ):
+        if not user_config.get("encode_metadata", True) or not hasattr(image, "save"):
             return image
         return ImageMetadata.encode(image, user_config, attributes)
 
@@ -687,8 +766,8 @@ class PipelineRunner:
     ):
         idx = 0
         for image in images:
-            if not hasattr(image, 'save'):
-                logging.warning(f'Returning un-processable image: {type(image)}')
+            if not hasattr(image, "save"):
+                logging.warning(f"Returning un-processable image: {type(image)}")
                 return images
             images[idx] = self._encode_image_metadata(
                 image, prompt, user_config, image_params

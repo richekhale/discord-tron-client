@@ -18,7 +18,7 @@ class DiscordProgressBar:
         self.progress_bar_length = progress_bar_length
         self.current_step = 0
         self.current_stage = 1
-        self.current_stage_msg = ''
+        self.current_stage_msg = ""
         self.websocket_msg = websocket_message
         self.websocket = websocket
         self.discord_first_message = discord_first_message
@@ -34,7 +34,7 @@ class DiscordProgressBar:
         if step == 0 and self.current_step == 100:
             # We might be onto stage two of a multi-stage operation..
             self.current_stage += 1
-            self.current_stage_msg = ' (Stage ' + str(self.current_stage) + ')'
+            self.current_stage_msg = " (Stage " + str(self.current_stage) + ")"
             return
         progress = self.current_step / self.total_steps
         filled_length = int(progress * self.progress_bar_length)
@@ -45,7 +45,9 @@ class DiscordProgressBar:
         if we_have_another_fifth_of_progress == 0:
             try:
                 # Update the websocket message template
-                self.websocket_msg.update(arguments={"message": progress_text + self.current_stage_msg})
+                self.websocket_msg.update(
+                    arguments={"message": progress_text + self.current_stage_msg}
+                )
                 to_send = self.websocket_msg.to_json()
                 self.websocket = AppConfig.get_websocket()
                 await self.send_update(

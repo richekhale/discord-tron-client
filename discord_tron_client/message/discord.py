@@ -26,7 +26,7 @@ class DiscordMessage(WebsocketMessage):
         audio_data: str = None,
         image_prompt: str = None,
         image_model: str = None,
-        user_id: int = None
+        user_id: int = None,
     ):
         self.websocket = websocket
         if isinstance(context, DiscordMessage):
@@ -74,7 +74,7 @@ class DiscordMessage(WebsocketMessage):
         return b64_image
 
     @staticmethod
-    def print_prompt(payload, execute_duration = "unknown", attributes: Dict = None):
+    def print_prompt(payload, execute_duration="unknown", attributes: Dict = None):
         system_hw = hardware.get_machine_info()
         user_config = payload["config"]
         prompt = payload["image_prompt"]
@@ -87,44 +87,53 @@ class DiscordMessage(WebsocketMessage):
         negative_prompt = user_config["negative_prompt"]
         positive_prompt = user_config["positive_prompt"]
         author_id = payload["discord_context"]["author"]["id"]
-        last_modified = 'unknown date'
+        last_modified = "unknown date"
         if attributes and "last_modified" in attributes:
-            last_modified = attributes.get('last_modified', last_modified)
-        latest_hash = 'unknown hash'
+            last_modified = attributes.get("last_modified", last_modified)
+        latest_hash = "unknown hash"
         if attributes and "latest_hash" in attributes:
-            latest_hash = attributes.get('latest_hash', latest_hash)
+            latest_hash = attributes.get("latest_hash", latest_hash)
 
         latent_refiner = "Off"
         latent_refiner_enabled = False
-        if "latent_refiner" in user_config and user_config.get('latent_refiner'):
+        if "latent_refiner" in user_config and user_config.get("latent_refiner"):
             latent_refiner = "On"
             latent_refiner_enabled = True
         if "refiner_strength" in user_config:
-            refiner_strength = str(user_config.get('refiner_strength'))
+            refiner_strength = str(user_config.get("refiner_strength"))
         if "refiner_guidance" in user_config:
-            refiner_guidance = str(user_config.get('refiner_guidance'))
-        refiner_guidance_rescale = str(user_config.get('refiner_guidance_rescale', 0.7))
+            refiner_guidance = str(user_config.get("refiner_guidance"))
+        refiner_guidance_rescale = str(user_config.get("refiner_guidance_rescale", 0.7))
         if "aesthetic_score" in user_config:
-            aesthetic_score = str(user_config.get('aesthetic_score'))
+            aesthetic_score = str(user_config.get("aesthetic_score"))
         if "negative_aesthetic_score" in user_config:
-            negative_aesthetic_score = str(user_config.get('negative_aesthetic_score'))
+            negative_aesthetic_score = str(user_config.get("negative_aesthetic_score"))
         if "refiner_strength" in user_config:
-            refiner_strength = str(user_config.get('refiner_strength'))
+            refiner_strength = str(user_config.get("refiner_strength"))
         stage1_guidance = ""
-        if "stage1" in user_config.get("model") or "stage-1" in user_config.get("model"):
+        if "stage1" in user_config.get("model") or "stage-1" in user_config.get(
+            "model"
+        ):
             stage1_guidance = f"\n**Stage 2 Guidance**: `!settings refiner_guidance {refiner_guidance}`"
 
         guidance_rescale = user_config.get("guidance_rescale")
         if latent_refiner == "On":
             latent_refiner = f"{latent_refiner}, `!settings refiner_strength {refiner_strength}` ({float(refiner_strength) * float(steps)}), `!settings refiner_guidance {refiner_guidance}`, `!settings aesthetic_score {aesthetic_score}`, `!settings negative_aesthetic_score {negative_aesthetic_score}`, `!settings refiner_guidance_rescale {refiner_guidance_rescale}`"
-        if (model_id == "ptx0/s1" or model_id == "ptx0/sdxl-base")and latent_refiner == "Off":
+        if (
+            model_id == "ptx0/s1" or model_id == "ptx0/sdxl-base"
+        ) and latent_refiner == "Off":
             model_id = "SDXL Base"
-        elif (model_id == "ptx0/s1" or model_id == "ptx0/sdxl-base")and latent_refiner != "Off":
+        elif (
+            model_id == "ptx0/s1" or model_id == "ptx0/sdxl-base"
+        ) and latent_refiner != "Off":
             model_id = "SDXL Base + Refiner"
         else:
             model_id = f"!model {model_id}"
         vmem = 0
-        if type(system_hw["video_memory_amount"]) is not str or system_hw["video_memory_amount"].isnumeric():
+        if (
+            type(system_hw["video_memory_amount"]) is not str
+            or system_hw["video_memory_amount"].isnumeric()
+        ):
             vmem = int(system_hw["video_memory_amount"])
         if type(execute_duration) is str and not execute_duration.isdigit():
             execute_time = execute_duration
@@ -143,11 +152,11 @@ class DiscordMessage(WebsocketMessage):
                 f"**Prompt**: {prompt[:255]}{truncate_suffix}\n"
                 f"**Settings**: `!seed {seed}`, `!guidance {user_config['guidance_scaling']}`, `!guidance_rescale {guidance_rescale}`, `!steps {steps}`, `!strength {strength}`, `!resolution {resolution_string}`{stage1_guidance}\n"
                 f"**Model**: `{model_id}` (`{latest_hash}` {last_modified})\n{refiner_status}"
-                f"**{HardwareInfo.get_identifier()}**: {payload['gpu_power_consumption']}W power used in {execute_time} seconds via {system_hw['gpu_type']} ({vmem}G)\n" #, on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
+                f"**{HardwareInfo.get_identifier()}**: {payload['gpu_power_consumption']}W power used in {execute_time} seconds via {system_hw['gpu_type']} ({vmem}G)\n"  # , on a {system_hw['cpu_type']} with {system_hw['memory_amount']}G RAM\n"
                 # f"**Job ID:** `{payload['job_id']}`\n"
             )
         except Exception as e:
-            return(f"Error generating prompt configuration: {e}")
+            return f"Error generating prompt configuration: {e}"
 
     @staticmethod
     def mention(payload):
@@ -159,6 +168,9 @@ class DiscordMessage(WebsocketMessage):
         Returns:
             str: Discord mention string
         """
-        if "overridden_user_id" in payload and payload["overridden_user_id"] is not None:
+        if (
+            "overridden_user_id" in payload
+            and payload["overridden_user_id"] is not None
+        ):
             return f"<@{payload['overridden_user_id']}>"
         return f"<@{payload['discord_context']['author']['id']}>"

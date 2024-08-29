@@ -3,6 +3,7 @@
 import json, os, logging, traceback
 from concurrent.futures import ThreadPoolExecutor
 
+
 class AppConfig:
     # Class variables
     main_loop = None
@@ -149,10 +150,16 @@ class AppConfig:
         )
 
     def get_max_resolution_width(self, aspect_ratio: str):
-        return self.get_config_value("maxres", {}).get(aspect_ratio, {}).get("width", 3840)
+        return (
+            self.get_config_value("maxres", {}).get(aspect_ratio, {}).get("width", 3840)
+        )
 
     def get_max_resolution_height(self, aspect_ratio: str):
-        return self.get_config_value("maxres", {}).get(aspect_ratio, {}).get("height", 2160)
+        return (
+            self.get_config_value("maxres", {})
+            .get(aspect_ratio, {})
+            .get("height", 2160)
+        )
 
     def get_precision_bits(self):
         return self.get_config_value("precision_bits", 16)
@@ -216,10 +223,10 @@ class AppConfig:
         return self.get_config_value("discord", {}).get("api_key", None)
 
     def get_local_model_path(self):
-        return self.get_config_value('huggingface', {}).get("local_model_path", None)
+        return self.get_config_value("huggingface", {}).get("local_model_path", None)
 
     def get_user_config(self, user_id):
-        return self.get_config_value('users', {}).get(str(user_id), {})
+        return self.get_config_value("users", {}).get(str(user_id), {})
 
     def set_user_config(self, user_id, user_config):
         self.config["users"][str(user_id)] = user_config
@@ -236,7 +243,11 @@ class AppConfig:
 
     def get_user_setting(self, user_id, setting_key, default_value=None):
         user_id = str(user_id)
-        return self.get_config_value('users', {}).get(user_id, {}).get(setting_key, default_value)
+        return (
+            self.get_config_value("users", {})
+            .get(user_id, {})
+            .get(setting_key, default_value)
+        )
 
     def get_mysql_user(self):
         return self.get_config_value("mysql", {}).get("user", "diffusion")
@@ -295,15 +306,21 @@ class AppConfig:
 
     def enable_diffusion(self):
         return self.get_config_value("enable_diffusion", True)
+
     def enable_compel(self):
         return self.get_config_value("use_compel_prompt_weighting", True)
+
     def enable_compile(self):
-        return self.get_config_value('enable_torch_compile', True)
+        return self.get_config_value("enable_torch_compile", True)
+
     def enable_offload(self):
-        return self.get_config_value('enable_offload', False)
+        return self.get_config_value("enable_offload", False)
+
     def enable_sequential_offload(self):
-        return self.get_config_value('enable_sequential_offload', False)
+        return self.get_config_value("enable_sequential_offload", False)
+
     def maximum_batch_size(self):
-        return max(self.get_config_value('maximum_batch_size', 4), 1)
+        return max(self.get_config_value("maximum_batch_size", 4), 1)
+
     def use_safetensors(self):
-        return self.get_config_value('use_safetensors', True)
+        return self.get_config_value("use_safetensors", True)

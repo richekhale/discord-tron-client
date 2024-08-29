@@ -28,21 +28,23 @@ async def promptless_variation(payload, websocket):
     steps = user_config["steps"]
     positive_prompt = user_config["positive_prompt"]
     controlnet_models_broken = [
-        'stabilityai/stable-diffusion-2',
-        'stabilityai/stable-diffusion-2-1',
-        'junglerally/digital-diffusion',
-        'ptx0/artius_v21',
-        'stablediffusionapi/illuminati-diffusion',
-        'ptx0/realism-engine',
-        'ptx0/sdxl-base',
-        'ptx0/s1',
-        'ptx0/s2'
+        "stabilityai/stable-diffusion-2",
+        "stabilityai/stable-diffusion-2-1",
+        "junglerally/digital-diffusion",
+        "ptx0/artius_v21",
+        "stablediffusionapi/illuminati-diffusion",
+        "ptx0/realism-engine",
+        "ptx0/sdxl-base",
+        "ptx0/s1",
+        "ptx0/s2",
     ]
     controlnet_warning = ""
     default_controlnet_model = "theintuitiveye/HARDblend"
     if model_id.lower() in controlnet_models_broken:
-        controlnet_warning = f" Your model `{model_id}` was not in our compatibility list for ControlNet. It has been swapped to `{default_controlnet_model}`!\n" \
-                                f"The following models are currently not supported for ControlNet: {', '.join(controlnet_models_broken)}"
+        controlnet_warning = (
+            f" Your model `{model_id}` was not in our compatibility list for ControlNet. It has been swapped to `{default_controlnet_model}`!\n"
+            f"The following models are currently not supported for ControlNet: {', '.join(controlnet_models_broken)}"
+        )
         model_id = default_controlnet_model
     discord_msg = DiscordMessage(
         websocket=websocket,
@@ -111,13 +113,17 @@ async def promptless_variation(payload, websocket):
         )
         await websocket.send(discord_msg.to_json())
         attributes = {
-            "last_modified": pipeline_manager.pipeline_versions.get(model_id, {}).get("last_modified", "unknown"),
+            "last_modified": pipeline_manager.pipeline_versions.get(model_id, {}).get(
+                "last_modified", "unknown"
+            ),
         }
         discord_msg = DiscordMessage(
             websocket=websocket,
             context=payload["discord_first_message"],
             module_command="send",
-            message=DiscordMessage.print_prompt(payload, execute_duration=total_time, attributes=attributes),
+            message=DiscordMessage.print_prompt(
+                payload, execute_duration=total_time, attributes=attributes
+            ),
             image=result,
         )
         await websocket.send(discord_msg.to_json())
@@ -150,12 +156,15 @@ async def promptless_variation(payload, websocket):
         await websocket.send(discord_msg.to_json())
         raise e
 
+
 def round_to_nearest_multiple(value, multiple):
     """Round a value to the nearest multiple."""
     rounded = round(value / multiple) * multiple
     return max(rounded, multiple)  # Ensure it's at least the value of 'multiple'
 
+
 from math import sqrt
+
 
 def calculate_new_size_by_pixel_area(W: int, H: int, megapixels: float):
     aspect_ratio = W / H
@@ -170,13 +179,14 @@ def calculate_new_size_by_pixel_area(W: int, H: int, megapixels: float):
 
     return W_new, H_new
 
+
 async def prompt_variation(payload, websocket):
     # We extract the features from the payload and pass them onto the actual generator
     user_config = payload["config"]
     prompt = payload["image_prompt"]
     # model_id = user_config["model"]
     # if 'ptx0' not in user_config["model"]:
-        # model_id = "ptx0/sdxl-base"
+    # model_id = "ptx0/sdxl-base"
     model_id = "ptx0/terminus-xl-velocity-v2"
     user_config["model"] = model_id
     resolution = user_config["resolution"]
@@ -218,15 +228,16 @@ async def prompt_variation(payload, websocket):
         # See if the prompt has a `--upscale` parameter and then multiply it by a maximum of 2 or factor to upscale
         if "--upscale" in prompt:
             import re
+
             upscale_factor = float(re.search(r"--upscale (\d+\.?\d*)", prompt).group(1))
             factor = min(upscale_factor, 2.0)
             # Remove --upscale from prompt:
             prompt = prompt.split("--upscale")[0]
-        new_width, new_height = calculate_new_size_by_pixel_area(image.width, image.height, factor)
-        image = image.resize(
-            (new_width, new_height), resample=Image.LANCZOS
+        new_width, new_height = calculate_new_size_by_pixel_area(
+            image.width, image.height, factor
         )
-        
+        image = image.resize((new_width, new_height), resample=Image.LANCZOS)
+
         try:
             background = Image.new("RGBA", image.size, (255, 255, 255))
             alpha_composite = Image.alpha_composite(background, image)
@@ -277,13 +288,17 @@ async def prompt_variation(payload, websocket):
         )
         await websocket.send(discord_msg.to_json())
         attributes = {
-            "last_modified": pipeline_manager.pipeline_versions.get(model_id, {}).get("last_modified", "unknown"),
+            "last_modified": pipeline_manager.pipeline_versions.get(model_id, {}).get(
+                "last_modified", "unknown"
+            ),
         }
         discord_msg = DiscordMessage(
             websocket=websocket,
             context=payload["discord_first_message"],
             module_command="send",
-            message=DiscordMessage.print_prompt(payload, execute_duration=total_time, attributes=attributes),
+            message=DiscordMessage.print_prompt(
+                payload, execute_duration=total_time, attributes=attributes
+            ),
             image_url_list=url_list,
         )
         await websocket.send(discord_msg.to_json())

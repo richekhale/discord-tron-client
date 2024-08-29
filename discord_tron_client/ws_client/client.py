@@ -8,6 +8,7 @@ from discord_tron_client.classes.auth import Auth
 from discord_tron_client.message.job_queue import JobQueueMessage
 from discord_tron_client.classes.worker_processor import WorkerProcessor
 
+
 async def periodic_wakeup(interval, websocket):
     """
     Send a periodic ping to the server to keep the connection alive and responsive.
@@ -20,6 +21,7 @@ async def periodic_wakeup(interval, websocket):
         except Exception as e:
             logging.error(f"Error during periodic wakeup: {e}")
             # Handle the exception as needed (e.g., reconnection logic)
+
 
 async def websocket_client(
     config: AppConfig, startup_sequence: str = None, auth: Auth = None
@@ -86,7 +88,9 @@ async def websocket_client(
             ) as websocket:
                 AppConfig.set_websocket(websocket)
                 # Start the periodic wakeup task
-                wakeup_task = asyncio.create_task(periodic_wakeup(30, websocket))  # Ping every 30 seconds
+                wakeup_task = asyncio.create_task(
+                    periodic_wakeup(30, websocket)
+                )  # Ping every 30 seconds
                 # Send the startup sequence
                 if startup_sequence:
                     for message in startup_sequence:
@@ -109,7 +113,10 @@ async def websocket_client(
                             # Send websocket command for the 'job_queue' module 'acknowledge' command
                             await websocket.send(
                                 JobQueueMessage(
-                                    websocket, payload['job_id'], HardwareInfo.get_identifier(), module_command="acknowledge"
+                                    websocket,
+                                    payload["job_id"],
+                                    HardwareInfo.get_identifier(),
+                                    module_command="acknowledge",
                                 ).to_json()
                             )
                         if payload["job_type"] == "gpu":

@@ -1,7 +1,12 @@
 import logging
-from discord_tron_client.classes.image_manipulation.pipeline_runners import BasePipelineRunner
+from discord_tron_client.classes.image_manipulation.pipeline_runners import (
+    BasePipelineRunner,
+)
 from discord_tron_client.classes.app_config import AppConfig
+
 config = AppConfig()
+
+
 class SdxlBasePipelineRunner(BasePipelineRunner):
     def __call__(self, **args):
         args["prompt"], prompt_parameters = self._extract_parameters(args["prompt"])
@@ -11,7 +16,7 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
         del args["user_config"]
         # Use the prompt parameters to override args now
         args.update(prompt_parameters)
-        logging.debug(f'Args (minus user_config) for SDXL Base: {args}')
+        logging.debug(f"Args (minus user_config) for SDXL Base: {args}")
         if user_config.get("prompt_weighting", True) and config.enable_compel():
             # SDXL, when using prompt embeds, only generates 1 image per prompt.
             args["num_images_per_prompt"] = 1
@@ -20,12 +25,23 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
                 if unwanted_arg in args:
                     del args[unwanted_arg]
             if "clip_skip" in args and config.enable_compel():
-                args["prompt_embeds"], args["negative_embeds"], args["pooled_embeds"], args["negative_pooled_embeds"] = self.diffusion_manager.prompt_manager.process_long_prompt(
-                    positive_prompt=args["prompt"], negative_prompt=args["negative_prompt"]
+                (
+                    args["prompt_embeds"],
+                    args["negative_embeds"],
+                    args["pooled_embeds"],
+                    args["negative_pooled_embeds"],
+                ) = self.diffusion_manager.prompt_manager.process_long_prompt(
+                    positive_prompt=args["prompt"],
+                    negative_prompt=args["negative_prompt"],
                 )
         else:
             # Remove unwanted arguments for this condition
-            for unwanted_arg in ["prompt_embeds", "negative_prompt_embeds", "pooled_prompt_embeds", "negative_pooled_prompt_embeds"]:
+            for unwanted_arg in [
+                "prompt_embeds",
+                "negative_prompt_embeds",
+                "pooled_prompt_embeds",
+                "negative_pooled_prompt_embeds",
+            ]:
                 if unwanted_arg in args:
                     del args[unwanted_arg]
 
@@ -38,6 +54,6 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
             args["guidance_rescale"] = float(args["guidance_rescale"])
         if "clip_skip" in args:
             args["clip_skip"] = int(args["clip_skip"])
-        
+
         # Call the pipeline with arguments and return the images
         return self.pipeline(**args).images

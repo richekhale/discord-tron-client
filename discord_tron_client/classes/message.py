@@ -6,6 +6,7 @@ config = AppConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(config.get_log_level())
 
+
 class WebsocketMessage:
     def __init__(
         self, message_type: str, module_name: str, module_command, data={}, arguments={}

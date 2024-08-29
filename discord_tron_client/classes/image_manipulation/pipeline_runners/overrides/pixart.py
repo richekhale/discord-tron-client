@@ -799,16 +799,29 @@ class PixArtSigmaPipeline(DiffusionPipeline):
                 init_latents = init_latents.to(dtype)
                 # unscale/denormalize the latents
                 # denormalize with the mean and std if available and not None
-                has_latents_mean = hasattr(self.vae.config, "latents_mean") and self.vae.config.latents_mean is not None
-                has_latents_std = hasattr(self.vae.config, "latents_std") and self.vae.config.latents_std is not None
+                has_latents_mean = (
+                    hasattr(self.vae.config, "latents_mean")
+                    and self.vae.config.latents_mean is not None
+                )
+                has_latents_std = (
+                    hasattr(self.vae.config, "latents_std")
+                    and self.vae.config.latents_std is not None
+                )
                 if has_latents_mean and has_latents_std:
                     latents_mean = (
-                        torch.tensor(self.vae.config.latents_mean).view(1, 4, 1, 1).to(latents.device, latents.dtype)
+                        torch.tensor(self.vae.config.latents_mean)
+                        .view(1, 4, 1, 1)
+                        .to(latents.device, latents.dtype)
                     )
                     latents_std = (
-                        torch.tensor(self.vae.config.latents_std).view(1, 4, 1, 1).to(latents.device, latents.dtype)
+                        torch.tensor(self.vae.config.latents_std)
+                        .view(1, 4, 1, 1)
+                        .to(latents.device, latents.dtype)
                     )
-                    init_latents = latents * latents_std / self.vae.config.scaling_factor + latents_mean
+                    init_latents = (
+                        latents * latents_std / self.vae.config.scaling_factor
+                        + latents_mean
+                    )
                 else:
                     init_latents = self.vae.config.scaling_factor * init_latents
 
