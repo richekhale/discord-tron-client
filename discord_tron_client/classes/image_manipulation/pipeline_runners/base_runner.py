@@ -127,7 +127,7 @@ class BasePipelineRunner:
         lycoris_wrapper = None
         if adapter_type == "lora":
             self.pipeline.load_lora_weights(
-                pretrained_model_name_or_path=adapter_path,
+                pretrained_model_name_or_path_or_dict=adapter_path,
                 adapter_name=clean_adapter_name,
             )
             if fuse_adapter:
