@@ -148,6 +148,7 @@ class BasePipelineRunner:
             if fuse_adapter:
                 lycoris_wrapper.merge_to()
             else:
+                lycoris_wrapper.to(self.pipeline.transformer.device)
                 lycoris_wrapper.apply_to()
         self.loaded_adapters[clean_adapter_name] = {
             "adapter_type": adapter_type,
