@@ -101,12 +101,17 @@ class BasePipelineRunner:
 
         adapter_filename = "pytorch_lora_weights.safetensors"
         cache_dir = config.get_huggingface_model_path()
-        path_to_adapter = f"{cache_dir}/{adapter_path}"
+        path_to_adapter = f"{cache_dir}/{self.clean_adapter_name(adapter_path)}"
         hf_hub_download(
             repo_id=adapter_path, filename=adapter_filename, local_dir=cache_dir
         )
 
         return path_to_adapter
+
+    def clean_adapter_name(self, adapter_path: str) -> str:
+        return (
+            adapter_path.replace("/", "_").replace("\\", "_").replace(":", "_")
+        )
 
     def load_adapter(
         self,
@@ -117,9 +122,7 @@ class BasePipelineRunner:
     ):
         """load the adapter from the path"""
         # remove / and other chars from the adapter name
-        clean_adapter_name = (
-            adapter_path.replace("/", "_").replace("\\", "_").replace(":", "_")
-        )
+        clean_adapter_name = self.clean_adapter_name(adapter_path)
         lycoris_wrapper = None
         if adapter_type == "lora":
             self.pipeline.load_lora_weights(
