@@ -107,7 +107,7 @@ class BasePipelineRunner:
             repo_id=adapter_path, filename=adapter_filename, local_dir=cache_dir
         )
 
-        return path_to_adapter
+        return os.path.join(path_to_adapter, adapter_filename)
 
     def clean_adapter_name(self, adapter_path: str) -> str:
         return (
