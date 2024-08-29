@@ -104,7 +104,7 @@ class BasePipelineRunner:
         path_to_adapter = f"{cache_dir}/{self.clean_adapter_name(adapter_path)}"
         os.makedirs(path_to_adapter, exist_ok=True)
         hf_hub_download(
-            repo_id=adapter_path, filename=adapter_filename, local_dir=cache_dir
+            repo_id=adapter_path, filename=adapter_filename, local_dir=path_to_adapter
         )
 
         return os.path.join(path_to_adapter, adapter_filename)
