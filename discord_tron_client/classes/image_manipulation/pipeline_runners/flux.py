@@ -58,7 +58,8 @@ class FluxPipelineRunner(BasePipelineRunner):
                         adapter_type, adapter_path, adapter_strength, fuse_adapter=False
                     )
                 except Exception as e:
-                    logging.error(f"Failed to download adapter {adapter_path}: {e}")
+                    import traceback
+                    logging.error(f"Failed to download adapter {adapter_path}: {e}, {traceback.format_exc()}")
                     continue
 
         # Call the pipeline with arguments and return the images
