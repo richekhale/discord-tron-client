@@ -166,7 +166,6 @@ class BasePipelineRunner:
             if config.get("adapter_type") == "lora":
                 if config.get("is_fused", False):
                     self.pipeline.unfuse_lora()
-                self.pipeline.unload_lora_weights(clean_adapter_name)
             if config.get("adapter_type") == "lycoris":
                 lycoris_wrapper = config.get("lycoris_wrapper")
                 if not lycoris_wrapper:
