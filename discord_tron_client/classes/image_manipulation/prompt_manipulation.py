@@ -148,13 +148,9 @@ class PromptManipulation:
                 returned_embeddings_type=ReturnedEmbeddingsType.LAST_HIDDEN_STATES_NORMALIZED,
             )
     def should_enable(self, pipeline, user_config: dict = None):
-        if (type(pipeline).__name__ == "KandinskyV22Pipeline") or (type(pipeline).__name__ == "PixArtSigmaPipeline"):
-            # KandinskyV22Pipeline doesn't use the prompt manager.
-            return False
-        if user_config is not None and "DeepFloyd" in user_config.get('model', ''):
-            # Does not work for DeepFloyd.
-            return False
-        return True
+        if (type(pipeline).__name__ == "StableDiffusionXLPipeline") or (type(pipeline).__name__ == "StableDiffusionPipeline"):
+            return True
+        return False
 
     def has_dual_text_encoders(self, pipeline):
         return hasattr(pipeline, "text_encoder_2")
