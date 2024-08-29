@@ -100,7 +100,7 @@ class BasePipelineRunner:
         """download from huggingface hub if the adapter_type is not eg. lora"""
 
         adapter_filename = "pytorch_lora_weights.safetensors"
-        cache_dir = AppConfig.get_huggingface_model_path()
+        cache_dir = config.get_huggingface_model_path()
         path_to_adapter = f"{cache_dir}/{adapter_path}"
         hf_hub_download(
             repo_id=adapter_path, filename=adapter_filename, local_dir=cache_dir
