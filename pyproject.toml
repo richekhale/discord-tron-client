@@ -48,6 +48,7 @@ invisible-watermark = "^0.2.0"
 discord-py-slash-command = "^4.2.1"
 torchtriton = "^2.0.0+f16138d447"
 dadaptation = "^3.1"
+virtualenv = "^20.26.4"
 
 [[tool.poetry.source]]
 name = "default"
