@@ -28,7 +28,7 @@ class FluxPipelineRunner(BasePipelineRunner):
             "clip_skip",
             "denoising_start",
             "denoising_end",
-            "negative_prompt",
+            # "negative_prompt",
         ]:
             if unwanted_arg in args:
                 del args[unwanted_arg]
@@ -37,7 +37,8 @@ class FluxPipelineRunner(BasePipelineRunner):
         if "num_inference_steps" in args:
             args["num_inference_steps"] = int(float(args["num_inference_steps"]))
         if "guidance_scale" in args:
-            args["guidance_scale"] = float(args["guidance_scale"])
+            args["guidance_scale_real"] = float(args["guidance_scale"])
+            args["guidance_scale"] = float(user_config.get("flux_guidance_scale", 4.0))
 
         # we will apply user LoRAs one at a time. the lora name can be split optionally with a : at the end so that <lora_path>:<strength> are set.
         self.clear_adapters()
