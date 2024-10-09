@@ -118,7 +118,7 @@ class DiscordMessage(WebsocketMessage):
         
         flux_adapter = user_config.get('flux_adapter_1')
         flux_adapter_text = ""
-        if "black-forest-labs" in model_id and flux_adapter:
+        if "black-forest-labs" in model_id or 'flux' in model_id.lower() and flux_adapter:
             flux_adapter_text = f"\n**Flux Adapter**: `!settings flux_adapter_1 {flux_adapter}`\n"
 
         guidance_rescale = user_config.get("guidance_rescale")
