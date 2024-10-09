@@ -325,7 +325,7 @@ class PipelineRunner:
                 )
             elif type(pipe) is diffusers.FluxPipeline:
                 from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.flux import FluxPipeline as FluxPipelineOverride
-                pipe = FluxPipelineOverride.from_pipeline(pipe)
+                pipe = FluxPipelineOverride(**pipe.components)
                 pipeline_runner = runner_map["flux"](
                     pipeline=pipe,
                     pipeline_manager=self.pipeline_manager,
