@@ -17,7 +17,7 @@ poetry = "^1.4.1"
 flask = "^2.2.3"
 psutil = "^5.9.4"
 websocket = "^0.2.1"
-diffusers = {git = "https://github.com/huggingface/diffusers"}
+diffusers = "^0.31.0"
 transformers = {git = "https://github.com/huggingface/transformers"}
 tensorflow = {extras = ["cuda"], version = "^2.17.0"}
 accelerate = "^0.29.3"
