@@ -40,28 +40,7 @@ class FluxPipelineRunner(BasePipelineRunner):
             args["guidance_scale_real"] = float(args["guidance_scale"])
             args["guidance_scale"] = float(user_config.get("flux_guidance_scale", 4.0))
 
-        # we will apply user LoRAs one at a time. the lora name can be split optionally with a : at the end so that <lora_path>:<strength> are set.
-        self.clear_adapters()
-        for i in range(1, 11, 1):
-            user_adapter = user_config.get(f"flux_adapter_{i}", None)
-            if user_adapter is not None and user_adapter != "":
-                pieces = user_adapter.split(":")
-                adapter_strength = 1
-                adapter_type = "lora"
-                if len(pieces) == 1:
-                    adapter_path = pieces[0]
-                elif len(pieces) == 2:
-                    adapter_type, adapter_path = pieces
-                elif len(pieces) == 3:
-                    adapter_type, adapter_path, adapter_strength = pieces
-                try:
-                    self.load_adapter(
-                        adapter_type, adapter_path, adapter_strength, fuse_adapter=False
-                    )
-                except Exception as e:
-                    import traceback
-                    logging.error(f"Failed to download adapter {adapter_path}: {e}, {traceback.format_exc()}")
-                    continue
+        self.apply_adapters(user_config, model_prefix="flux")
 
         # Call the pipeline with arguments and return the images
         return self.pipeline(**args).images

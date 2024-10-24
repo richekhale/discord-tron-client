@@ -37,5 +37,7 @@ class SD3PipelineRunner(BasePipelineRunner):
         if "guidance_scale" in args:
             args["guidance_scale"] = float(args["guidance_scale"])
 
+        self.apply_adapters(user_config)
+
         # Call the pipeline with arguments and return the images
         return self.pipeline(**args).images
