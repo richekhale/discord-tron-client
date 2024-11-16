@@ -143,10 +143,10 @@ class BasePipelineRunner:
             path_to_adapter = self.download_adapter(adapter_type, adapter_path)
             adapter_filename = "pytorch_lora_weights.safetensors"
             lycoris_wrapper, _ = create_lycoris_from_weights(
-                multiplier=adapter_strength, file=path_to_adapter, module=model_to_patch
+                file=path_to_adapter, module=model_to_patch
             )
             if fuse_adapter:
-                lycoris_wrapper.merge_to()
+                lycoris_wrapper.merge_to(adapter_strength)
             else:
                 # lycoris_wrapper.to(self.pipeline.transformer.device)
                 lycoris_wrapper.apply_to()
