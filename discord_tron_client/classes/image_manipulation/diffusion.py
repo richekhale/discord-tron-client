@@ -23,10 +23,10 @@ from diffusers import DiffusionPipeline as Pipeline
 from typing import Dict
 from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.classes.app_config import AppConfig
-from discord_tron_client.classes.image_manipulation.face_upscale import (
-    get_upscaler,
-    use_upscaler,
-)
+# from discord_tron_client.classes.image_manipulation.face_upscale import (
+#     get_upscaler,
+#     use_upscaler,
+# )
 from PIL import Image
 import torch, gc, logging, diffusers, transformers, os
 
@@ -197,6 +197,7 @@ class DiffusionPipelineManager:
         return pipeline
 
     def upscale_image(self, image: Image):
+        return image
         self._initialize_upscaler_pipe()
 
         def resize_for_condition_image(input_image: Image, resolution: int):
@@ -215,9 +216,10 @@ class DiffusionPipelineManager:
         return esrgan_upscaled
 
     def _initialize_upscaler_pipe(self):
-        if "upscaler" not in self.pipelines:
-            self.pipelines["upscaler"] = get_upscaler()
-        return self.pipelines["upscaler"]
+        # if "upscaler" not in self.pipelines:
+        #     self.pipelines["upscaler"] = get_upscaler()
+        # return self.pipelines["upscaler"]
+        pass
 
     def get_model_latest_hash(
         self,
