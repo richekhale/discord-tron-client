@@ -17,18 +17,18 @@ poetry = "^1.4.1"
 flask = "^2.2.3"
 psutil = "^5.9.4"
 websocket = "^0.2.1"
-diffusers = "^0.31.0"
+diffusers = {git = "https://github.com/huggingface/diffusers"}
 transformers = {git = "https://github.com/huggingface/transformers"}
 tensorflow = {extras = ["cuda"], version = "^2.17.0"}
 accelerate = "^0.29.3"
 
 numpy = "<2.0.0"
-torch = "^2.4.1+cu124"
-torchaudio = "^2.1.0+cu124"
+torch = {version = "^2.5.1+cu124", source = "pytorch"}
+torchaudio = {version = "^2.5.1+cu124", source = "pytorch"}
 colorama = "^0.4.6"
 compel = "^2.0.2"
 llama-cpp-python = "^0.1.74"
-peft = "^0.10.0"
+peft = "^0.14.0"
 sentencepiece = "^0.2.0"
 tokenizers = "^0.19.1"
 suno-bark = {git = "https://github.com/bghira/bghira-bark"}
@@ -36,24 +36,24 @@ pydub = "^0.25.1"
 tiktoken = "^0.3.3"
 pyopenssl = "^23.1.1"
 black = "^23.3.0"
-torchvision = "^0.19.1+cu124"
+torchvision = {version = "^0.20.1+cu124", source = "pytorch"}
 torchmetrics = "^0.11.4"
 opencv-contrib-python = "^4.7.0.72"
 controlnet-aux = "^0.0.3"
 k-diffusion = "^0.0.14"
 safetensors = "^0.4.3"
 split-image = "^2.0.1"
-realesrgan = {git = "https://github.com/sberbank-ai/Real-ESRGAN.git"}
+realesrgan = "^0.3.0"
 invisible-watermark = "^0.2.0"
 discord-py-slash-command = "^4.2.1"
 dadaptation = "^3.1"
 virtualenv = "^20.26.4"
-xformers = "^0.0.28"
+xformers = {version = "^0.0.28.post3", source = "pytorch"}
 pytorch-triton = "^3.1.0+5fe38ffd73"
 importlib = "^1.0.4"
 clip-anytorch = "^2.6.0"
 protobuf = "<5.0.0"
-lycoris-lora = "^3.0.0.post1"
+lycoris-lora = {git = "https://github.com/kohakublueleaf/lycoris", rev = "dev"}
 
 [[tool.poetry.source]]
 name = "default"
