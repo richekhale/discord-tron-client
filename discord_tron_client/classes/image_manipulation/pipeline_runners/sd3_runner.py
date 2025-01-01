@@ -18,6 +18,10 @@ class SD3PipelineRunner(BasePipelineRunner):
         if args["skip_guidance_layers"] == -1:
             # set the true default
             args["skip_guidance_layers"] = [7, 8, 9]
+        elif "[" in args["skip_guidance_layers"]:
+            # try json decode
+            import json
+            args["skip_guidance_layers"] = json.loads(args["skip_guidance_layers"])
             
         args["max_sequence_length"] = 154
         # Use the prompt parameters to override args now
