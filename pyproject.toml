@@ -54,6 +54,7 @@ importlib = "^1.0.4"
 clip-anytorch = "^2.6.0"
 protobuf = "<5.0.0"
 lycoris-lora = {git = "https://github.com/kohakublueleaf/lycoris", rev = "dev"}
+beautifulsoup4 = "^4.12.3"
 
 [[tool.poetry.source]]
 name = "default"
