@@ -338,6 +338,13 @@ class PipelineRunner:
                     pipeline_manager=self.pipeline_manager,
                     diffusion_manager=self,
                 )
+            elif type(pipe) is diffusers.pipelines.SanaPipeline:
+                pipeline_runner = runner_map["sana"](
+                    pipeline=pipe,
+                    pipeline_manager=self.pipeline_manager,
+                    diffusion_manager=self,
+                )
+                use_latent_result = False
             elif type(pipe) is diffusers.pipelines.AuraFlowPipeline:
                 pipeline_runner = runner_map["aura"](
                     pipeline=pipe,
@@ -624,9 +631,6 @@ class PipelineRunner:
         #     prompt_embed, negative_embed = controlnet_prompt_manager.process_long_prompt(
         #         positive_prompt=prompt, negative_prompt=negative_prompt
         #     )
-        if not hasattr(pipe, "transformer"):
-            pipe.vae.disable_tiling()
-            pipe.vae.disable_slicing()
         new_image = pipe(
             # prompt_embeds=prompt_embed,
             # negative_prompt_embeds=negative_embed,

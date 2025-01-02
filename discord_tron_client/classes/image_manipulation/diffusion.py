@@ -12,6 +12,7 @@ from diffusers import (
     UniPCMultistepScheduler,
     AutoPipelineForText2Image,
     KandinskyV22CombinedPipeline,
+    SanaPipeline,
     AuraFlowPipeline,
     StableDiffusionXLImg2ImgPipeline,
 )
@@ -32,18 +33,18 @@ import torch, gc, logging, diffusers, transformers, os
 
 logger = logging.getLogger("DiffusionPipelineManager")
 logger.setLevel("DEBUG")
-if not torch.backends.mps.is_available():
-    torch.backends.cudnn.deterministic = False
-    torch.backends.cuda.matmul.allow_tf32 = True
-    torch.backends.cudnn.allow_tf32 = True
-    torch.backends.cudnn.benchmark = True
-    torch.backends.cuda.enable_flash_sdp(True)
-    if torch.backends.cuda.mem_efficient_sdp_enabled():
-        logger.info("CUDA SDP (scaled dot product attention) is enabled.")
-    if torch.backends.cuda.math_sdp_enabled():
-        logger.info("CUDA MATH SDP (scaled dot product attention) is enabled.")
-else:
-    logger.info("MPS is enabled.")
+# if not torch.backends.mps.is_available():
+#     torch.backends.cudnn.deterministic = False
+#     torch.backends.cuda.matmul.allow_tf32 = True
+#     torch.backends.cudnn.allow_tf32 = True
+#     torch.backends.cudnn.benchmark = True
+#     torch.backends.cuda.enable_flash_sdp(True)
+#     if torch.backends.cuda.mem_efficient_sdp_enabled():
+#         logger.info("CUDA SDP (scaled dot product attention) is enabled.")
+#     if torch.backends.cuda.math_sdp_enabled():
+#         logger.info("CUDA MATH SDP (scaled dot product attention) is enabled.")
+# else:
+#     logger.info("MPS is enabled.")
 
 hardware = HardwareInfo()
 config = AppConfig()
@@ -52,6 +53,7 @@ config = AppConfig()
 class DiffusionPipelineManager:
     PIPELINE_CLASSES = {
         "text2img": DiffusionPipeline,
+        "sana": SanaPipeline,
         "pixart": PixArtSigmaPipeline,
         "kandinsky-2.2": KandinskyV22CombinedPipeline,
         "prompt_variation": StableDiffusionXLImg2ImgPipeline,
@@ -73,8 +75,6 @@ class DiffusionPipelineManager:
     def __init__(self):
         hw_limits = hardware.get_hardware_limits()
         self.torch_dtype = torch.bfloat16
-        # if torch.backends.mps.is_available():
-        #     self.torch_dtype = torch.float16
         self.is_memory_constrained = False
         self.model_id = None
         if (
@@ -84,7 +84,7 @@ class DiffusionPipelineManager:
         ):
             self.torch_dtype = torch.float32
         if hw_limits["gpu"] != "Unknown" and hw_limits["gpu"] <= 16:
-            logger.warn(
+            logger.warning(
                 f"Our GPU has less than 16GB of memory, so we will use memory constrained pipeline parameters for image generation, resulting in much higher CPU use to lower VMEM use."
             )
             self.is_memory_constrained = True
@@ -122,6 +122,9 @@ class DiffusionPipelineManager:
         pipeline_class = self.PIPELINE_CLASSES[pipe_type]
         if "pixart" in model_id:
             pipeline_class = self.PIPELINE_CLASSES["pixart"]
+        if "sana" in model_id.lower():
+            print("Using Sana pipeline class.")
+            pipeline_class = self.PIPELINE_CLASSES["sana"]
         extra_args = {
             "feature_extractor": None,
             "safety_checker": None,
@@ -146,8 +149,8 @@ class DiffusionPipelineManager:
                 f"Passing the ControlNet into a StableDiffusionControlNetPipeline for {model_id}"
             )
             logger.debug(f"Passing args into ControlNet: {extra_args} for {model_id}")
-            pipeline_cls = self.PIPELINE_CLASSES["variation"]
-            pipeline = pipeline_cls.from_pretrained(
+            pipeline_class = self.PIPELINE_CLASSES["variation"]
+            pipeline = pipeline_class.from_pretrained(
                 model_id,
                 torch_dtype=self.torch_dtype,
                 custom_pipeline="stable_diffusion_controlnet_img2img",
@@ -324,7 +327,7 @@ class DiffusionPipelineManager:
             and self.last_pipe_type[model_id] != pipe_type
             and pipe_type != "prompt_variation"
         ):
-            logger.warn(
+            logger.warning(
                 f"Clearing out an incorrect pipeline type for the same model. Going from {self.last_pipe_type[model_id]} to {pipe_type}. Model: {model_id}"
             )
             self.clear_pipeline(model_id)
@@ -340,7 +343,7 @@ class DiffusionPipelineManager:
                 raise ValueError(
                     f"Could not get the latest revision for model {model_id}"
                 )
-            logger.warn(
+            logger.warning(
                 f"Model {model_id} is not the latest version. Deleting the stored model. Retrieving {new_revision} from the cache."
             )
             self.clear_pipeline(model_id)
@@ -355,14 +358,7 @@ class DiffusionPipelineManager:
                 custom_text_encoder=custom_text_encoder,
                 safety_modules=safety_modules,
             )
-            if pipe_type in [
-                "upscaler",
-                "prompt_variation",
-                "text2img",
-                "kandinsky-2.2",
-            ]:
-                pass
-            elif pipe_type == "variation":
+            if pipe_type == "variation":
                 # I think this needs a specific scheduler set.
                 logger.debug(
                     f"Before setting scheduler: {self.pipelines[model_id].scheduler}"
@@ -375,23 +371,13 @@ class DiffusionPipelineManager:
                 logger.debug(
                     f"After setting scheduler: {self.pipelines[model_id].scheduler}"
                 )
-            # Additional offload settings that we apply to all pipelines.
-            from diffusers.pipelines import IFPipeline, IFSuperResolutionPipeline
-
-            if hasattr(self.pipelines[model_id], "unet") and type(
-                self.pipelines[model_id]
-            ) not in [IFPipeline, IFSuperResolutionPipeline, StableDiffusion3Pipeline]:
-                self.pipelines[model_id].unet.to(memory_format=torch.channels_last)
-                self.pipelines[model_id].unet.set_attn_processor(
-                    AttnProcessor2_0()
-                )  # https://huggingface.co/docs/diffusers/optimization/torch2.0
             if (
                 hasattr(self.pipelines[model_id], "enable_model_cpu_offload")
                 and hardware.should_offload()
                 and not hardware.should_sequential_offload()
             ):
                 try:
-                    logger.warn(
+                    logger.warning(
                         f"Hardware constraints are enabling model CPU offload. This could impact performance."
                     )
                     self.pipelines[model_id].enable_model_cpu_offload()
@@ -411,6 +397,15 @@ class DiffusionPipelineManager:
                         mode="reduce-overhead",
                         fullgraph=True,
                     )
+                if config.enable_compile() and hasattr(
+                    self.pipelines[model_id], "transformer"
+                ):
+                    torch._dynamo.config.suppress_errors = True
+                    self.pipelines[model_id].transformer = torch.compile(
+                        self.pipelines[model_id].transformer,
+                        mode="reduce-overhead",
+                        fullgraph=True,
+                    )
                 if (
                     hasattr(self.pipelines[model_id], "controlnet")
                     and config.enable_compile()
@@ -418,14 +413,6 @@ class DiffusionPipelineManager:
                     self.pipelines[model_id].controlnet = torch.compile(
                         self.pipelines[model_id].controlnet, fullgraph=True
                     )
-                # if hasattr(self.pipelines[model_id], 'text_encoder') and type(self.pipelines[model_id].text_encoder) == transformers.T5EncoderModel and config.enable_compile():
-                #     logger.info('Found T5 encoder model. Compiling...')
-                #     self.pipelines[model_id].text_encoder = torch.compile(
-                #         self.pipelines[model_id].text_encoder,
-                #         fullgraph=True,
-                #     )
-                # elif hasattr(self.pipelines[model_id], 'text_encoder'):
-                #     logger.warning(f'Torch compile on text encoder type {type(self.pipelines[model_id].text_encoder)} is not yet supported.')
         else:
             logger.info(f"Keeping existing pipeline. Not creating any new ones.")
             self.pipelines[model_id].to(self.device)
@@ -436,20 +423,14 @@ class DiffusionPipelineManager:
         logger.debug(
             f"Model scheduler config: {self.pipelines[model_id].config['scheduler'][1]}"
         )
-        enable_tiling = user_config.get("enable_tiling", True)
-        if (
-            hasattr(self.pipelines[model_id], "vae")
-            and not hasattr(self.pipelines[model_id], "transformer")
-            and enable_tiling
-        ):
-            logger.warn(f"Enabling VAE tiling. This could cause artifacted outputs.")
-            self.pipelines[model_id].vae.enable_tiling()
-            self.pipelines[model_id].vae.enable_slicing()
-        elif hasattr(self.pipelines[model_id], "vae") and not hasattr(
-            self.pipelines[model_id], "transformer"
-        ):
-            self.pipelines[model_id].vae.disable_tiling()
-            self.pipelines[model_id].vae.disable_slicing()
+        # enable_tiling = user_config.get("enable_tiling", True)
+        # if (
+        #     hasattr(self.pipelines[model_id], "vae")
+        #     and enable_tiling
+        # ):
+        #     logger.warning(f"Enabling VAE tiling. This could cause artifacted outputs.")
+        #     self.pipelines[model_id].vae.enable_tiling()
+        #     self.pipelines[model_id].vae.enable_slicing()
         return self.pipelines[model_id]
 
     def delete_pipes(self, keep_model: str = None):

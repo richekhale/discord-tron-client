@@ -22,6 +22,7 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners.deep_floyd 
 from discord_tron_client.classes.image_manipulation.pipeline_runners.sd3_runner import (
     SD3PipelineRunner,
 )
+from discord_tron_client.classes.image_manipulation.pipeline_runners.sana_runner import SanaPipelineRunner
 from discord_tron_client.classes.image_manipulation.pipeline_runners.aura import (
     AuraPipelineRunner,
 )
@@ -40,6 +41,7 @@ runner_map = {
     "kandinsky_2.2": KandinskyTwoTwoPipelineRunner,
     "deep_floyd": DeepFloydPipelineRunner,
     "sd3": SD3PipelineRunner,
+    "sana": SanaPipelineRunner,
     "pixart": PixArtPipelineRunner,
     "aura": AuraPipelineRunner,
     "flux": FluxPipelineRunner,
