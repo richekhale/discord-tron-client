@@ -63,12 +63,12 @@ priority = "primary"
 
 [[tool.poetry.source]]
 name = "pytorch"
-priority = "secondary"
+priority = "supplemental"
 url = "https://download.pytorch.org/whl/cu124"
 
 [[tool.poetry.source]]
 name = "pytorch-nightly"
-priority = "secondary"
+priority = "supplemental"
 url = "https://download.pytorch.org/whl/nightly/cu124"
 
 [[tool.poetry.source]]
