@@ -53,7 +53,7 @@ class SD3PipelineRunner(BasePipelineRunner):
         if "skip_layer_guidance_end" in args:
             args["skip_layer_guidance_end"] = float(args["skip_layer_guidance_end"])
         if "skip_layer_guidance_scale" in args:
-            args["skip_layer_guidance_end"] = float(args["skip_layer_guidance_scale"])
+            args["skip_layer_guidance_scale"] = float(args["skip_layer_guidance_scale"])
         if "skip_guidance_layers" in args and type(args["skip_guidance_layers"]) == str:
             if args["skip_guidance_layers"].lower() == "none":
                 args["skip_guidance_layers"] = None

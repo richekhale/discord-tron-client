@@ -391,19 +391,19 @@ class DiffusionPipelineManager:
                 if config.enable_compile() and hasattr(
                     self.pipelines[model_id], "unet"
                 ):
-                    torch._dynamo.config.suppress_errors = True
+                    # torch._dynamo.config.suppress_errors = True
                     self.pipelines[model_id].unet = torch.compile(
                         self.pipelines[model_id].unet,
-                        mode="reduce-overhead",
+                        mode="max-autotune",
                         fullgraph=True,
                     )
                 if config.enable_compile() and hasattr(
                     self.pipelines[model_id], "transformer"
                 ):
-                    torch._dynamo.config.suppress_errors = True
+                    # torch._dynamo.config.suppress_errors = True
                     self.pipelines[model_id].transformer = torch.compile(
                         self.pipelines[model_id].transformer,
-                        mode="reduce-overhead",
+                        mode="max-autotune",
                         fullgraph=True,
                     )
                 if (
@@ -411,7 +411,7 @@ class DiffusionPipelineManager:
                     and config.enable_compile()
                 ):
                     self.pipelines[model_id].controlnet = torch.compile(
-                        self.pipelines[model_id].controlnet, fullgraph=True
+                        self.pipelines[model_id].controlnet, mode="max-autotune", fullgraph=True
                     )
         else:
             logger.info(f"Keeping existing pipeline. Not creating any new ones.")
