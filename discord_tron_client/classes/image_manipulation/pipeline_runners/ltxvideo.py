@@ -3,6 +3,7 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners import (
     BasePipelineRunner,
 )
 from discord_tron_client.classes.app_config import AppConfig
+from diffusers.utils.export_utils import export_to_video
 config = AppConfig()
 
 
@@ -36,7 +37,14 @@ class LtxVideoPipelineRunner(BasePipelineRunner):
             args["num_inference_steps"] = int(float(args["num_inference_steps"]))
         if "guidance_scale" in args:
             args["guidance_scale"] = float(args["guidance_scale"])
+        
+        args["width"] = 768
+        args["height"] = 512
 
         print(f"Pipeline: {self.pipeline}")
         print(f"Pipeline args: {args}")
-        return self.pipeline(**args).images
+        pipeline_output = self.pipeline(**args).frames[0]
+        video_path = export_to_video(pipeline_output, fps=24)
+        print(f"Output: {video_path}")
+
+        return video_path

@@ -142,7 +142,10 @@ async def generate_image(payload, websocket):
         # Try uploading via the HTTP API
         api_client = AppConfig.get_api_client()
         uploader = Uploader(api_client=api_client, config=config)
-        url_list = await uploader.upload_images(output_images)
+        if type(output_images) is str and ('webp' in output_images or 'mp4' in output_images):
+            url_list = await uploader.upload_videos(output_images)
+        else:
+            url_list = await uploader.upload_images(output_images)
         # Now we can remove the message.
         discord_msg = DiscordMessage(
             websocket=websocket,

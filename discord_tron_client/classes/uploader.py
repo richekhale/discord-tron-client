@@ -31,16 +31,32 @@ class Uploader:
         logging.debug(f"Uploading image to {self.config.get_master_url()}")
         self.api_client.update_auth()
         result = asyncio.run(
-            self.api_client.send_pil_image("/upload_image", image, False, image.info)
+            self.api_client.send_pil_image("/upload_image", image, False, getattr(image, 'info', {"error": "no_metadata"}))
         )
         logging.debug(f"Image uploader received result: {result}")
         if "image_url" in result:
             return result["image_url"]
         raise Exception(f"Image upload failed: {result}")
 
+    def video(self, video_path: str):
+        logging.debug(f"Uploading video from path {video_path} to {self.config.get_master_url()}")
+        self.api_client.update_auth()
+        result = asyncio.run(
+            self.api_client.send_file("/upload_video", video_path)
+        )
+        logging.debug(f"Received response from upload video endpoint:  {result}")
+        return result.get("video_url")
+
     async def upload_images(self, images: List):
         self.start_thread_pool(len(images))
         results = self.thread_pool.map(self.image, images)
+        self.run_threads()
+        return results
+
+    async def upload_videos(self, video_path: str):
+        images = [video_path]
+        self.start_thread_pool(len(images))
+        results = self.thread_pool.map(self.video, images)
         self.run_threads()
         return results
 

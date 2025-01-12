@@ -407,6 +407,11 @@ class PipelineRunner:
                     output_type=image_return_type,
                     generator=generator,
                 )
+                
+                if type(preprocessed_images) is str:
+                    # probably is a file path
+
+                    return preprocessed_images
                 if use_latent_result:
                     logging.info(
                         f"Putting text2img latents into refiner at {(denoising_start or 1) * 100} percent of the way through the process.."

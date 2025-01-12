@@ -10,6 +10,7 @@ class ApiClient:
         self.auth = auth
         self.config = config
         self.base_url = config.get_master_url()
+        logging.info(f"ApiClient base_url: {self.base_url}")
         self.verify_ssl = config.verify_master_ssl()
         self.api_key = config.get_master_api_key()
         self.headers = self._set_auth_header()
@@ -71,7 +72,8 @@ class ApiClient:
                 logging.error("Error in ApiClient.post when checking error: " + str(e2))
                 raise e2
 
-    def send_file(self, endpoint: str, file_path: str):
+    async def send_file(self, endpoint: str, file_path: str):
+        logging.debug(f"send_file loading {file_path} to endpoint {endpoint}")
         with open(file_path, "rb") as f:
             response = self.post(endpoint, files={"file": f})
         return response
