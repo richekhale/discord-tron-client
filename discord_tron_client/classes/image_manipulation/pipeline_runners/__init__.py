@@ -32,7 +32,9 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners.pixart impo
 from discord_tron_client.classes.image_manipulation.pipeline_runners.flux import (
     FluxPipelineRunner,
 )
-
+from discord_tron_client.classes.image_manipulation.pipeline_runners.ltxvideo import (
+    LtxVideoPipelineRunner,
+)
 runner_map = {
     "text2img": Text2ImgPipelineRunner,
     "img2img": Img2ImgPipelineRunner,
@@ -45,4 +47,5 @@ runner_map = {
     "pixart": PixArtPipelineRunner,
     "aura": AuraPipelineRunner,
     "flux": FluxPipelineRunner,
+    "ltxvideo": LtxVideoPipelineRunner,
 }

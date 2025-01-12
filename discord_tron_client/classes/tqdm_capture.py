@@ -28,9 +28,12 @@ class TqdmCapture:
                     # If we have anything less than what we started with, don't send.
                     return
                 self.progress = progress
-                gpu_power_consumption = float(
-                    self.hardware_info.get_gpu_power_consumption()
-                )
+                try:
+                    gpu_power_consumption = float(
+                        self.hardware_info.get_gpu_power_consumption()
+                    )
+                except:
+                    gpu_power_consumption = 0.0
                 if gpu_power_consumption > self.gpu_power_consumption:
                     # Store the maximum power used rather than a random sample.
                     self.gpu_power_consumption = gpu_power_consumption

@@ -345,6 +345,13 @@ class PipelineRunner:
                     diffusion_manager=self,
                 )
                 use_latent_result = False
+            elif type(pipe) is diffusers.pipelines.LTXPipeline:
+                pipeline_runner = runner_map["ltxvideo"](
+                    pipeline=pipe,
+                    pipeline_manager=self.pipeline_manager,
+                    diffusion_manager=self,
+                )
+                use_latent_result = False
             elif type(pipe) is diffusers.pipelines.AuraFlowPipeline:
                 pipeline_runner = runner_map["aura"](
                     pipeline=pipe,
