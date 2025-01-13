@@ -187,7 +187,7 @@ async def prompt_variation(payload, websocket):
     # model_id = user_config["model"]
     # if 'ptx0' not in user_config["model"]:
     # model_id = "ptx0/sdxl-base"
-    model_id = "ptx0/terminus-xl-velocity-v2"
+    model_id = "Lightricks/LTX-Video"
     user_config["model"] = model_id
     resolution = user_config["resolution"]
     negative_prompt = user_config["negative_prompt"]
@@ -217,7 +217,7 @@ async def prompt_variation(payload, websocket):
             websocket=websocket,
         )
 
-        logging.info("Generating image!")
+        logging.info("Generating video!")
         # Grab the image via http:
         import requests
 
@@ -225,14 +225,6 @@ async def prompt_variation(payload, websocket):
             io.BytesIO(requests.get(payload["image_data"], timeout=10).content)
         )
         factor = 1.0
-        # See if the prompt has a `--upscale` parameter and then multiply it by a maximum of 2 or factor to upscale
-        if "--upscale" in prompt:
-            import re
-
-            upscale_factor = float(re.search(r"--upscale (\d+\.?\d*)", prompt).group(1))
-            factor = min(upscale_factor, 2.0)
-            # Remove --upscale from prompt:
-            prompt = prompt.split("--upscale")[0]
         new_width, new_height = calculate_new_size_by_pixel_area(
             image.width, image.height, factor
         )
@@ -280,7 +272,10 @@ async def prompt_variation(payload, websocket):
 
         api_client = AppConfig.get_api_client()
         uploader = Uploader(api_client=api_client, config=config)
-        url_list = await uploader.upload_images(output_images)
+        if type(output_images) is str and ('webp' in output_images or 'mp4' in output_images):
+            url_list = await uploader.upload_videos(output_images)
+        else:
+            url_list = await uploader.upload_images(output_images)
         discord_msg = DiscordMessage(
             websocket=websocket,
             context=payload["discord_first_message"],

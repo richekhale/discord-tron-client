@@ -28,6 +28,8 @@ class LtxVideoPipelineRunner(BasePipelineRunner):
             "denoising_start",
             "denoising_end",
             "num_images_per_prompt",
+            "strength",
+            "output_type",
         ]:
             if unwanted_arg in args:
                 del args[unwanted_arg]
@@ -40,6 +42,14 @@ class LtxVideoPipelineRunner(BasePipelineRunner):
         
         args["width"] = 768
         args["height"] = 512
+        if "image" in args:
+            # resize/crop without distorting to 768x512
+            args["image"] = args["image"].resize((768, 512))
+        
+        if "decode_noise_scale" in args:
+            args["decode_noise_scale"] = float(args["decode_noise_scale"])
+        if "decode_timestep" in args:
+            args["decode_timestep"] = float(args["decode_timestep"])
 
         print(f"Pipeline: {self.pipeline}")
         print(f"Pipeline args: {args}")

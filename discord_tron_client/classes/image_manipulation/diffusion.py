@@ -14,7 +14,8 @@ from diffusers import (
     KandinskyV22CombinedPipeline,
     SanaPipeline,
     AuraFlowPipeline,
-    StableDiffusionXLImg2ImgPipeline,
+    LTXPipeline,
+    LTXImageToVideoPipeline,
 )
 from diffusers.models.attention_processor import AttnProcessor2_0
 from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.pixart import (
@@ -33,18 +34,18 @@ import torch, gc, logging, diffusers, transformers, os
 
 logger = logging.getLogger("DiffusionPipelineManager")
 logger.setLevel("DEBUG")
-# if not torch.backends.mps.is_available():
-#     torch.backends.cudnn.deterministic = False
-#     torch.backends.cuda.matmul.allow_tf32 = True
-#     torch.backends.cudnn.allow_tf32 = True
-#     torch.backends.cudnn.benchmark = True
-#     torch.backends.cuda.enable_flash_sdp(True)
-#     if torch.backends.cuda.mem_efficient_sdp_enabled():
-#         logger.info("CUDA SDP (scaled dot product attention) is enabled.")
-#     if torch.backends.cuda.math_sdp_enabled():
-#         logger.info("CUDA MATH SDP (scaled dot product attention) is enabled.")
-# else:
-#     logger.info("MPS is enabled.")
+if not torch.backends.mps.is_available():
+    torch.backends.cudnn.deterministic = False
+    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.backends.cudnn.allow_tf32 = True
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cuda.enable_flash_sdp(True)
+    if torch.backends.cuda.mem_efficient_sdp_enabled():
+        logger.info("CUDA SDP (scaled dot product attention) is enabled.")
+    if torch.backends.cuda.math_sdp_enabled():
+        logger.info("CUDA MATH SDP (scaled dot product attention) is enabled.")
+else:
+    logger.info("MPS is enabled.")
 
 hardware = HardwareInfo()
 config = AppConfig()
@@ -56,7 +57,7 @@ class DiffusionPipelineManager:
         "sana": SanaPipeline,
         "pixart": PixArtSigmaPipeline,
         "kandinsky-2.2": KandinskyV22CombinedPipeline,
-        "prompt_variation": StableDiffusionXLImg2ImgPipeline,
+        "prompt_variation": LTXImageToVideoPipeline,
         "variation": StableDiffusionPipeline,
         "upscaler": StableDiffusionPipeline,
     }
@@ -170,6 +171,8 @@ class DiffusionPipelineManager:
                 use_safetensors=use_safetensors,
                 **extra_args,
             )
+            pipeline.vae.enable_slicing()
+            pipeline.vae.enable_tiling()
         elif pipe_type in ["text2img"]:
             logger.debug(f"Creating a txt2img pipeline for {model_id}")
             pipeline = pipeline_class.from_pretrained(
@@ -190,6 +193,21 @@ class DiffusionPipelineManager:
                 use_auth_token=config.get_huggingface_api_key(),
                 **extra_args,
             )
+        # quantized_models = [
+        #     LTXPipeline, LTXImageToVideoPipeline, StableDiffusion3Pipeline
+        # ]
+        # if type(pipeline) in quantized_models and not hasattr(pipeline, "quantized"):
+        #     from optimum.quanto import quantize, freeze, qint8
+        #     logger.info(f"Quantizing the model for {model_id}")
+        #     quantize(pipeline.transformer, weights=qint8, include=[
+        #         "*transformer_blocks*",
+        #     ])
+        #     logger.info(f"Freezing the model for {model_id}")
+        #     freeze(pipeline.transformer)
+        #     setattr(pipeline, "quantized", True)
+        #     logger.info("Moving pipeline to CUDA now.")
+        #     pipeline.to(self.device)
+
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
         if hasattr(pipeline, "watermark") and pipeline.watermark is not None:
@@ -351,6 +369,7 @@ class DiffusionPipelineManager:
             logger.debug(
                 f"Creating pipeline type {pipe_type} for model {model_id} with custom_text_encoder {type(custom_text_encoder)}"
             )
+            self.delete_pipes()
             self.pipelines[model_id] = self.create_pipeline(
                 model_id,
                 pipe_type,
@@ -384,10 +403,11 @@ class DiffusionPipelineManager:
                 except Exception as e:
                     logger.error(f"Could not enable CPU offload on the model: {e}")
             else:
-                logger.info(
-                    f"Moving pipe to CUDA early, because no offloading is being used."
-                )
-                self.pipelines[model_id].to(self.device)
+                if not hasattr(self.pipelines[model_id], "quantized"):
+                    logger.info(
+                        f"Moving pipe to CUDA early, because no offloading is being used."
+                    )
+                    self.pipelines[model_id].to(self.device)
                 if config.enable_compile() and hasattr(
                     self.pipelines[model_id], "unet"
                 ):
@@ -443,6 +463,7 @@ class DiffusionPipelineManager:
                 logger.info(
                     f"Deleting pipe for model {model_id}, as we had {len(self.pipelines)} pipes, and only {total_allowed_concurrent} are allowed."
                 )
+                self.pipelines[model_id].to("meta")
                 del self.pipelines[model_id]
                 if model_id in self.last_pipe_scheduler:
                     del self.last_pipe_scheduler[model_id]

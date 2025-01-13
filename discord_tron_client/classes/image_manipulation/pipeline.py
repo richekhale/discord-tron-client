@@ -345,12 +345,14 @@ class PipelineRunner:
                     diffusion_manager=self,
                 )
                 use_latent_result = False
-            elif type(pipe) is diffusers.pipelines.LTXPipeline:
+            elif type(pipe) is diffusers.pipelines.LTXPipeline or type(pipe) is diffusers.pipelines.LTXImageToVideoPipeline:
                 pipeline_runner = runner_map["ltxvideo"](
                     pipeline=pipe,
                     pipeline_manager=self.pipeline_manager,
                     diffusion_manager=self,
                 )
+                pipe.vae.enable_tiling()
+                pipe.vae.enable_slicing()
                 use_latent_result = False
             elif type(pipe) is diffusers.pipelines.AuraFlowPipeline:
                 pipeline_runner = runner_map["aura"](
@@ -433,7 +435,7 @@ class PipelineRunner:
                     f"Running img2img with batch_size {batch_size} via model {user_model}, image output type {image_return_type}."
                 )
                 # Img2Img workflow
-                guidance_scale = 7.5
+                guidance_scale = 3.0
                 new_image = pipeline_runner(
                     image=image,
                     strength=user_config["strength"],
