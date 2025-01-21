@@ -31,6 +31,7 @@ from discord_tron_client.classes.app_config import AppConfig
 # )
 from PIL import Image
 import torch, gc, logging, diffusers, transformers, os
+from torch import OutOfMemoryError
 
 logger = logging.getLogger("DiffusionPipelineManager")
 logger.setLevel("DEBUG")
@@ -106,6 +107,8 @@ class DiffusionPipelineManager:
         if model_id in self.pipelines:
             try:
                 del self.pipelines[model_id]
+                if self.pipeline_runner.get("model") == model_id:
+                    self.pipeline_runner["model"] = None
                 self.clear_cuda_cache()
             except Exception as e:
                 logger.error(f"Error when deleting pipe: {e}")
@@ -407,7 +410,9 @@ class DiffusionPipelineManager:
                     logger.info(
                         f"Moving pipe to CUDA early, because no offloading is being used."
                     )
+                    self.delete_pipes(keep_model=model_id)
                     self.pipelines[model_id].to(self.device)
+
                 if config.enable_compile() and hasattr(
                     self.pipelines[model_id], "unet"
                 ):
@@ -435,7 +440,11 @@ class DiffusionPipelineManager:
                     )
         else:
             logger.info(f"Keeping existing pipeline. Not creating any new ones.")
+            logger.info(f"Moving pipeline back to {self.device}")
+            self.delete_pipes(keep_model=model_id)
             self.pipelines[model_id].to(self.device)
+            logger.info(f"Moved pipeline back to {self.device}")
+
         self.last_pipe_type[model_id] = pipe_type
         self.last_pipe_scheduler[model_id] = self.pipelines[model_id].config[
             "scheduler"
@@ -456,7 +465,7 @@ class DiffusionPipelineManager:
     def delete_pipes(self, keep_model: str = None):
         total_allowed_concurrent = hardware.get_concurrent_pipe_count()
         # Loop by a range of 0 through len(self.pipelines):
-        for model_id in list(self.pipelines.keys()):
+        for model_id in set(self.pipelines.keys()):
             if len(self.pipelines) > total_allowed_concurrent and (
                 keep_model is None or keep_model != model_id
             ):
@@ -465,6 +474,14 @@ class DiffusionPipelineManager:
                 )
                 self.pipelines[model_id].to("meta")
                 del self.pipelines[model_id]
+                if self.pipeline_runner.get("model") == model_id:
+                    self.pipeline_runner["model"] = None
+                if model_id in self.last_pipe_type:
+                    del self.last_pipe_type[model_id]
+                if model_id in self.last_pipe_scheduler:
+                    del self.last_pipe_scheduler[model_id]
+                if model_id in self.pipeline_versions:
+                    del self.pipeline_versions[model_id]
                 if model_id in self.last_pipe_scheduler:
                     del self.last_pipe_scheduler[model_id]
                 if model_id in self.last_pipe_type:
@@ -472,6 +489,7 @@ class DiffusionPipelineManager:
         self.clear_cuda_cache()
 
     def clear_cuda_cache(self):
+        return None
         gc.collect()
         if config.get_cuda_cache_clear_toggle():
             logger.info("Clearing the CUDA cache...")

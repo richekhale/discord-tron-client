@@ -17,6 +17,7 @@ class BasePipelineRunner:
         self.diffusion_manager = None
         if "pipeline" in kwargs:
             self.pipeline = kwargs["pipeline"]
+            print(f"initializing pipeline runner using {self.pipeline}")
         if "pipeline_manager" in kwargs:
             self.pipeline_manager = kwargs["pipeline_manager"]
         else:
@@ -150,6 +151,7 @@ class BasePipelineRunner:
             else:
                 # lycoris_wrapper.to(self.pipeline.transformer.device)
                 lycoris_wrapper.apply_to()
+                logging.info("Moving Lycoris to GPU")
                 lycoris_wrapper.to(device=self.pipeline_manager.device, dtype=self.pipeline_manager.torch_dtype)
         self.loaded_adapters[clean_adapter_name] = {
             "adapter_type": adapter_type,
@@ -169,8 +171,12 @@ class BasePipelineRunner:
             if config.get("adapter_type") == "lycoris":
                 lycoris_wrapper = config.get("lycoris_wrapper")
                 if not lycoris_wrapper:
+                    logging.error(f"Failed to clear adapter {clean_adapter_name}")
                     continue
+                logging.debug(f"Restoring lycoris wrapper for {clean_adapter_name}")
                 lycoris_wrapper.restore()
+                lycoris_wrapper.to("meta")
+                logging.debug("Sent lycoris to the abyss, meta tensors.")
             self.loaded_adapters[clean_adapter_name] = None
         self.pipeline.unload_lora_weights()
         self.loaded_adapters = {}

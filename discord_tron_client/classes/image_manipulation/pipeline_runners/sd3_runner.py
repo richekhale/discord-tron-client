@@ -76,4 +76,9 @@ class SD3PipelineRunner(BasePipelineRunner):
         )
 
         # Call the pipeline with arguments and return the images
-        return self.pipeline(**args).images
+        self.pipeline.to(self.pipeline_manager.device)
+        print(f"device: {self.pipeline.transformer.device}, {self.pipeline.vae.device}, {self.pipeline.text_encoder.device}")
+        result = self.pipeline(**args).images
+        self.clear_adapters()
+
+        return result

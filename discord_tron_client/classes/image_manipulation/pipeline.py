@@ -70,11 +70,7 @@ class PipelineRunner:
         self.websocket = websocket
         self.model_config = model_config
         self.prompt_manager = None
-        self.pipeline_runner = {
-            "model": None,
-            "runner": None,
-        }
-
+        
     async def reset_bar(self, discord_msg, websocket):
         # An object to manage a progress bar for Discord.
         main_loop = asyncio.get_event_loop()
@@ -301,11 +297,12 @@ class PipelineRunner:
             )
             # text2img workflow
             if (
-                self.pipeline_runner["model"] is not None
-                and self.pipeline_runner["runner"] is not None
-                and self.pipeline_runner["model"] == user_model
+                getattr(self.pipeline_manager, 'pipeline_runner', {}).get("model") is not None
+                and getattr(self.pipeline_manager, 'pipeline_runner', {}).get("runner") is not None
+                and getattr(self.pipeline_manager, 'pipeline_runner', {}).get("model") == user_model
             ):
-                pipeline_runner = self.pipeline_runner["runner"]
+                logging.info("Using preserved pipeline_runner.")
+                pipeline_runner = getattr(self.pipeline_manager, 'pipeline_runner', {}).get("runner")
             elif (
                 type(pipe) is diffusers.StableDiffusionXLPipeline
                 or "ptx0/s1" in user_model
@@ -385,11 +382,13 @@ class PipelineRunner:
                 logging.debug(f"Received type of pipeline: {type(pipe)}")
                 pipeline_runner = runner_map["text2img"](pipeline=pipe)
             if (
-                self.pipeline_runner["model"] is None
-                or self.pipeline_runner["model"] != user_model
+                getattr(self.pipeline_manager, 'pipeline_runner', {}).get("model") is None
+                or getattr(self.pipeline_manager, 'pipeline_runner', {}).get("model") != user_model
             ):
-                self.pipeline_runner["model"] = user_model
-                self.pipeline_runner["runner"] = pipeline_runner
+                if not hasattr(self.pipeline_manager, 'pipeline_runner'):
+                    setattr(self.pipeline_manager, 'pipeline_runner', {})
+                self.pipeline_manager.pipeline_runner["model"] = user_model
+                self.pipeline_manager.pipeline_runner["runner"] = pipeline_runner
             if image is None:
                 preprocessed_images = pipeline_runner(
                     prompt=positive_prompt,
