@@ -219,7 +219,7 @@ class HardwareInfo:
                     "--format=csv,noheader,nounits",
                 ]
             )
-            self.video_memory_amount = int(output.decode().strip()) / 1024
+            self.video_memory_amount = int(output) / 1024
         except Exception as e:
             import traceback
 
