@@ -41,7 +41,7 @@ class DiscordProgressBar:
         bar = "█" * filled_length + "-" * (self.progress_bar_length - filled_length)
         percent = round(progress * 100, 1)
         progress_text = "`" + f"[{bar}] {percent}% complete`"
-        we_have_another_fifth_of_progress = percent % 20
+        we_have_another_fifth_of_progress = percent % 30
         if we_have_another_fifth_of_progress == 0:
             try:
                 # Update the websocket message template

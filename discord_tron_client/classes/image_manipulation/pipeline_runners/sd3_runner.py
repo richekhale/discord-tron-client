@@ -1,4 +1,5 @@
-import logging
+import logging, torch
+from time import perf_counter
 from discord_tron_client.classes.image_manipulation.pipeline_runners import (
     BasePipelineRunner,
 )
@@ -8,6 +9,8 @@ config = AppConfig()
 
 class SD3PipelineRunner(BasePipelineRunner):
     def __call__(self, **args):
+        self.generation_time = None
+        self.keep_fused_loaded = True
         
         args["prompt"], prompt_parameters = self._extract_parameters(args["prompt"])
 
@@ -67,7 +70,7 @@ class SD3PipelineRunner(BasePipelineRunner):
                     args["skip_guidance_layers"] = None
 
 
-        self.apply_adapters(user_config)
+        self.apply_adapters(user_config, fuse_adapters=True)
         from diffusers import FlowMatchEulerDiscreteScheduler
         self.pipeline.scheduler = FlowMatchEulerDiscreteScheduler.from_config(
             user_config.get("model", "stabilityai/stable-diffusion-3.5-medium"),
@@ -76,9 +79,10 @@ class SD3PipelineRunner(BasePipelineRunner):
         )
 
         # Call the pipeline with arguments and return the images
-        self.pipeline.to(self.pipeline_manager.device)
-        print(f"device: {self.pipeline.transformer.device}, {self.pipeline.vae.device}, {self.pipeline.text_encoder.device}")
+        start_time = perf_counter()
         result = self.pipeline(**args).images
-        self.clear_adapters()
+        torch.cuda.synchronize()
+        end_time = perf_counter()
+        self.generation_time = end_time - start_time
 
         return result

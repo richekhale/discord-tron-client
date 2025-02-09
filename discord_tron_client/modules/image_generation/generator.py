@@ -20,8 +20,6 @@ from discord_tron_client.classes.debug import clean_traceback
 async def generate_image(payload, websocket):
     # We extract the features from the payload and pass them onto the actual generator
     try:
-        # Grab a beginning timestamp:
-        start_time = asyncio.get_event_loop().time()
         user_config = payload["config"]
         prompt = payload["image_prompt"]
         model_id = user_config["model"]
@@ -98,6 +96,8 @@ async def generate_image(payload, websocket):
         user_config["user_id"] = payload["discord_context"]["author"]["id"]
         if "width" not in resolution or "height" not in resolution:
             resolution = {"width": 1024, "height": 1024}
+        # Grab a beginning timestamp:
+        start_time = asyncio.get_event_loop().time()
         output_images = await pipeline_runner.generate_image(
             user_config=user_config,
             prompt=prompt,
@@ -155,6 +155,10 @@ async def generate_image(payload, websocket):
         await websocket.send(discord_msg.to_json())
         # discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=DiscordMessage.print_prompt(payload), image_url_list=url_list)
         execute_duration = end_time - start_time
+        if hasattr(pipeline_manager, "pipeline_runner"):
+            if hasattr(pipeline_manager.pipeline_runner, "generation_time") and getattr(pipeline_manager.pipeline_runner, 'generation_time', None) is not None:
+                execute_duration = pipeline_manager.pipeline_runner.generation_time
+                logging.info(f"Overriding execute_duration with pipeline_runner.generation_time: {execute_duration}")
         websocket = AppConfig.get_websocket()
         attributes = {
             "last_modified": pipeline_manager.pipeline_versions.get(model_id, {}).get(

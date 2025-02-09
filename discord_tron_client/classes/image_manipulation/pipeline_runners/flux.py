@@ -3,6 +3,7 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners import (
     BasePipelineRunner,
 )
 from discord_tron_client.classes.app_config import AppConfig
+from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.flux import teacache_monkeypatch
 
 
 config = AppConfig()
@@ -16,6 +17,10 @@ class FluxPipelineRunner(BasePipelineRunner):
         user_config = args.get("user_config", None)
         del args["user_config"]
         # Use the prompt parameters to override args now
+        disable_teacache = True
+        if "teacache" in prompt_parameters:
+            disable_teacache = False
+            del prompt_parameters["teacache"]
         args.update(prompt_parameters)
         logging.debug(f"Args (minus user_config) for SD3: {args}")
         # Remove unwanted arguments for this condition
@@ -43,4 +48,5 @@ class FluxPipelineRunner(BasePipelineRunner):
         self.apply_adapters(user_config, model_prefix="flux")
 
         # Call the pipeline with arguments and return the images
-        return self.pipeline(**args).images
+        with teacache_monkeypatch(self.pipeline, args.get("num_inference_steps"), disable=disable_teacache):
+            return self.pipeline(**args).images

@@ -8,7 +8,7 @@ from discord_tron_client.classes.image_manipulation.model_manager import (
 )
 from discord_tron_client.message.discord import DiscordMessage
 from discord_tron_client.classes.uploader import Uploader
-import tqdm, logging, asyncio, io, base64
+import tqdm, logging, asyncio, io, base64, torch
 from PIL import Image
 from discord_tron_client.classes.app_config import AppConfig
 
@@ -88,7 +88,7 @@ async def promptless_variation(payload, websocket):
         await websocket.send(discord_msg.to_json())
         # Grab starting timestamp
         user_config["user_id"] = payload["discord_context"]["author"]["id"]
-        start_time = asyncio.get_running_loop().time()
+        start_time = torch.cuda.Event(enable_timing=True)
         result = await pipeline_runner.generate_image(
             user_config=user_config,
             model_id=model_id,
@@ -100,8 +100,9 @@ async def promptless_variation(payload, websocket):
             image=image,
             promptless_variation=True,
         )
-        end_time = asyncio.get_running_loop().time()
-        total_time = end_time - start_time
+        # end the event
+        end_time = torch.cuda.Event(enable_timing=True)
+        total_time = start_time.elapsed_time(end_time) / 1000
         payload["seed"] = pipeline_runner.seed
         payload["gpu_power_consumption"] = pipeline_runner.gpu_power_consumption
         websocket = AppConfig.get_websocket()

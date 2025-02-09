@@ -1,4 +1,5 @@
-import logging
+import logging, torch
+from time import perf_counter
 from discord_tron_client.classes.image_manipulation.pipeline_runners import (
     BasePipelineRunner,
 )
@@ -56,4 +57,12 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
             args["clip_skip"] = int(args["clip_skip"])
 
         # Call the pipeline with arguments and return the images
-        return self.pipeline(**args).images
+        self.apply_adapters(user_config, fuse_adapters=True)
+
+        start_time = perf_counter()
+        result = self.pipeline(**args).images
+        torch.cuda.synchronize()
+        end_time = perf_counter()
+        self.generation_time = end_time - start_time
+
+        return result

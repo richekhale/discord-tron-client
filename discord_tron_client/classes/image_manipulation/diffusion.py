@@ -1,3 +1,8 @@
+from diffusers import models
+try:
+    from diffusers.loaders import lora_base
+except:
+    pass
 from diffusers import (
     StableDiffusionPipeline,
     StableDiffusionImageVariationPipeline,
@@ -16,6 +21,7 @@ from diffusers import (
     AuraFlowPipeline,
     LTXPipeline,
     LTXImageToVideoPipeline,
+    FluxPipeline,
 )
 from diffusers.models.attention_processor import AttnProcessor2_0
 from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.pixart import (
@@ -106,12 +112,19 @@ class DiffusionPipelineManager:
     def clear_pipeline(self, model_id: str) -> None:
         if model_id in self.pipelines:
             try:
+                self.pipelines[model_id].to("meta")
+            except Exception as e:
+                logger.error(f"Error when moving pipe to meta device: {e}")
+            try:
                 del self.pipelines[model_id]
                 if self.pipeline_runner.get("model") == model_id:
                     self.pipeline_runner["model"] = None
-                self.clear_cuda_cache()
             except Exception as e:
                 logger.error(f"Error when deleting pipe: {e}")
+            try:
+                self.clear_cuda_cache()
+            except Exception as e:
+                logger.error(f"Error when clearing CUDA cache: {e}")
         else:
             logger.warning(f"Model {model_id} did not have a cached pipeline to clear.")
 
@@ -196,20 +209,31 @@ class DiffusionPipelineManager:
                 use_auth_token=config.get_huggingface_api_key(),
                 **extra_args,
             )
-        # quantized_models = [
-        #     LTXPipeline, LTXImageToVideoPipeline, StableDiffusion3Pipeline
-        # ]
-        # if type(pipeline) in quantized_models and not hasattr(pipeline, "quantized"):
-        #     from optimum.quanto import quantize, freeze, qint8
-        #     logger.info(f"Quantizing the model for {model_id}")
-        #     quantize(pipeline.transformer, weights=qint8, include=[
-        #         "*transformer_blocks*",
-        #     ])
-        #     logger.info(f"Freezing the model for {model_id}")
-        #     freeze(pipeline.transformer)
-        #     setattr(pipeline, "quantized", True)
-        #     logger.info("Moving pipeline to CUDA now.")
-        #     pipeline.to(self.device)
+        quantized_models = [
+            LTXPipeline, LTXImageToVideoPipeline, FluxPipeline
+        ]
+        if type(pipeline) in quantized_models and not hasattr(pipeline, "quantized"):
+            logger.info(f"Quantizing the model for {model_id}")
+
+            from optimum.quanto import quantize, freeze, qint8
+            quantize(pipeline.transformer, weights=qint8, include=[
+                "*transformer*",
+            ])
+            logger.info(f"Freezing the model for {model_id}")
+            freeze(pipeline.transformer)
+            logger.info("Moving pipeline to CUDA now.")
+            self.delete_pipes(keep_model=model_id)
+            pipeline.to(self.device)
+
+            # from torchao.quantization import quantize_, int8_weight_only, autoquant
+            # # pipeline.transformer.to(memory_format=torch.channels_last)
+            # pipeline.transformer = torch.compile(
+            #     pipeline.transformer, mode="reduce-overhead", fullgraph=True
+            # )
+            # # quantize_(pipeline.transformer, int8_weight_only(), device="cuda")
+            # pipeline.transformer = autoquant(pipeline.transformer, device="cuda")
+
+            setattr(pipeline, "quantized", True)
 
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
@@ -413,37 +437,40 @@ class DiffusionPipelineManager:
                     self.delete_pipes(keep_model=model_id)
                     self.pipelines[model_id].to(self.device)
 
-                if config.enable_compile() and hasattr(
-                    self.pipelines[model_id], "unet"
-                ):
-                    # torch._dynamo.config.suppress_errors = True
-                    self.pipelines[model_id].unet = torch.compile(
-                        self.pipelines[model_id].unet,
-                        mode="max-autotune",
-                        fullgraph=True,
-                    )
-                if config.enable_compile() and hasattr(
-                    self.pipelines[model_id], "transformer"
-                ):
-                    # torch._dynamo.config.suppress_errors = True
-                    self.pipelines[model_id].transformer = torch.compile(
-                        self.pipelines[model_id].transformer,
-                        mode="max-autotune",
-                        fullgraph=True,
-                    )
-                if (
-                    hasattr(self.pipelines[model_id], "controlnet")
-                    and config.enable_compile()
-                ):
-                    self.pipelines[model_id].controlnet = torch.compile(
-                        self.pipelines[model_id].controlnet, mode="max-autotune", fullgraph=True
-                    )
+                    if config.enable_compile() and hasattr(
+                        self.pipelines[model_id], "unet"
+                    ):
+                        # torch._dynamo.config.suppress_errors = True
+                        logger.info(f"Compiling unet for {model_id}")
+                        self.pipelines[model_id].unet = torch.compile(
+                            self.pipelines[model_id].unet,
+                            mode="max-autotune",
+                            fullgraph=True,
+                        )
+                    if config.enable_compile() and hasattr(
+                        self.pipelines[model_id], "transformer"
+                    ):
+                        # torch._dynamo.config.suppress_errors = True
+                        logger.info(f"Compiling transformer for {model_id}")
+                        self.pipelines[model_id].transformer = torch.compile(
+                            self.pipelines[model_id].transformer,
+                            mode="max-autotune",
+                            fullgraph=True,
+                        )
+                    if (
+                        hasattr(self.pipelines[model_id], "controlnet")
+                        and config.enable_compile()
+                    ):
+                        self.pipelines[model_id].controlnet = torch.compile(
+                            self.pipelines[model_id].controlnet, mode="max-autotune", fullgraph=True
+                        )
         else:
             logger.info(f"Keeping existing pipeline. Not creating any new ones.")
             logger.info(f"Moving pipeline back to {self.device}")
             self.delete_pipes(keep_model=model_id)
-            self.pipelines[model_id].to(self.device)
-            logger.info(f"Moved pipeline back to {self.device}")
+            if not hasattr(self.pipelines[model_id], "quantized"):
+                self.pipelines[model_id].to(self.device)
+                logger.info(f"Moved pipeline back to {self.device}")
 
         self.last_pipe_type[model_id] = pipe_type
         self.last_pipe_scheduler[model_id] = self.pipelines[model_id].config[
@@ -452,14 +479,14 @@ class DiffusionPipelineManager:
         logger.debug(
             f"Model scheduler config: {self.pipelines[model_id].config['scheduler'][1]}"
         )
-        # enable_tiling = user_config.get("enable_tiling", True)
-        # if (
-        #     hasattr(self.pipelines[model_id], "vae")
-        #     and enable_tiling
-        # ):
-        #     logger.warning(f"Enabling VAE tiling. This could cause artifacted outputs.")
-        #     self.pipelines[model_id].vae.enable_tiling()
-        #     self.pipelines[model_id].vae.enable_slicing()
+        enable_tiling = user_config.get("enable_tiling", True)
+        if (
+            hasattr(self.pipelines[model_id], "vae")
+            and enable_tiling
+        ):
+            logger.warning(f"Enabling VAE tiling. This could cause artifacted outputs.")
+            self.pipelines[model_id].vae.enable_tiling()
+            self.pipelines[model_id].vae.enable_slicing()
         return self.pipelines[model_id]
 
     def delete_pipes(self, keep_model: str = None):
@@ -472,7 +499,10 @@ class DiffusionPipelineManager:
                 logger.info(
                     f"Deleting pipe for model {model_id}, as we had {len(self.pipelines)} pipes, and only {total_allowed_concurrent} are allowed."
                 )
-                self.pipelines[model_id].to("meta")
+                try:
+                    self.pipelines[model_id].to("meta")
+                except Exception as e:
+                    logger.error(e)
                 del self.pipelines[model_id]
                 if self.pipeline_runner.get("model") == model_id:
                     self.pipeline_runner["model"] = None
