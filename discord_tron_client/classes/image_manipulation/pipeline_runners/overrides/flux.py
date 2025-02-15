@@ -457,7 +457,7 @@ import types
 _SENTINEL = object()
 
 @contextlib.contextmanager
-def teacache_monkeypatch(pipeline, num_inference_steps, rel_l1_thresh=0.6, disable=False):
+def flux_teacache_monkeypatch(pipeline, num_inference_steps, rel_l1_thresh=0.6, disable=False):
     """
     Temporarily monkeypatches the transformer's instance in the given pipeline.
 

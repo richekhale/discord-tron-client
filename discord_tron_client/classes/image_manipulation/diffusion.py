@@ -5,6 +5,7 @@ except:
     pass
 from diffusers import (
     StableDiffusionPipeline,
+    StableDiffusionXLPipeline,
     StableDiffusionImageVariationPipeline,
     StableDiffusionControlNetPipeline,
     ControlNetModel,
@@ -209,10 +210,37 @@ class DiffusionPipelineManager:
                 use_auth_token=config.get_huggingface_api_key(),
                 **extra_args,
             )
-        quantized_models = [
+        stable_fast_accelerated_models = [
+            StableDiffusionPipeline, StableDiffusionXLPipeline
+        ]
+        if type(pipeline) in stable_fast_accelerated_models and not hasattr(pipeline, "accelerated"):
+            logger.info(f"Running stable-fast on the current pipeline.")
+            # try:
+            #     from sfast.compilers.diffusion_pipeline_compiler import (compile,
+            #                                                         CompilationConfig)
+            #     sfast_config = CompilationConfig.Default()
+            #     sfast_config.enable_cuda_graph = True
+            #     ## causes black images:
+            #     # sfast_config.trace_scheduler = True
+            #     try:
+            #         import xformers
+            #         sfast_config.enable_xformers = True
+            #     except ImportError:
+            #         logger.warning('xformers not installed, skip')
+            #     try:
+            #         import triton
+            #         sfast_config.enable_triton = True
+            #     except ImportError:
+            #         logger.warning('Triton not installed, skip')
+            #     pipeline = compile(pipeline, sfast_config)
+
+            # except ImportError as e:
+            #     logger.error(f"Could not run stable-fast on model", e)
+
+        quanto_quantized_models = [
             LTXPipeline, LTXImageToVideoPipeline, FluxPipeline
         ]
-        if type(pipeline) in quantized_models and not hasattr(pipeline, "quantized"):
+        if type(pipeline) in quanto_quantized_models and not hasattr(pipeline, "quantized"):
             logger.info(f"Quantizing the model for {model_id}")
 
             from optimum.quanto import quantize, freeze, qint8

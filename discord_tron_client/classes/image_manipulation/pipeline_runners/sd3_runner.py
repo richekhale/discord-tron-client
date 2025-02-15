@@ -4,6 +4,7 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners import (
     BasePipelineRunner,
 )
 from discord_tron_client.classes.app_config import AppConfig
+from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.accel import optimize_pipeline
 config = AppConfig()
 
 
@@ -40,6 +41,7 @@ class SD3PipelineRunner(BasePipelineRunner):
             "clip_skip",
             "denoising_start",
             "denoising_end",
+            "cache_interval", "cache_branch_id", "skip_mode", "enable_teacache", "teacache_distance"
         ]:
             if unwanted_arg in args:
                 del args[unwanted_arg]
@@ -80,7 +82,24 @@ class SD3PipelineRunner(BasePipelineRunner):
 
         # Call the pipeline with arguments and return the images
         start_time = perf_counter()
-        result = self.pipeline(**args).images
+        deepcache_params = {
+            "cache_interval": int(prompt_parameters.get("cache_interval", 3)),
+            "cache_branch_id": int(prompt_parameters.get("cache_branch_id", 0)),
+            "skip_mode": str(prompt_parameters.get("skip_mode", "uniform")),
+        }
+        with optimize_pipeline(
+            pipeline=self.pipeline,
+            enable_teacache = True if prompt_parameters.get("enable_teacache") is not None else False,
+            teacache_num_inference_steps = args.get("num_inference_steps"),
+            teacache_rel_l1_thresh = float(prompt_parameters.get("teacache_distance", 0.6)),
+            enable_deepcache = False,
+            deepcache_cache_interval = 3,
+            deepcache_cache_branch_id = 0,
+            deepcache_skip_mode = "uniform",
+        ):
+            result = self.pipeline(**args).images
+        if hasattr(self.pipeline, 'deepcache_helper'):
+            self.pipeline.deepcache_helper.disable()
         torch.cuda.synchronize()
         end_time = perf_counter()
         self.generation_time = end_time - start_time

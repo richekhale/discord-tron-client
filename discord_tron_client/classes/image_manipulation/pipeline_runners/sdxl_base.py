@@ -59,10 +59,19 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
         # Call the pipeline with arguments and return the images
         self.apply_adapters(user_config, fuse_adapters=True)
 
+        if hasattr(self.pipeline, 'deepcache_helper'):
+            self.pipeline.deepcache_helper.set_params(
+                cache_interval=int(prompt_parameters.get("cache_interval", 3)),
+                cache_branch_id=int(prompt_parameters.get("cache_branch_id", 0)),
+                skip_mode=str(prompt_parameters.get("skip_mode", "uniform"))
+            )
+            self.pipeline.deepcache_helper.enable()
         start_time = perf_counter()
         result = self.pipeline(**args).images
         torch.cuda.synchronize()
         end_time = perf_counter()
         self.generation_time = end_time - start_time
+        if hasattr(self.pipeline, 'deepcache_helper'):
+            self.pipeline.deepcache_helper.disable()
 
         return result
