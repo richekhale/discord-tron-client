@@ -98,8 +98,6 @@ class SD3PipelineRunner(BasePipelineRunner):
             deepcache_skip_mode = "uniform",
         ):
             result = self.pipeline(**args).images
-        if hasattr(self.pipeline, 'deepcache_helper'):
-            self.pipeline.deepcache_helper.disable()
         torch.cuda.synchronize()
         end_time = perf_counter()
         self.generation_time = end_time - start_time

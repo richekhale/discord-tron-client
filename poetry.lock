@@ -1053,6 +1053,27 @@ url = "https://pypi.org/simple"
 reference = "default"
 
 [[package]]
+name = "deepcache"
+version = "0.1.1"
+description = "DeepCache: Accelerating Diffusion Models for Free"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "DeepCache-0.1.1-py3-none-any.whl", hash = "sha256:aa4aa5f8e9a2e5a41d59900305c3c86c20834537d0c67bf2d8bb7075618ae48a"},
+    {file = "DeepCache-0.1.1.tar.gz", hash = "sha256:8bc995d8c0ee7f3eb51ca080c951916bf0eb044ebdc75215b1753621ac8f80e6"},
+]
+
+[package.dependencies]
+diffusers = "*"
+torch = "*"
+transformers = "*"
+
+[package.source]
+type = "legacy"
+url = "https://pypi.org/simple"
+reference = "default"
+
+[[package]]
 name = "diffusers"
 version = "0.32.2"
 description = "State-of-the-art diffusion in PyTorch and JAX."
@@ -7416,4 +7437,4 @@ reference = "default"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "ad860a4e5bc67982021f252ed5b3d2c12916e55f1e11e74fcd33d7533507b865"
+content-hash = "f30427d6f334c03e011c5102b079ae292e47066c536a76e037083e9ee1d7738a"
