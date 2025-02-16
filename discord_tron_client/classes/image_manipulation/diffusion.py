@@ -193,13 +193,17 @@ class DiffusionPipelineManager:
 
     def _get_current_cpu_mem_usage(self) -> int:
         """
-        Return percentage CPU used memory by this process.
+        Return percentage CPU used memory by all loaded models via their memory map.
         """
+        usage = 0
         try:
-            return hardware.get_process_memory_used()
+            for model, usage in self.vram_usage_map.items():
+                if model in self.pipelines and self.pipelines[model].location == "cpu":
+                    usage += self.vram_usage_map[model]
+                    logger.info(f"Model {model} added to {usage}.")
         except Exception as e:
             logger.error(f"Error getting CPU memory usage: {e}")
-            return 0
+        return usage
 
     def _move_pipeline_to_device(self, record: PipelineRecord, device: str):
         """
