@@ -34,13 +34,10 @@ from diffusers import DiffusionPipeline as Pipeline
 from typing import Dict
 from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.classes.app_config import AppConfig
-# from discord_tron_client.classes.image_manipulation.face_upscale import (
-#     get_upscaler,
-#     use_upscaler,
-# )
 from PIL import Image
 import torch, gc, logging, diffusers, transformers, os, time, psutil
 from torch import OutOfMemoryError
+import json
 
 logger = logging.getLogger("DiffusionPipelineManager")
 logger.setLevel("DEBUG")
@@ -77,10 +74,8 @@ def pin_pipeline_memory(pipe: diffusers.DiffusionPipeline):
             for param in component.parameters():
                 # Pin parameter data
                 param.data = param.data.pin_memory()
-                # If gradients exist and you expect to move them, you could also pin those:
                 if param.grad is not None:
                     param.grad.data = param.grad.data.pin_memory()
-
             for buffer_name, buffer in component.named_buffers():
                 if buffer is not None and buffer.device.type == "cpu":
                     buffer.data = buffer.data.pin_memory()
@@ -153,29 +148,54 @@ class DiffusionPipelineManager:
 
         # Track concurrency
         self.max_gpu_pipelines = hardware.get_concurrent_pipe_count()
-        # Track system CPU memory usage threshold: once exceeded, fully delete older CPU-located pipelines
+        # Track system CPU memory usage threshold
         self.max_cpu_mem = hardware.get_memory_total() - 48
         self.cpu_mem_threshold = 0.75
 
-        # We'll store PipelineRecords in self.pipelines instead of raw Pipeline objects
+        # We'll store PipelineRecords in self.pipelines
         self.pipelines: Dict[str, PipelineRecord] = {}
 
-        # Additional tracking as in your original code
+        # Additional tracking from your original code
         self.last_pipe_type: Dict[str, str] = {}
         self.last_pipe_scheduler: Dict[str, str] = {}
         self.pipeline_versions = {}
-
-        # If your code references this somewhere else:
         self.pipeline_runner = {"model": None}
+
+        self.vram_usage_map = {}
+        self._load_vram_usage_cache()
+
+    def _load_vram_usage_cache(self):
+        """
+        Load cached VRAM usage for each model_id from disk, if exists.
+        """
+        cache_path = "vram_usage_cache.json"
+        if os.path.isfile(cache_path):
+            try:
+                with open(cache_path, "r") as f:
+                    self.vram_usage_map = json.load(f)
+                # Ensure keys are strings, values are ints
+                for k, v in list(self.vram_usage_map.items()):
+                    if not isinstance(v, int):
+                        self.vram_usage_map[k] = int(v)
+            except Exception as e:
+                logger.error(f"Error loading VRAM usage cache: {e}")
+
+    def _save_vram_usage_cache(self):
+        """
+        Save current VRAM usage map to disk as JSON.
+        """
+        cache_path = "vram_usage_cache.json"
+        try:
+            with open(cache_path, "w") as f:
+                json.dump(self.vram_usage_map, f)
+        except Exception as e:
+            logger.error(f"Error saving VRAM usage cache: {e}")
 
     def _get_current_cpu_mem_usage(self) -> int:
         """
         Return percentage CPU used memory by this process.
         """
         try:
-            # process = psutil.Process(os.getpid())
-            # mem = process.memory_info().rss
-            # logger.info(f"Memory information: {mem}")
             return hardware.get_process_memory_used()
         except Exception as e:
             logger.error(f"Error getting CPU memory usage: {e}")
@@ -184,12 +204,45 @@ class DiffusionPipelineManager:
     def _move_pipeline_to_device(self, record: PipelineRecord, device: str):
         """
         Moves a pipeline to device: "cuda", "cpu", or "meta".
+        Also measures VRAM usage if moving to GPU for the first time
+        and not already cached in self.vram_usage_map.
         """
         if record.location == device:
             return  # Already there
+
         try:
-            record.pipeline.to(device, non_blocking=True if device == "cpu" else False)
+            if device == "cuda" and torch.cuda.is_available():
+                # Check if we already know VRAM usage
+                if record.model_id not in self.vram_usage_map or self.vram_usage_map[record.model_id] == 0:
+                    # Measure VRAM delta
+                    mem_before = torch.cuda.memory_allocated()
+                    record.pipeline.to(device, non_blocking=False)
+                    mem_after = torch.cuda.memory_allocated()
+                    used_bytes = mem_after - mem_before
+
+                    # Don't overwrite with zero if for some reason it was zero
+                    if used_bytes > 0:
+                        self.vram_usage_map[record.model_id] = used_bytes
+                        logger.info(
+                            f"Pipeline {record.model_id} uses ~{used_bytes} bytes of VRAM (measured)."
+                        )
+                        self._save_vram_usage_cache()
+                    else:
+                        logger.info(
+                            f"Measured VRAM usage for {record.model_id} is {used_bytes} bytes, skipping update."
+                        )
+                else:
+                    # We already have a known usage, just move without measuring
+                    record.pipeline.to(device, non_blocking=False)
+                    cached_bytes = self.vram_usage_map[record.model_id]
+                    logger.info(
+                        f"Pipeline {record.model_id} VRAM usage is ~{cached_bytes} bytes (cached)."
+                    )
+            else:
+                # Move to CPU or meta
+                record.pipeline.to(device, non_blocking=True if device == "cpu" else False)
             record.location = device
+
         except Exception as e:
             logger.error(f"Error moving pipeline {record.model_id} to {device}: {e}")
 
@@ -203,7 +256,7 @@ class DiffusionPipelineManager:
             if r.location == "cuda" and r.model_id != exclude_model_id
         ]
         if not candidates:
-            return  # nothing we can offload
+            return
 
         # LRU: sort by last_access_time ascending
         candidates.sort(key=lambda x: x.last_access_time)
@@ -221,7 +274,7 @@ class DiffusionPipelineManager:
             return
         record = self.pipelines[model_id]
 
-        # If it's on GPU, move to CPU first (optional step to ensure a clean move):
+        # If it's on GPU, move to CPU first
         if record.location == "cuda":
             self._move_pipeline_to_device(record, "cpu")
 
@@ -231,14 +284,12 @@ class DiffusionPipelineManager:
         except Exception as e:
             logger.error(f"Error when moving {model_id} to meta device: {e}")
 
-        # Dereference to help garbage collection
         del record.pipeline
         del self.pipelines[model_id]
 
         if self.pipeline_runner.get("model") == model_id:
             self.pipeline_runner["model"] = None
 
-        # Clear CUDA cache after removal
         self.clear_cuda_cache()
 
     def _cleanup_cpu_memory_if_needed(self):
@@ -252,15 +303,12 @@ class DiffusionPipelineManager:
             logger.info(f"We now have {len(self.pipelines)} pipelines in memory.")
             return
 
-        # We are above CPU memory threshold -> remove some CPU-resident pipelines
         logger.warning(
             f"CPU memory usage {current_cpu_usage} exceeds threshold {self.max_cpu_mem}. "
             f"Removing from {len(self.pipelines)} older pipelines from CPU memory..."
         )
 
-        # Find all pipelines located on CPU
         candidates = [r for r in self.pipelines.values() if r.location == "cpu"]
-        # Sort by last_access_time ascending (LRU)
         candidates.sort(key=lambda x: x.last_access_time)
 
         idx = 0
@@ -285,11 +333,9 @@ class DiffusionPipelineManager:
         if record.location == "cuda":
             return  # already on GPU
 
-        # If we have room on the GPU, just move it:
         if self.num_pipelines_on_gpu() < self.max_gpu_pipelines:
             self._move_pipeline_to_device(record, "cuda")
         else:
-            # Offload an LRU pipeline first
             self._offload_one_pipeline_from_gpu(exclude_model_id=model_id)
             self._move_pipeline_to_device(record, "cuda")
 
@@ -297,10 +343,6 @@ class DiffusionPipelineManager:
         return sum(1 for r in self.pipelines.values() if r.location == "cuda")
 
     def clear_pipeline(self, model_id: str) -> None:
-        """
-        Overridden to fully remove pipeline from memory rather than just from GPU.
-        (Interface remains intact.)
-        """
         if model_id in self.pipelines:
             self._remove_pipeline_from_memory(model_id)
         else:
@@ -376,31 +418,19 @@ class DiffusionPipelineManager:
                 use_auth_token=config.get_huggingface_api_key(),
                 **extra_args,
             )
+
         quanto_quantized_models = [
             LTXPipeline, LTXImageToVideoPipeline, FluxPipeline
         ]
         if type(pipeline) in quanto_quantized_models and not hasattr(pipeline, "quantized"):
             logger.info(f"Quantizing the model for {model_id}")
-
             from optimum.quanto import quantize, freeze, qint8
-            quantize(pipeline.transformer, weights=qint8, include=[
-                "*transformer*",
-            ])
+            quantize(pipeline.transformer, weights=qint8, include=["*transformer*"])
             logger.info(f"Freezing the model for {model_id}")
             freeze(pipeline.transformer)
             self.delete_pipes(keep_model=model_id)
-            # pipeline.to(self.device)
-
-            # from torchao.quantization import quantize_, int8_weight_only, autoquant
-            # # pipeline.transformer.to(memory_format=torch.channels_last)
-            # pipeline.transformer = torch.compile(
-            #     pipeline.transformer, mode="reduce-overhead", fullgraph=True
-            # )
-            # # quantize_(pipeline.transformer, int8_weight_only(), device="cuda")
-            # pipeline.transformer = autoquant(pipeline.transformer, device="cuda")
-
             setattr(pipeline, "quantized", True)
-        # Disable safety checker
+
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
         if hasattr(pipeline, "watermark") and pipeline.watermark is not None:
@@ -414,9 +444,6 @@ class DiffusionPipelineManager:
 
     def upscale_image(self, image: Image):
         return image
-        # self._initialize_upscaler_pipe()
-        # esrgan_upscaled = use_upscaler(self.pipelines["upscaler"], image)
-        # return esrgan_upscaled
 
     def get_model_latest_hash(
         self,
@@ -425,7 +452,6 @@ class DiffusionPipelineManager:
         unet_model_name: str = "diffusion_pytorch_model.safetensors",
     ) -> str:
         from huggingface_hub import get_hf_file_metadata, hf_hub_url
-
         try:
             url = hf_hub_url(
                 repo_id=model_id, filename=os.path.join(subfolder, unet_model_name)
@@ -462,7 +488,7 @@ class DiffusionPipelineManager:
             return None
         if latest_hash is False:
             logger.debug(
-                f"is_model_latest could not retrieve metadata: {latest_hash}, but we are assuming it's fine."
+                f"is_model_latest could not retrieve metadata: {latest_hash}, but assuming it's fine."
             )
             return True
 
@@ -494,10 +520,6 @@ class DiffusionPipelineManager:
         safety_modules: dict = None,
         use_safetensors: bool = True,
     ) -> Pipeline:
-        """
-        Main retrieval function, now updated to offload pipelines to CPU
-        rather than deleting them. Also calls CPU memory cleanup when done.
-        """
         pipe_type = (
             "prompt_variation"
             if prompt_variation
@@ -515,7 +537,6 @@ class DiffusionPipelineManager:
             f"Executing get_pipe for model {model_id} with pipe_type={pipe_type} safetensors={use_safetensors}"
         )
 
-        # Check if model is outdated
         logger.info(
             f"Checking the model version for {model_id}: currently we have {self.pipeline_versions.get(model_id, {}).get('latest_hash', 'unknown')}"
         )
@@ -528,12 +549,10 @@ class DiffusionPipelineManager:
             )
             self.clear_pipeline(model_id)
 
-        # If pipeline doesn't exist, create it on CPU
         if model_id not in self.pipelines:
             logger.debug(
                 f"Creating pipeline type {pipe_type} for model {model_id} with custom_text_encoder {type(custom_text_encoder)}"
             )
-
             snapshot1 = tracemalloc.take_snapshot()
             new_pipeline = self.create_pipeline(
                 model_id,
@@ -544,60 +563,40 @@ class DiffusionPipelineManager:
             )
             snapshot2 = tracemalloc.take_snapshot()
             top_stats = snapshot2.compare_to(snapshot1, 'lineno')
-
             logger.info("[ Top 10 differences ]")
             for stat in top_stats[:10]:
                 logger.info(stat)
+
             self.pipelines[model_id] = PipelineRecord(new_pipeline, model_id, location="cpu")
             self.last_pipe_type[model_id] = pipe_type
         else:
             logger.info(f"Using existing pipeline for {model_id}. Checking concurrency constraints.")
 
-        # Move pipeline to GPU if needed, offloading something else if concurrency is maxed
         self._ensure_pipeline_on_gpu(model_id)
 
-        # Update usage stats
         record = self.pipelines[model_id]
         record.update_access()
 
-        # Additional VAE tiling logic from your code
         enable_tiling = user_config.get("enable_tiling", True)
         if hasattr(record.pipeline, "vae") and enable_tiling:
             logger.warning(f"Enabling VAE tiling. This could cause artifacted outputs.")
             record.pipeline.vae.enable_tiling()
             record.pipeline.vae.enable_slicing()
 
-        # Return pipeline after concurrency management
-        # Now that we've loaded the pipeline on GPU, let's do CPU memory cleanup if needed
         self._cleanup_cpu_memory_if_needed()
-
         return record.pipeline
 
     def delete_pipes(self, keep_model: str = None):
-        """
-        Previously, this method would forcibly remove all pipes except keep_model.
-        Now we update it to offload pipelines from GPU if concurrency is exceeded
-        and remove from CPU entirely only if needed (LRU).
-        We'll interpret "delete_pipes" as "try to reduce GPU usage to keep only keep_model on GPU".
-        """
         for model_id, record in list(self.pipelines.items()):
             if keep_model is not None and model_id == keep_model:
                 continue
-            # If it's on GPU, move to CPU to free concurrency slots
             if record.location == "cuda":
                 logger.info(f"Offloading pipeline {model_id} from GPU to CPU (delete_pipes).")
                 self._move_pipeline_to_device(record, "cpu")
-
-        # Optionally do a CPU memory cleanup if needed
         self._cleanup_cpu_memory_if_needed()
 
     def clear_cuda_cache(self):
-        """
-        Clears Python garbage, plus optionally empties PyTorch CUDA cache
-        if configured. 
-        """
         import ctypes
-
         libc = ctypes.CDLL("libc.so.6")
         libc.malloc_trim(0)
         gc.collect()
