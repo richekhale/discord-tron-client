@@ -246,6 +246,7 @@ class DiffusionPipelineManager:
         """
         current_cpu_usage = hardware.get_memory_total() - hardware.get_memory_free()
         if current_cpu_usage <= self.max_cpu_mem:
+            logger.info(f"Not clearing memory, {current_cpu_usage} less than {self.max_cpu_mem}")
             return
 
         # We are above CPU memory threshold -> remove some CPU-resident pipelines
