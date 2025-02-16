@@ -198,8 +198,12 @@ class DiffusionPipelineManager:
         usage = 0
         try:
             for model, pipe in self.pipelines.items():
+                usage_multiplier = 1.5
+                if 'flux' in str(type(pipe)) and hardware.get_simple_hardware_info()["video_memory_amount"] < 48:
+                    # it'll be quantised, and this uses 2x the system memory
+                    usage_multiplier = 2.0
                 if pipe.location == "cpu":
-                    model_usage = self.vram_usage_map[model] * 1.5
+                    model_usage = self.vram_usage_map[model] * usage_multiplier
                     usage += model_usage
                     logger.info(f"Model {model} using {model_usage} out of {usage} (adjusted by 1.5x multiplier).")
         except Exception as e:
