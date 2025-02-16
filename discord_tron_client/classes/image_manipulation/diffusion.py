@@ -1,3 +1,5 @@
+import tracemalloc
+tracemalloc.start()
 from diffusers import models
 try:
     from diffusers.loaders import lora_base
@@ -531,7 +533,7 @@ class DiffusionPipelineManager:
             logger.debug(
                 f"Creating pipeline type {pipe_type} for model {model_id} with custom_text_encoder {type(custom_text_encoder)}"
             )
-            import tracemalloc
+
             snapshot1 = tracemalloc.take_snapshot()
             new_pipeline = self.create_pipeline(
                 model_id,
