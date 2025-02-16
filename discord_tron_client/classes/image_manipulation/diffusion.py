@@ -37,7 +37,7 @@ from discord_tron_client.classes.app_config import AppConfig
 #     use_upscaler,
 # )
 from PIL import Image
-import torch, gc, logging, diffusers, transformers, os, time
+import torch, gc, logging, diffusers, transformers, os, time, psutil
 from torch import OutOfMemoryError
 
 logger = logging.getLogger("DiffusionPipelineManager")
@@ -168,14 +168,14 @@ class DiffusionPipelineManager:
 
     def _get_current_cpu_mem_usage(self) -> int:
         """
-        Return the current CPU memory usage by PyTorch in bytes.
-        If your PyTorch version does not support this, replace with psutil or similar.
+        Return the current CPU memory usage by psutil in bytes.
         """
         try:
-            stats = torch.memory_stats("cpu")
-            return stats["allocated_bytes.all.current"]
-        except Exception:
-            return 0  # fallback if memory_stats isn't supported
+            stats = psutil.virtual_memory()
+            return stats.used
+        except Exception as e:
+            logger.error(f"Error getting CPU memory usage: {e}")
+            return
 
     def _move_pipeline_to_device(self, record: PipelineRecord, device: str):
         """
