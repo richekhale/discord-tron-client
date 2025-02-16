@@ -597,18 +597,18 @@ class DiffusionPipelineManager:
         )
         logger.info(f"Checking version for {model_id}")
 
-        if not self.is_model_latest(model_id):
-            new_revision = self.pipeline_versions.get(model_id, {}).get(
-                "latest_hash", None
-            )
-            if not new_revision:
-                raise ValueError(
-                    f"Could not get the latest revision for model {model_id}"
-                )
-            logger.warning(
-                f"Model {model_id} is not latest. Clearing and reloading revision {new_revision}."
-            )
-            self.clear_pipeline(model_id)
+        # if not self.is_model_latest(model_id):
+        #     new_revision = self.pipeline_versions.get(model_id, {}).get(
+        #         "latest_hash", None
+        #     )
+        #     if not new_revision:
+        #         raise ValueError(
+        #             f"Could not get the latest revision for model {model_id}"
+        #         )
+        #     logger.warning(
+        #         f"Model {model_id} is not latest. Clearing and reloading revision {new_revision}."
+        #     )
+        #     self.clear_pipeline(model_id)
 
         if model_id not in self.pipelines:
             logger.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
