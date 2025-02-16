@@ -368,7 +368,30 @@ class DiffusionPipelineManager:
                 use_auth_token=config.get_huggingface_api_key(),
                 **extra_args,
             )
+        quanto_quantized_models = [
+            LTXPipeline, LTXImageToVideoPipeline, FluxPipeline
+        ]
+        if type(pipeline) in quanto_quantized_models and not hasattr(pipeline, "quantized"):
+            logger.info(f"Quantizing the model for {model_id}")
 
+            from optimum.quanto import quantize, freeze, qint8
+            quantize(pipeline.transformer, weights=qint8, include=[
+                "*transformer*",
+            ])
+            logger.info(f"Freezing the model for {model_id}")
+            freeze(pipeline.transformer)
+            self.delete_pipes(keep_model=model_id)
+            # pipeline.to(self.device)
+
+            # from torchao.quantization import quantize_, int8_weight_only, autoquant
+            # # pipeline.transformer.to(memory_format=torch.channels_last)
+            # pipeline.transformer = torch.compile(
+            #     pipeline.transformer, mode="reduce-overhead", fullgraph=True
+            # )
+            # # quantize_(pipeline.transformer, int8_weight_only(), device="cuda")
+            # pipeline.transformer = autoquant(pipeline.transformer, device="cuda")
+
+            setattr(pipeline, "quantized", True)
         # Disable safety checker
         if hasattr(pipeline, "safety_checker") and pipeline.safety_checker is not None:
             pipeline.safety_checker = lambda images, clip_input: (images, False)
