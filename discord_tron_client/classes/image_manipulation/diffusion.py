@@ -197,10 +197,10 @@ class DiffusionPipelineManager:
         """
         usage = 0
         try:
-            for model, usage in self.vram_usage_map.items():
-                if model in self.pipelines and self.pipelines[model].location == "cpu":
+            for model, pipe in self.pipelines.items():
+                if pipe.location == "cpu":
                     usage += self.vram_usage_map[model]
-                    logger.info(f"Model {model} added to {usage}.")
+                    logger.info(f"Model {model} using {self.vram_usage_map[model]} out of {usage}.")
         except Exception as e:
             logger.error(f"Error getting CPU memory usage: {e}")
         return usage
