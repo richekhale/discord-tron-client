@@ -58,6 +58,31 @@ else:
 hardware = HardwareInfo()
 config = AppConfig()
 
+def pin_pipeline_memory(pipe: diffusers.DiffusionPipeline):
+    """
+    Recursively pins (page-locks) the .data of all parameters and buffers
+    for every torch.nn.Module in the pipeline's components.
+
+    NOTE:
+        - Only relevant if the pipeline is on CPU.
+        - Typically used for faster CPU→GPU transfers if you plan to
+          move back and forth.
+        - May increase overall system memory usage because pinned memory 
+          cannot be paged out.
+    """
+    for component_name, component in pipe.components.items():
+        if isinstance(component, torch.nn.Module):
+            for param in component.parameters():
+                # Pin parameter data
+                param.data = param.data.pin_memory()
+                # If gradients exist and you expect to move them, you could also pin those:
+                if param.grad is not None:
+                    param.grad.data = param.grad.data.pin_memory()
+
+            for buffer_name, buffer in component.named_buffers():
+                if buffer is not None and buffer.device.type == "cpu":
+                    buffer.data = buffer.data.pin_memory()
+
 class PipelineRecord:
     """
     Stores a Pipeline along with metadata for LRU/offload management.
@@ -353,7 +378,7 @@ class DiffusionPipelineManager:
             pipeline.watermarker = None
 
         # Move pipeline to CPU initially
-        pipeline.to("cpu")
+        pin_pipeline_memory(pipe=pipeline)
         return pipeline
 
     def upscale_image(self, image: Image):
