@@ -245,8 +245,7 @@ class DiffusionPipelineManager:
         until we fall below the threshold.
         """
         current_cpu_usage = hardware.get_memory_total() - hardware.get_memory_free()
-        limit = int(self.max_cpu_mem * self.cpu_mem_threshold)
-        if current_cpu_usage <= limit:
+        if current_cpu_usage <= self.max_cpu_mem:
             return
 
         # We are above CPU memory threshold -> remove some CPU-resident pipelines
