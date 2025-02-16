@@ -211,7 +211,7 @@ class HardwareInfo:
         try:
             with open("/proc/self/status") as f:
                 for line in f:
-                    if line.startswith("VmData:"):
+                    if line.startswith("VmRSS:"):
                         memory_used = int(line.split()[1]) / 1024 / 1024
                         break
         except:
