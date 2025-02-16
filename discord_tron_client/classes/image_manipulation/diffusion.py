@@ -268,7 +268,8 @@ class DiffusionPipelineManager:
             self._remove_pipeline_from_memory(oldest.model_id)
             current_cpu_usage = self._get_current_cpu_mem_usage()
             self.clear_cuda_cache()
-            logger.info(f"New memory usage level {current_cpu_usage}")
+            import sys
+            logger.info(f"New memory usage level {current_cpu_usage} ({sys.getsizeof(self)})")
 
     def _ensure_pipeline_on_gpu(self, model_id: str):
         """
