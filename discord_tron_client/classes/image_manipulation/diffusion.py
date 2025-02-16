@@ -223,24 +223,25 @@ class DiffusionPipelineManager:
                     record.pipeline.to(device, non_blocking=False)
                     mem_after = torch.cuda.memory_allocated()
                     used_bytes = mem_after - mem_before
+                    used_gigabytes = used_bytes / 1024 ** 3
 
                     # Don't overwrite with zero if for some reason it was zero
-                    if used_bytes > 0:
-                        self.vram_usage_map[record.model_id] = used_bytes
+                    if used_gigabytes > 0:
+                        self.vram_usage_map[record.model_id] = used_gigabytes
                         logger.info(
-                            f"Pipeline {record.model_id} uses ~{used_bytes} bytes of VRAM (measured)."
+                            f"Pipeline {record.model_id} uses ~{used_gigabytes} gigabytes of VRAM (measured)."
                         )
                         self._save_vram_usage_cache()
                     else:
                         logger.info(
-                            f"Measured VRAM usage for {record.model_id} is {used_bytes} bytes, skipping update."
+                            f"Measured VRAM usage for {record.model_id} is {used_gigabytes} gigabytes, skipping update."
                         )
                 else:
                     # We already have a known usage, just move without measuring
                     record.pipeline.to(device, non_blocking=False)
                     cached_bytes = self.vram_usage_map[record.model_id]
                     logger.info(
-                        f"Pipeline {record.model_id} VRAM usage is ~{cached_bytes} bytes (cached)."
+                        f"Pipeline {record.model_id} VRAM usage is ~{cached_bytes} gigabytes (cached)."
                     )
             else:
                 # Move to CPU or meta
