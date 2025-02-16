@@ -612,7 +612,6 @@ class DiffusionPipelineManager:
 
         if model_id not in self.pipelines:
             logger.debug(f"Creating pipeline type {pipe_type} for model {model_id}")
-            snapshot1 = tracemalloc.take_snapshot()
             new_pipeline = self.create_pipeline(
                 model_id,
                 pipe_type,
@@ -620,12 +619,6 @@ class DiffusionPipelineManager:
                 custom_text_encoder=custom_text_encoder,
                 safety_modules=safety_modules,
             )
-            snapshot2 = tracemalloc.take_snapshot()
-            top_stats = snapshot2.compare_to(snapshot1, "lineno")
-            logger.info("[ Top 10 differences ]")
-            for stat in top_stats[:10]:
-                logger.info(stat)
-
             self.pipelines[model_id] = PipelineRecord(
                 new_pipeline, model_id, location="cpu"
             )
