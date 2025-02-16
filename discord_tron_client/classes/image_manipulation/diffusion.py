@@ -452,16 +452,23 @@ class DiffusionPipelineManager:
                 **extra_args,
             )
 
+        self.pipelines[model_id] = PipelineRecord(
+            pipeline, model_id, location="cpu"
+        )
+
+
         quanto_quantized_models = [LTXPipeline, LTXImageToVideoPipeline, FluxPipeline]
         if type(pipeline) in quanto_quantized_models and not hasattr(
             pipeline, "quantized"
         ):
             logger.info(f"Quantizing the model for {model_id}")
             from optimum.quanto import quantize, freeze, qint8
-
+            # move to GPU now
+            pipeline.transformer.to(self.device)
             quantize(pipeline.transformer, weights=qint8, include=["*transformer*"])
             logger.info(f"Freezing the model for {model_id}")
             freeze(pipeline.transformer)
+            pipeline.transformer.to("cpu")
             self.delete_pipes(keep_model=model_id)
             setattr(pipeline, "quantized", True)
 
@@ -618,9 +625,6 @@ class DiffusionPipelineManager:
                 use_safetensors=use_safetensors,
                 custom_text_encoder=custom_text_encoder,
                 safety_modules=safety_modules,
-            )
-            self.pipelines[model_id] = PipelineRecord(
-                new_pipeline, model_id, location="cpu"
             )
             self.last_pipe_type[model_id] = pipe_type
         else:
