@@ -174,7 +174,7 @@ class DiffusionPipelineManager:
             # process = psutil.Process(os.getpid())
             # mem = process.memory_info().rss
             # logger.info(f"Memory information: {mem}")
-            return hardware.get_memory_total() - hardware.get_memory_free()
+            return hardware.get_process_memory_used()
         except Exception as e:
             logger.error(f"Error getting CPU memory usage: {e}")
             return 0
