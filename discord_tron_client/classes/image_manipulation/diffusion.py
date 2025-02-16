@@ -184,7 +184,7 @@ class DiffusionPipelineManager:
         if record.location == device:
             return  # Already there
         try:
-            record.pipeline.to(device)
+            record.pipeline.to(device, non_blocking=True if device == "cpu" else False)
             record.location = device
         except Exception as e:
             logger.error(f"Error moving pipeline {record.model_id} to {device}: {e}")
