@@ -165,7 +165,7 @@ class DiffusionPipelineManager:
         # Track concurrency
         self.max_gpu_pipelines = hardware.get_concurrent_pipe_count()
         # Track CPU memory usage threshold
-        self.max_cpu_mem = hardware.get_memory_total() - 48
+        self.max_cpu_mem = hardware.get_memory_total() - 64
         self.cpu_mem_threshold = 0.75
 
         # We'll store PipelineRecords in self.pipelines
