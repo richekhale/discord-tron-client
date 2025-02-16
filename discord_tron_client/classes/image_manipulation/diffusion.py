@@ -168,14 +168,16 @@ class DiffusionPipelineManager:
 
     def _get_current_cpu_mem_usage(self) -> int:
         """
-        Return the current CPU memory usage by psutil in bytes.
+        Return percentage CPU used memory by this process.
         """
         try:
-            stats = psutil.virtual_memory()
-            return stats.used
+            process = psutil.Process(os.getpid())
+            mem = process.memory_info().rss
+            logger.info(f"Memory information: {mem}")
+            return mem
         except Exception as e:
             logger.error(f"Error getting CPU memory usage: {e}")
-            return
+            return 0
 
     def _move_pipeline_to_device(self, record: PipelineRecord, device: str):
         """
