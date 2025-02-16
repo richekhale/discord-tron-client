@@ -22,7 +22,9 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners.deep_floyd 
 from discord_tron_client.classes.image_manipulation.pipeline_runners.sd3_runner import (
     SD3PipelineRunner,
 )
-from discord_tron_client.classes.image_manipulation.pipeline_runners.sana_runner import SanaPipelineRunner
+from discord_tron_client.classes.image_manipulation.pipeline_runners.sana_runner import (
+    SanaPipelineRunner,
+)
 from discord_tron_client.classes.image_manipulation.pipeline_runners.aura import (
     AuraPipelineRunner,
 )
@@ -35,6 +37,7 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners.flux import
 from discord_tron_client.classes.image_manipulation.pipeline_runners.ltxvideo import (
     LtxVideoPipelineRunner,
 )
+
 runner_map = {
     "text2img": Text2ImgPipelineRunner,
     "img2img": Img2ImgPipelineRunner,

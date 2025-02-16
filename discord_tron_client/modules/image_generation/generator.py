@@ -142,7 +142,9 @@ async def generate_image(payload, websocket):
         # Try uploading via the HTTP API
         api_client = AppConfig.get_api_client()
         uploader = Uploader(api_client=api_client, config=config)
-        if type(output_images) is str and ('webp' in output_images or 'mp4' in output_images):
+        if type(output_images) is str and (
+            "webp" in output_images or "mp4" in output_images
+        ):
             url_list = await uploader.upload_videos(output_images)
         else:
             url_list = await uploader.upload_images(output_images)
@@ -156,9 +158,15 @@ async def generate_image(payload, websocket):
         # discord_msg = DiscordMessage(websocket=websocket, context=payload["discord_first_message"], module_command="send", message=DiscordMessage.print_prompt(payload), image_url_list=url_list)
         execute_duration = end_time - start_time
         if hasattr(pipeline_manager, "pipeline_runner"):
-            if hasattr(pipeline_manager.pipeline_runner, "generation_time") and getattr(pipeline_manager.pipeline_runner, 'generation_time', None) is not None:
+            if (
+                hasattr(pipeline_manager.pipeline_runner, "generation_time")
+                and getattr(pipeline_manager.pipeline_runner, "generation_time", None)
+                is not None
+            ):
                 execute_duration = pipeline_manager.pipeline_runner.generation_time
-                logging.info(f"Overriding execute_duration with pipeline_runner.generation_time: {execute_duration}")
+                logging.info(
+                    f"Overriding execute_duration with pipeline_runner.generation_time: {execute_duration}"
+                )
         websocket = AppConfig.get_websocket()
         attributes = {
             "last_modified": pipeline_manager.pipeline_versions.get(model_id, {}).get(

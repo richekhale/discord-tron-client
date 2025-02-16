@@ -113,11 +113,17 @@ class BasePipelineRunner:
         return os.path.join(path_to_adapter, adapter_filename)
 
     def clean_adapter_name(self, adapter_path: str) -> str:
-        if ':' in adapter_path and ('lora' in adapter_path or 'lycoris' in adapter_path):
+        if ":" in adapter_path and (
+            "lora" in adapter_path or "lycoris" in adapter_path
+        ):
             # remove the lycoris: or lora: prefix etc
-            adapter_path = adapter_path.split(':')[1]
+            adapter_path = adapter_path.split(":")[1]
         return (
-            adapter_path.replace("/", "_").replace("\\", "_").replace(":", "_").replace(".", "_").replace(" ", "_")
+            adapter_path.replace("/", "_")
+            .replace("\\", "_")
+            .replace(":", "_")
+            .replace(".", "_")
+            .replace(" ", "_")
         )
 
     def load_adapter(
@@ -154,7 +160,9 @@ class BasePipelineRunner:
             path_to_adapter = self.download_adapter(adapter_type, adapter_path)
             adapter_filename = "pytorch_lora_weights.safetensors"
             lycoris_wrapper, _ = create_lycoris_from_weights(
-                multiplier=float(adapter_strength), file=path_to_adapter, module=model_to_patch
+                multiplier=float(adapter_strength),
+                file=path_to_adapter,
+                module=model_to_patch,
             )
             if fuse_adapter:
                 lycoris_wrapper.merge_to(adapter_strength)
@@ -162,7 +170,10 @@ class BasePipelineRunner:
                 # lycoris_wrapper.to(self.pipeline.transformer.device)
                 lycoris_wrapper.apply_to()
                 logging.info("Moving Lycoris to GPU")
-                lycoris_wrapper.to(device=self.pipeline_manager.device, dtype=self.pipeline_manager.torch_dtype)
+                lycoris_wrapper.to(
+                    device=self.pipeline_manager.device,
+                    dtype=self.pipeline_manager.torch_dtype,
+                )
 
         self.loaded_adapters[clean_adapter_name] = {
             "adapter_type": adapter_type,
@@ -188,7 +199,9 @@ class BasePipelineRunner:
                     user_adapters_to_keep.append(clean_user_adapter_name)
         for clean_adapter_name, config in loaded_adapters.items():
             if clean_adapter_name in user_adapters_to_keep:
-                logging.info(f"Not unloading: {clean_adapter_name}. It is in the current request.")
+                logging.info(
+                    f"Not unloading: {clean_adapter_name}. It is in the current request."
+                )
                 continue
             if config.get("adapter_type") == "lora":
                 if config.get("is_fused", False):
@@ -199,7 +212,9 @@ class BasePipelineRunner:
                     logging.error(f"Failed to clear adapter {clean_adapter_name}")
                     continue
                 if config.get("is_fused", False):
-                    logging.info(f"De-fusing the Lycoris wrapper {clean_adapter_name} by merging in at -1 strength. keep_fused_loaded={self.keep_fused_loaded}")
+                    logging.info(
+                        f"De-fusing the Lycoris wrapper {clean_adapter_name} by merging in at -1 strength. keep_fused_loaded={self.keep_fused_loaded}"
+                    )
                     lycoris_wrapper.merge_to(config.get("adapter_strength", 1.0) * -1)
                     lycoris_wrapper.restore()
                     lycoris_wrapper.to("meta")
@@ -215,11 +230,14 @@ class BasePipelineRunner:
                     del self.loaded_adapters[clean_adapter_name]
         self.pipeline.unload_lora_weights()
 
-    def apply_adapters(self, user_config: dict, model_prefix: str = "model", fuse_adapters: bool = False):
+    def apply_adapters(
+        self,
+        user_config: dict,
+        model_prefix: str = "model",
+        fuse_adapters: bool = False,
+    ):
         # we will apply user LoRAs one at a time. the lora name can be split optionally with a : at the end so that <lora_path>:<strength> are set.
-        self.clear_adapters(
-            user_config=user_config
-        )
+        self.clear_adapters(user_config=user_config)
         for i in range(1, 11, 1):
             user_adapter = user_config.get(f"{model_prefix}_adapter_{i}", None)
             if user_adapter is not None and user_adapter != "":
@@ -234,9 +252,15 @@ class BasePipelineRunner:
                     adapter_type, adapter_path, adapter_strength = pieces
                 try:
                     self.load_adapter(
-                        adapter_type, adapter_path, adapter_strength, fuse_adapter=fuse_adapters
+                        adapter_type,
+                        adapter_path,
+                        adapter_strength,
+                        fuse_adapter=fuse_adapters,
                     )
                 except Exception as e:
                     import traceback
-                    logging.error(f"Failed to download adapter {adapter_path}: {e}, {traceback.format_exc()}")
+
+                    logging.error(
+                        f"Failed to download adapter {adapter_path}: {e}, {traceback.format_exc()}"
+                    )
                     continue

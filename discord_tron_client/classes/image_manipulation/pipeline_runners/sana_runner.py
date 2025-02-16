@@ -3,12 +3,12 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners import (
     BasePipelineRunner,
 )
 from discord_tron_client.classes.app_config import AppConfig
+
 config = AppConfig()
 
 
 class SanaPipelineRunner(BasePipelineRunner):
     def __call__(self, **args):
-        
         args["prompt"], prompt_parameters = self._extract_parameters(args["prompt"])
 
         # Get user_config and delete it from args, it doesn't get passed to the pipeline

@@ -3,15 +3,22 @@ import numpy as np
 from PIL import Image
 import imageio
 import tempfile
-from diffusers.utils.import_utils import BACKENDS_MAPPING, is_imageio_available, is_opencv_available
+from diffusers.utils.import_utils import (
+    BACKENDS_MAPPING,
+    is_imageio_available,
+    is_opencv_available,
+)
 from diffusers.utils.export_utils import _legacy_export_to_video
 import logging
 import PIL
 
 logger = logging.getLogger(__name__)
 
+
 def export_to_video(
-    video_frames: Union[List[np.ndarray], List[Image.Image]], output_video_path: str = None, fps: int = 10
+    video_frames: Union[List[np.ndarray], List[Image.Image]],
+    output_video_path: str = None,
+    fps: int = 10,
 ) -> str:
     # TODO: Dhruv. Remove by Diffusers release 0.33.0
     # Added to prevent breaking existing code
@@ -49,7 +56,7 @@ def export_to_video(
     elif isinstance(video_frames[0], PIL.Image.Image):
         video_frames = [np.array(frame) for frame in video_frames]
 
-    with imageio.get_writer(output_video_path, fps=fps, format='MP4') as writer:
+    with imageio.get_writer(output_video_path, fps=fps, format="MP4") as writer:
         for frame in video_frames:
             writer.append_data(frame)
 

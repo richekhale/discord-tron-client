@@ -3,7 +3,9 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners import (
     BasePipelineRunner,
 )
 from discord_tron_client.classes.app_config import AppConfig
-from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.flux import flux_teacache_monkeypatch
+from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.flux import (
+    flux_teacache_monkeypatch,
+)
 
 
 config = AppConfig()
@@ -48,5 +50,7 @@ class FluxPipelineRunner(BasePipelineRunner):
         self.apply_adapters(user_config, model_prefix="flux")
 
         # Call the pipeline with arguments and return the images
-        with flux_teacache_monkeypatch(self.pipeline, args.get("num_inference_steps"), disable=disable_teacache):
+        with flux_teacache_monkeypatch(
+            self.pipeline, args.get("num_inference_steps"), disable=disable_teacache
+        ):
             return self.pipeline(**args).images

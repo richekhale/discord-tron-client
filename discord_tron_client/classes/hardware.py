@@ -200,7 +200,9 @@ class HardwareInfo:
                     if line.startswith("Buffers:"):
                         memory_free += int(line.split()[1]) / 1024 / 1024
                     if line.startswith("Cached:"):
-                        self.memory_free = memory_free + (int(line.split()[1]) / 1024 / 1024)
+                        self.memory_free = memory_free + (
+                            int(line.split()[1]) / 1024 / 1024
+                        )
                         break
         except:
             self.memory_free = "Unknown"

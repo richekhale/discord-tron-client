@@ -4,12 +4,12 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners import (
 )
 from discord_tron_client.classes.app_config import AppConfig
 from diffusers.utils.export_utils import export_to_video
+
 config = AppConfig()
 
 
 class LtxVideoPipelineRunner(BasePipelineRunner):
     def __call__(self, **args):
-        
         args["prompt"], prompt_parameters = self._extract_parameters(args["prompt"])
 
         # Get user_config and delete it from args, it doesn't get passed to the pipeline
@@ -39,13 +39,13 @@ class LtxVideoPipelineRunner(BasePipelineRunner):
             args["num_inference_steps"] = int(float(args["num_inference_steps"]))
         if "guidance_scale" in args:
             args["guidance_scale"] = float(args["guidance_scale"])
-        
+
         args["width"] = 768
         args["height"] = 512
         if "image" in args:
             # resize/crop without distorting to 768x512
             args["image"] = args["image"].resize((768, 512))
-        
+
         if "decode_noise_scale" in args:
             args["decode_noise_scale"] = float(args["decode_noise_scale"])
         if "decode_timestep" in args:
