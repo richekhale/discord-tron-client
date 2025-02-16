@@ -585,6 +585,10 @@ class DiffusionPipelineManager:
         Clears Python garbage, plus optionally empties PyTorch CUDA cache
         if configured. 
         """
+        import ctypes
+
+        libc = ctypes.CDLL("libc.so.6")
+        libc.malloc_trim(0)
         gc.collect()
         if config.get_cuda_cache_clear_toggle():
             logger.info("Clearing the CUDA cache...")
