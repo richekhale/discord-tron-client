@@ -171,10 +171,10 @@ class DiffusionPipelineManager:
         Return percentage CPU used memory by this process.
         """
         try:
-            process = psutil.Process(os.getpid())
-            mem = process.memory_info().rss
-            logger.info(f"Memory information: {mem}")
-            return mem
+            # process = psutil.Process(os.getpid())
+            # mem = process.memory_info().rss
+            # logger.info(f"Memory information: {mem}")
+            return hardware.get_memory_total() - hardware.get_memory_free()
         except Exception as e:
             logger.error(f"Error getting CPU memory usage: {e}")
             return 0
@@ -244,15 +244,16 @@ class DiffusionPipelineManager:
         If CPU usage is above threshold, remove CPU-located pipelines in LRU order
         until we fall below the threshold.
         """
-        current_cpu_usage = hardware.get_memory_total() - hardware.get_memory_free()
+        current_cpu_usage = self._get_current_cpu_mem_usage()
         if current_cpu_usage <= self.max_cpu_mem:
             logger.info(f"Not clearing memory, {current_cpu_usage} less than {self.max_cpu_mem}")
+            logger.info(f"We now have {len(self.pipelines)} pipelines in memory.")
             return
 
         # We are above CPU memory threshold -> remove some CPU-resident pipelines
         logger.warning(
-            f"CPU memory usage {current_cpu_usage} exceeds threshold {limit}. "
-            f"Removing older pipelines from CPU memory..."
+            f"CPU memory usage {current_cpu_usage} exceeds threshold {self.max_cpu_mem}. "
+            f"Removing from {len(self.pipelines)} older pipelines from CPU memory..."
         )
 
         # Find all pipelines located on CPU
@@ -261,7 +262,7 @@ class DiffusionPipelineManager:
         candidates.sort(key=lambda x: x.last_access_time)
 
         idx = 0
-        while current_cpu_usage > limit and idx < len(candidates):
+        while current_cpu_usage > self.max_cpu_mem and idx < len(candidates):
             oldest = candidates[idx]
             idx += 1
             self._remove_pipeline_from_memory(oldest.model_id)
