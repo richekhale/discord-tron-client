@@ -3,6 +3,9 @@ from time import perf_counter
 from discord_tron_client.classes.image_manipulation.pipeline_runners import (
     BasePipelineRunner,
 )
+from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.accel import (
+    optimize_pipeline,
+)
 from discord_tron_client.classes.app_config import AppConfig
 
 config = AppConfig()
@@ -59,15 +62,16 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
         # Call the pipeline with arguments and return the images
         self.apply_adapters(user_config, fuse_adapters=True)
 
-        if hasattr(self.pipeline, "deepcache_helper"):
-            self.pipeline.deepcache_helper.set_params(
-                cache_interval=int(prompt_parameters.get("cache_interval", 3)),
-                cache_branch_id=int(prompt_parameters.get("cache_branch_id", 0)),
-                skip_mode=str(prompt_parameters.get("skip_mode", "uniform")),
-            )
-            self.pipeline.deepcache_helper.enable()
         start_time = perf_counter()
-        result = self.pipeline(**args).images
+        with optimize_pipeline(
+            pipeline=self.pipeline,
+            enable_teacache=False
+            enable_deepcache=prompt_parameters.get("enable_deepcache", user_config.get("enable_deepcache", False)),
+            deepcache_cache_interval=prompt_parameters.get("deepcache_interval", user_config.get("deepcache_interval", 3)),
+            deepcache_cache_branch_id=prompt_parameters.get("deepcache_branch_id", user_config.get("deepcache_branch_id", 0)),
+            deepcache_skip_mode=prompt_parameters.get("deepcache_skip_mode", user_config.get("deepcache_skip_mode", "uniform")),
+        ):
+            result = self.pipeline(**args).images
         torch.cuda.synchronize()
         end_time = perf_counter()
         self.generation_time = end_time - start_time
