@@ -105,7 +105,7 @@ class SD3PipelineRunner(BasePipelineRunner):
             enable_teacache=enable_teacache,
             teacache_num_inference_steps=args.get("num_inference_steps"),
             teacache_rel_l1_thresh=float(
-                prompt_parameters.get("teacache_distance", 0.6)
+                prompt_parameters.get("teacache_distance", user_config.get("teacache_distance", 0.6))
             ),
             enable_deepcache=False,
             deepcache_cache_interval=3,
