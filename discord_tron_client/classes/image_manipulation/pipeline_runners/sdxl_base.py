@@ -75,7 +75,5 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
         torch.cuda.synchronize()
         end_time = perf_counter()
         self.generation_time = end_time - start_time
-        if hasattr(self.pipeline, "deepcache_helper"):
-            self.pipeline.deepcache_helper.disable()
 
         return result
