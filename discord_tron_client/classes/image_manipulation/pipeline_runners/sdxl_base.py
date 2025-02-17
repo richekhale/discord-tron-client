@@ -65,7 +65,7 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
         start_time = perf_counter()
         with optimize_pipeline(
             pipeline=self.pipeline,
-            enable_teacache=False
+            enable_teacache=False,
             enable_deepcache=prompt_parameters.get("enable_deepcache", user_config.get("enable_deepcache", False)),
             deepcache_cache_interval=prompt_parameters.get("deepcache_interval", user_config.get("deepcache_interval", 3)),
             deepcache_cache_branch_id=prompt_parameters.get("deepcache_branch_id", user_config.get("deepcache_branch_id", 0)),
