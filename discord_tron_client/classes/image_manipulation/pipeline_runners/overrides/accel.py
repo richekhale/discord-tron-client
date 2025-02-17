@@ -107,14 +107,14 @@ def optimize_pipeline(
         hasattr(pipeline, "transformer")
         and getattr(pipeline, "transformer") is not None
     ):
-        if "flux" in str(type(pipeline.transformer)):
+        if "flux" in str(type(pipeline.transformer)).casefold():
             teacache_ctx = flux_teacache_monkeypatch(
                 pipeline,
                 num_inference_steps=teacache_num_inference_steps,
                 rel_l1_thresh=teacache_rel_l1_thresh,
                 disable=(not enable_teacache),
             )
-        elif "sd3" in str(type(pipeline.transformer)):
+        elif "sd3" in str(type(pipeline.transformer)).casefold():
             teacache_ctx = sd3_teacache_monkeypatch(
                 pipeline,
                 num_inference_steps=teacache_num_inference_steps,
