@@ -115,7 +115,7 @@ def optimize_pipeline(
                 rel_l1_thresh=teacache_rel_l1_thresh,
                 disable=(not enable_teacache),
             )
-        elif "stablediffusion3" in str(type(pipeline.transformer)).casefold():
+        elif "sd3" in str(type(pipeline.transformer)).casefold():
             logging.info("Optimizing SD3 pipeline with TeaCache")
             teacache_ctx = sd3_teacache_monkeypatch(
                 pipeline,
