@@ -6,7 +6,31 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.f
 from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.sd3 import (
     sd3_teacache_monkeypatch,
 )
+sage_mechanisms = {}
+try:
+    from sageattention import sageattn_qk_int8_pv_fp16_triton, sageattn_qk_int8_pv_fp16_cuda, sageattn_qk_int8_pv_fp8_cuda, sageattn_qk_int8_pv_fp8_cuda_sm90, sageattn_varlen
+    sage_mechanisms = {
+        "sageattn_qk_int8_pv_fp16_triton": sageattn_qk_int8_pv_fp16_triton,
+        "sageattn_qk_int8_pv_fp16_cuda": sageattn_qk_int8_pv_fp16_cuda,
+        "sageattn_qk_int8_pv_fp8_cuda": sageattn_qk_int8_pv_fp8_cuda,
+        "sageattn_qk_int8_pv_fp8_cuda_sm90": sageattn_qk_int8_pv_fp8_cuda_sm90,
+        "sageattn_varlen": sageattn_varlen,
+    }
+except ImportError:
+    pass
 
+def enable_sageattention(sageattention_mechanism: str = "sageattn_qk_int8_pv_fp8_cuda"):
+    if not enable_sageattention:
+        return
+    from torch.nn import functional as F
+    original_attention = F.scaled_dot_product_attention
+    F.scaled_dot_product_attention = sage_mechanisms[sageattention_mechanism]
+    
+    return original_attention
+
+def disable_sageattention(original_attention):
+    from torch.nn import functional as F
+    F.scaled_dot_product_attention = original_attention
 
 @contextlib.contextmanager
 def optimize_pipeline(
@@ -20,6 +44,8 @@ def optimize_pipeline(
     deepcache_cache_interval: int = 3,
     deepcache_cache_branch_id: int = 0,
     deepcache_skip_mode: str = "uniform",
+    enable_sageattn: bool = False,
+    sageattention_mechanism: str = "sageattn_qk_int8_pv_fp8_cuda",
 ):
     """
     A unified context manager that enables TeaCache on `pipeline.transformer` (if present)
@@ -93,6 +119,8 @@ def optimize_pipeline(
     # --------------------------
     with teacache_ctx:
         # If we have a .deepcache_helper and user wants to enable, do so
+        if enable_sageattn:
+            original_attention = enable_sageattention(sageattention_mechanism)
         if enable_deepcache and hasattr(pipeline, "deepcache_helper"):
             pipeline.deepcache_helper.set_params(
                 cache_interval=deepcache_cache_interval,
@@ -108,3 +136,5 @@ def optimize_pipeline(
             # Cleanup / disable
             if deepcache_active:
                 pipeline.deepcache_helper.disable()
+            if enable_sageattn:
+                disable_sageattention(original_attention)
