@@ -54,9 +54,6 @@ class FluxPipelineRunner(BasePipelineRunner):
         self.apply_adapters(user_config, model_prefix="flux")
 
         # Call the pipeline with arguments and return the images
-        with flux_teacache_monkeypatch(
-            self.pipeline, args.get("num_inference_steps"), disable=disable_teacache
-        ):
         with optimize_pipeline(
             pipeline=self.pipeline,
             enable_teacache=enable_teacache,
