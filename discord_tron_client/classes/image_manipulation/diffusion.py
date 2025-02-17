@@ -318,12 +318,12 @@ class DiffusionPipelineManager:
             return
 
         logger.warning(
-            f"CPU memory usage {current_cpu_usage} exceeds threshold {self.max_cpu_mem}. "
+            f"CPU memory usage {current_cpu_usage}(x{usage_multiplier}) exceeds threshold {self.max_cpu_mem}. "
             f"Removing older pipelines from CPU memory..."
         )
 
         # Collect pipelines on CPU, sort by offload_score descending
-        candidates = [r for r in self.pipelines.values() if r.location == "cpu"]
+        candidates = [r for r in self.pipelines.values() if r.location == "cpu" and r.pipeline != pipeline]
         candidates.sort(key=lambda x: x.get_offload_score(), reverse=True)
 
         idx = 0
