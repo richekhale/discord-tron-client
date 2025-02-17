@@ -115,14 +115,22 @@ class DiscordMessage(WebsocketMessage):
             "model"
         ):
             stage1_guidance = f"\n**Stage 2 Guidance**: `!settings refiner_guidance {refiner_guidance}`"
-        
-        flux_adapter = user_config.get('flux_adapter_1')
-        model_adapter = user_config.get('model_adapter_1')
+
+        flux_adapter = user_config.get("flux_adapter_1")
+        model_adapter = user_config.get("model_adapter_1")
         model_adapter_text = ""
-        if "black-forest-labs" in model_id or 'flux' in model_id.lower() and flux_adapter:
-            model_adapter_text = f"\n**Flux Adapter**: `!settings flux_adapter_1 {flux_adapter}`\n"
+        if (
+            "black-forest-labs" in model_id
+            or "flux" in model_id.lower()
+            and flux_adapter
+        ):
+            model_adapter_text = (
+                f"\n**Flux Adapter**: `!settings flux_adapter_1 {flux_adapter}`\n"
+            )
         elif model_adapter is not None and model_adapter != "":
-            model_adapter_text = f"\n**Model Adapter**: `!settings model_adapter_1 {model_adapter}`\n"
+            model_adapter_text = (
+                f"\n**Model Adapter**: `!settings model_adapter_1 {model_adapter}`\n"
+            )
 
         guidance_rescale = user_config.get("guidance_rescale")
         if latent_refiner == "On":

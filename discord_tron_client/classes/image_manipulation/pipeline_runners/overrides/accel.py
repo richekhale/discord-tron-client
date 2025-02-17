@@ -1,7 +1,12 @@
 import contextlib
 from DeepCache import DeepCacheSDHelper
-from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.flux import flux_teacache_monkeypatch
-from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.sd3 import sd3_teacache_monkeypatch
+from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.flux import (
+    flux_teacache_monkeypatch,
+)
+from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.sd3 import (
+    sd3_teacache_monkeypatch,
+)
+
 
 @contextlib.contextmanager
 def optimize_pipeline(
@@ -36,27 +41,31 @@ def optimize_pipeline(
     # --------------------------
     # If the pipeline has a `transformer` attribute and the user wants to enable TeaCache,
     # we wrap it with the teacache_monkeypatch context manager. Otherwise do a "no-op" context.
-    if getattr(pipeline, "transformer") is not None and 'flux' in str(type(pipeline.transformer)):
-        teacache_ctx = flux_teacache_monkeypatch(
-            pipeline,
-            num_inference_steps=teacache_num_inference_steps,
-            rel_l1_thresh=teacache_rel_l1_thresh,
-            disable=(not enable_teacache),
-        )
-    elif getattr(pipeline, "transformer") is not None and 'sd3' in str(type(pipeline.transformer)):
-        teacache_ctx = sd3_teacache_monkeypatch(
-            pipeline,
-            num_inference_steps=teacache_num_inference_steps,
-            rel_l1_thresh=teacache_rel_l1_thresh,
-            disable=(not enable_teacache),
-        )
+    # If no transformer, do a dummy context
+    @contextlib.contextmanager
+    def _nullctx():
+        yield pipeline
 
-    else:
-        # If no transformer, do a dummy context
-        @contextlib.contextmanager
-        def _nullctx():
-            yield pipeline
-        teacache_ctx = _nullctx()
+    teacache_ctx = _nullctx()
+    if hasattr(pipeline, "transformer") and getattr(pipeline, "transformer") is not None:
+        if "flux" in str(
+            type(pipeline.transformer)
+        ):
+            teacache_ctx = flux_teacache_monkeypatch(
+                pipeline,
+                num_inference_steps=teacache_num_inference_steps,
+                rel_l1_thresh=teacache_rel_l1_thresh,
+                disable=(not enable_teacache),
+            )
+        elif "sd3" in str(
+            type(pipeline.transformer)
+        ):
+            teacache_ctx = sd3_teacache_monkeypatch(
+                pipeline,
+                num_inference_steps=teacache_num_inference_steps,
+                rel_l1_thresh=teacache_rel_l1_thresh,
+                disable=(not enable_teacache),
+            )
 
     # --------------------------
     # 2. DeepCache Setup
@@ -72,7 +81,7 @@ def optimize_pipeline(
                 helper.set_params(
                     cache_interval=deepcache_cache_interval,
                     cache_branch_id=deepcache_cache_branch_id,
-                    skip_mode=deepcache_skip_mode
+                    skip_mode=deepcache_skip_mode,
                 )
                 setattr(pipeline, "deepcache_helper", helper)
             except Exception as e:

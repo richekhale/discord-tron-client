@@ -2,9 +2,16 @@ import torch
 import numpy as np
 from typing import Any, Dict, List, Optional, Union
 from diffusers.models.modeling_outputs import Transformer2DModelOutput
-from diffusers.utils import is_torch_version, logging, scale_lora_layers, unscale_lora_layers, USE_PEFT_BACKEND
+from diffusers.utils import (
+    is_torch_version,
+    logging,
+    scale_lora_layers,
+    unscale_lora_layers,
+    USE_PEFT_BACKEND,
+)
 
 logger = logging.get_logger(__name__)
+
 
 def teacache_forward(
     self,
@@ -100,9 +107,16 @@ def teacache_forward(
         # skip_layers logic
         if skip_layers is not None and index_block in skip_layers:
             # apply controlnet skip anyway
-            if block_controlnet_hidden_states is not None and not block.context_pre_only:
-                interval_control = len(self.transformer_blocks) // len(block_controlnet_hidden_states)
-                hidden_states += block_controlnet_hidden_states[index_block // interval_control]
+            if (
+                block_controlnet_hidden_states is not None
+                and not block.context_pre_only
+            ):
+                interval_control = len(self.transformer_blocks) // len(
+                    block_controlnet_hidden_states
+                )
+                hidden_states += block_controlnet_hidden_states[
+                    index_block // interval_control
+                ]
             continue
 
         # gradient checkpoint logic
@@ -114,11 +128,13 @@ def teacache_forward(
                 or index_block % self.gradient_checkpointing_interval == 0
             )
         ):
+
             def create_custom_forward(module, return_dict=None):
                 def custom_forward(*inputs):
                     if return_dict is not None:
                         return module(*inputs, return_dict=return_dict)
                     return module(*inputs)
+
                 return custom_forward
 
             ckpt_kwargs: Dict[str, Any] = (
@@ -139,8 +155,12 @@ def teacache_forward(
             )
 
         if block_controlnet_hidden_states is not None and not block.context_pre_only:
-            interval_control = len(self.transformer_blocks) // len(block_controlnet_hidden_states)
-            hidden_states += block_controlnet_hidden_states[index_block // interval_control]
+            interval_control = len(self.transformer_blocks) // len(
+                block_controlnet_hidden_states
+            )
+            hidden_states += block_controlnet_hidden_states[
+                index_block // interval_control
+            ]
 
     hidden_states = self.norm_out(hidden_states, temb)
     hidden_states = self.proj_out(hidden_states)
@@ -187,14 +207,18 @@ def teacache_forward(
 
     return Transformer2DModelOutput(sample=output)
 
+
 import contextlib
 import types
 
 # A unique sentinel to mark attributes that did not exist originally.
 _SENTINEL = object()
 
+
 @contextlib.contextmanager
-def sd3_teacache_monkeypatch(pipeline, num_inference_steps, rel_l1_thresh=0.6, disable=False):
+def sd3_teacache_monkeypatch(
+    pipeline, num_inference_steps, rel_l1_thresh=0.6, disable=False
+):
     """
     Temporarily monkeypatches the transformer's instance in the given pipeline.
 

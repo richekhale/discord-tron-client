@@ -273,7 +273,9 @@ async def prompt_variation(payload, websocket):
 
         api_client = AppConfig.get_api_client()
         uploader = Uploader(api_client=api_client, config=config)
-        if type(output_images) is str and ('webp' in output_images or 'mp4' in output_images):
+        if type(output_images) is str and (
+            "webp" in output_images or "mp4" in output_images
+        ):
             url_list = await uploader.upload_videos(output_images)
         else:
             url_list = await uploader.upload_images(output_images)

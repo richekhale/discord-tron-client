@@ -1,4 +1,4 @@
-import subprocess, torch
+import subprocess, torch, sys
 import logging, socket
 from discord_tron_client.classes.app_config import AppConfig
 from diffusers.utils.logging import set_verbosity_warning
@@ -195,11 +195,30 @@ class HardwareInfo:
             with open("/proc/meminfo") as f:
                 for line in f:
                     if line.startswith("MemAvailable:"):
-                        self.memory_free = int(int(line.split()[1]) / 1024 / 1024)
+                        memory_free = int(int(line.split()[1]) / 1024 / 1024)
+                    # remove buffers and cache
+                    if line.startswith("Buffers:"):
+                        memory_free += int(line.split()[1]) / 1024 / 1024
+                    if line.startswith("Cached:"):
+                        self.memory_free = memory_free + (
+                            int(line.split()[1]) / 1024 / 1024
+                        )
                         break
         except:
             self.memory_free = "Unknown"
         return self.memory_free
+
+    def get_process_memory_used(self):
+        """return the amount of memory used by this process incl caches and buffers in GiB"""
+        try:
+            with open("/proc/self/status") as f:
+                for line in f:
+                    if line.startswith("VmRSS:"):
+                        memory_used = int(line.split()[1]) / 1024 / 1024
+                        break
+        except:
+            memory_used = 0
+        return memory_used
 
     def get_video_memory_info(self):
         try:
