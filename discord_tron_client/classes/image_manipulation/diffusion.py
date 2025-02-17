@@ -302,14 +302,18 @@ class DiffusionPipelineManager:
 
         self.clear_cuda_cache()
 
-    def _cleanup_cpu_memory_if_needed(self):
+    def _cleanup_cpu_memory_if_needed(self, pipeline = None):
         """
         If CPU memory usage exceeds the threshold, remove the oldest pipelines.
         """
-        current_cpu_usage = self._get_current_cpu_mem_usage()
+        usage_multiplier = 1.0
+        if pipeline is not None:
+            if 'flux' in str(pipeline).lower():
+                usage_multiplier = 2.0
+        current_cpu_usage = self._get_current_cpu_mem_usage() * usage_multiplier
         if current_cpu_usage <= self.max_cpu_mem:
             logger.info(
-                f"Not clearing memory, usage {current_cpu_usage} < {self.max_cpu_mem}"
+                f"Not clearing memory, usage {current_cpu_usage}(x{usage_multiplier}) < {self.max_cpu_mem}"
             )
             return
 
@@ -461,14 +465,11 @@ class DiffusionPipelineManager:
         if type(pipeline) in quanto_quantized_models and not hasattr(
             pipeline, "quantized"
         ):
-            logger.info(f"Quantizing the model for {model_id}")
             from optimum.quanto import quantize, freeze, qint8
-            # move to GPU now
-            pipeline.transformer.to(self.device)
+            logger.info(f"Quantizing the model for {model_id}")
             quantize(pipeline.transformer, weights=qint8, include=["*transformer*"])
             logger.info(f"Freezing the model for {model_id}")
             freeze(pipeline.transformer)
-            pipeline.transformer.to("cpu")
             self.delete_pipes(keep_model=model_id)
             setattr(pipeline, "quantized", True)
 
@@ -641,7 +642,7 @@ class DiffusionPipelineManager:
             record.pipeline.vae.enable_tiling()
             record.pipeline.vae.enable_slicing()
 
-        self._cleanup_cpu_memory_if_needed()
+        self._cleanup_cpu_memory_if_needed(pipeline=record.pipeline)
         return record.pipeline
 
     def delete_pipes(self, keep_model: str = None):
