@@ -331,7 +331,7 @@ class DiffusionPipelineManager:
             worst_record = candidates[idx]
             idx += 1
             self._remove_pipeline_from_memory(worst_record.model_id)
-            current_cpu_usage = self._get_current_cpu_mem_usage()
+            current_cpu_usage = self._get_current_cpu_mem_usage() * usage_multiplier
             self.clear_cuda_cache()
             logger.info(f"New memory usage level {current_cpu_usage}")
 
