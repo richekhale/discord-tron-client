@@ -108,7 +108,7 @@ def optimize_pipeline(
         and getattr(pipeline, "transformer") is not None
     ):
         if "flux" in str(type(pipeline.transformer)).casefold():
-            logging.debug("Optimizing Flux pipeline with TeaCache")
+            logging.info("Optimizing Flux pipeline with TeaCache")
             teacache_ctx = flux_teacache_monkeypatch(
                 pipeline,
                 num_inference_steps=teacache_num_inference_steps,
@@ -116,13 +116,14 @@ def optimize_pipeline(
                 disable=(not enable_teacache),
             )
         elif "stablediffusion3" in str(type(pipeline.transformer)).casefold():
-            logging.debug("Optimizing SD3 pipeline with TeaCache")
+            logging.info("Optimizing SD3 pipeline with TeaCache")
             teacache_ctx = sd3_teacache_monkeypatch(
                 pipeline,
                 num_inference_steps=teacache_num_inference_steps,
                 rel_l1_thresh=teacache_rel_l1_thresh,
                 disable=(not enable_teacache),
             )
+        logging.info(f"TeaCache enabled: {enable_teacache}")
 
     # --------------------------
     # 2. DeepCache Setup
