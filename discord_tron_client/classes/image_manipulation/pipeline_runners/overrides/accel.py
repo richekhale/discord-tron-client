@@ -36,7 +36,8 @@ def enable_sageattention(sageattention_mechanism: str = "sageattn"):
     def sdpa_hijack_flash(query, key, value, attn_mask=None, dropout_p=0.0, is_causal=False, scale=None):
         try:
             return sage_mechanisms[sageattention_mechanism](query, key, value, attn_mask, dropout_p, is_causal, scale)
-        except Exception:
+        except Exception as e:
+            logging.error(f"Could not SageAttn: {e}")
             hidden_states = original_attention(
                 query=query,
                 key=key,
