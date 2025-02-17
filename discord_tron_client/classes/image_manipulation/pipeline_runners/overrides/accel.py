@@ -30,8 +30,6 @@ except ImportError:
     pass
 
 def enable_sageattention(sageattention_mechanism: str = "sageattn"):
-    if not enable_sageattention:
-        return
     from torch.nn import functional as F
 
     original_attention = F.scaled_dot_product_attention
