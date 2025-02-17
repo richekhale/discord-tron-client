@@ -96,11 +96,13 @@ class SD3PipelineRunner(BasePipelineRunner):
             "skip_mode": str(prompt_parameters.get("skip_mode", "uniform")),
         }
         enable_sageattn = user_config.get("enable_sageattn", True)
+        enable_teacache = user_config.get("enable_teacache", False)
+        if "enable_teacache" in prompt_parameters:
+            enable_teacache = True
+            del prompt_parameters["teacache"]
         with optimize_pipeline(
             pipeline=self.pipeline,
-            enable_teacache=True
-            if prompt_parameters.get("enable_teacache") is not None
-            else False,
+            enable_teacache=enable_teacache,
             teacache_num_inference_steps=args.get("num_inference_steps"),
             teacache_rel_l1_thresh=float(
                 prompt_parameters.get("teacache_distance", 0.6)
