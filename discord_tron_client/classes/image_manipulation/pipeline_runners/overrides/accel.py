@@ -29,14 +29,27 @@ try:
 except ImportError:
     pass
 
-
 def enable_sageattention(sageattention_mechanism: str = "sageattn"):
     if not enable_sageattention:
         return
     from torch.nn import functional as F
 
     original_attention = F.scaled_dot_product_attention
-    F.scaled_dot_product_attention = sage_mechanisms[sageattention_mechanism]
+    def sdpa_hijack_flash(query, key, value, attn_mask=None, dropout_p=0.0, is_causal=False, scale=None):
+        try:
+            return sage_mechanisms[sageattention_mechanism](query, key, value, attn_mask, dropout_p, is_causal, scale)
+        except Exception:
+            hidden_states = original_attention(
+                query=query,
+                key=key,
+                value=value,
+                attn_mask=attn_mask,
+                dropout_p=dropout_p,
+                is_causal=is_causal,
+                scale=scale,
+            )
+        return hidden_states
+    F.scaled_dot_product_attention = sdpa_hijack_flash
 
     return original_attention
 
