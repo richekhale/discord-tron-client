@@ -10,20 +10,15 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.s
 sage_mechanisms = {}
 try:
     from sageattention import (
-        sageattn_qk_int8_pv_fp16_triton,
-        sageattn_qk_int8_pv_fp16_cuda,
-        sageattn_qk_int8_pv_fp8_cuda,
-        sageattn_qk_int8_pv_fp8_cuda_sm90,
-        sageattn_varlen,
         sageattn,
     )
 
     sage_mechanisms = {
-        "sageattn_qk_int8_pv_fp16_triton": sageattn_qk_int8_pv_fp16_triton,
-        "sageattn_qk_int8_pv_fp16_cuda": sageattn_qk_int8_pv_fp16_cuda,
-        "sageattn_qk_int8_pv_fp8_cuda": sageattn_qk_int8_pv_fp8_cuda,
-        "sageattn_qk_int8_pv_fp8_cuda_sm90": sageattn_qk_int8_pv_fp8_cuda_sm90,
-        "sageattn_varlen": sageattn_varlen,
+        # "sageattn_qk_int8_pv_fp16_triton": sageattn_qk_int8_pv_fp16_triton,
+        # "sageattn_qk_int8_pv_fp16_cuda": sageattn_qk_int8_pv_fp16_cuda,
+        # "sageattn_qk_int8_pv_fp8_cuda": sageattn_qk_int8_pv_fp8_cuda,
+        # "sageattn_qk_int8_pv_fp8_cuda_sm90": sageattn_qk_int8_pv_fp8_cuda_sm90,
+        # "sageattn_varlen": sageattn_varlen,
         "sageattn": sageattn,
     }
 except ImportError:
@@ -38,6 +33,9 @@ def enable_sageattention(sageattention_mechanism: str = "sageattn"):
             return sage_mechanisms[sageattention_mechanism](query, key, value, attn_mask, dropout_p, is_causal, scale)
         except Exception as e:
             logging.error(f"Could not SageAttn: {e}")
+            logging.error(
+                f"Inputs:",
+            )
             hidden_states = original_attention(
                 query=query,
                 key=key,
