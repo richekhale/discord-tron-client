@@ -655,7 +655,7 @@ class DiffusionPipelineManager:
             if record.location == "cuda":
                 logger.info(f"Offloading pipeline {model_id} to CPU (delete_pipes).")
                 self._move_pipeline_to_device(record, "cpu")
-        self._cleanup_cpu_memory_if_needed()
+        self._cleanup_cpu_memory_if_needed(pipeline=self.pipelines[keep_model].pipeline if keep_model is not None else None)
 
     def clear_cuda_cache(self):
         import ctypes
