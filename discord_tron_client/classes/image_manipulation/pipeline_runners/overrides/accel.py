@@ -47,6 +47,7 @@ def enable_sageattention(sageattention_mechanism: str = "sageattn"):
                 scale=scale,
             )
         return hidden_states
+    logging.info(f"Enabled SageAttention mechanism: {sageattention_mechanism}")
     F.scaled_dot_product_attention = sdpa_hijack_flash
 
     return original_attention
