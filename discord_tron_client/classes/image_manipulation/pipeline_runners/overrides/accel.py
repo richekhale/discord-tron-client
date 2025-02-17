@@ -123,7 +123,7 @@ def optimize_pipeline(
                 rel_l1_thresh=teacache_rel_l1_thresh,
                 disable=(not enable_teacache),
             )
-        logging.info(f"TeaCache enabled: {enable_teacache}")
+        logging.info(f"TeaCache enabled: {enable_teacache}, pipeline type: {type(pipeline.transformer)}")
 
     # --------------------------
     # 2. DeepCache Setup
