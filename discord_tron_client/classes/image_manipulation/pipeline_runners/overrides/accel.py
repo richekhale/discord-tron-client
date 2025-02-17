@@ -88,6 +88,8 @@ def optimize_pipeline(
         deepcache_cache_interval: Interval at which the unet forward pass is cached.
         deepcache_cache_branch_id: Branch ID for DeepCache.
         deepcache_skip_mode: Strategy for skipping unet blocks (e.g. "uniform").
+        enable_sageattn: If True, will enable SageAttention mechanism.
+        sageattention_mechanism: The SageAttention mechanism to use.
     """
 
     # --------------------------
@@ -145,7 +147,6 @@ def optimize_pipeline(
     # 3. Combine context managers
     # --------------------------
     with teacache_ctx:
-        # If we have a .deepcache_helper and user wants to enable, do so
         if enable_sageattn:
             original_attention = enable_sageattention(sageattention_mechanism)
         if enable_deepcache and hasattr(pipeline, "deepcache_helper"):

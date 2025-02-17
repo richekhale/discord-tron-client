@@ -95,6 +95,7 @@ class SD3PipelineRunner(BasePipelineRunner):
             "cache_branch_id": int(prompt_parameters.get("cache_branch_id", 0)),
             "skip_mode": str(prompt_parameters.get("skip_mode", "uniform")),
         }
+        enable_sageattn = user_config.get("enable_sageattn", True)
         with optimize_pipeline(
             pipeline=self.pipeline,
             enable_teacache=True
@@ -108,6 +109,7 @@ class SD3PipelineRunner(BasePipelineRunner):
             deepcache_cache_interval=3,
             deepcache_cache_branch_id=0,
             deepcache_skip_mode="uniform",
+            enable_sageattn=enable_sageattn,
         ):
             result = self.pipeline(**args).images
         torch.cuda.synchronize()
