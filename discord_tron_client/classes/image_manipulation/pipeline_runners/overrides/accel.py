@@ -1,4 +1,4 @@
-import contextlib
+import contextlib, logging
 from DeepCache import DeepCacheSDHelper
 from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.flux import (
     flux_teacache_monkeypatch,
@@ -108,13 +108,15 @@ def optimize_pipeline(
         and getattr(pipeline, "transformer") is not None
     ):
         if "flux" in str(type(pipeline.transformer)).casefold():
+            logging.debug("Optimizing Flux pipeline with TeaCache")
             teacache_ctx = flux_teacache_monkeypatch(
                 pipeline,
                 num_inference_steps=teacache_num_inference_steps,
                 rel_l1_thresh=teacache_rel_l1_thresh,
                 disable=(not enable_teacache),
             )
-        elif "sd3" in str(type(pipeline.transformer)).casefold():
+        elif "stablediffusion3" in str(type(pipeline.transformer)).casefold():
+            logging.debug("Optimizing SD3 pipeline with TeaCache")
             teacache_ctx = sd3_teacache_monkeypatch(
                 pipeline,
                 num_inference_steps=teacache_num_inference_steps,
