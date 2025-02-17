@@ -146,6 +146,7 @@ class BasePipelineRunner:
             self.pipeline.load_lora_weights(
                 pretrained_model_name_or_path_or_dict=adapter_path,
                 adapter_name=clean_adapter_name,
+                weight_name="pytorch_lora_weights.safetensors"
             )
             if fuse_adapter:
                 self.pipeline.fuse_lora(
