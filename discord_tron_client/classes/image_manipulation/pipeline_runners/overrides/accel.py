@@ -10,7 +10,7 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.s
 sage_mechanisms = {}
 try:
     from sageattention import (
-        sageattn,
+        sageattn, sageattn_qk_int8_pv_fp8_cuda
     )
 
     sage_mechanisms = {
@@ -19,7 +19,7 @@ try:
         # "sageattn_qk_int8_pv_fp8_cuda": sageattn_qk_int8_pv_fp8_cuda,
         # "sageattn_qk_int8_pv_fp8_cuda_sm90": sageattn_qk_int8_pv_fp8_cuda_sm90,
         # "sageattn_varlen": sageattn_varlen,
-        "sageattn": sageattn,
+        "sageattn": sageattn_qk_int8_pv_fp8_cuda,
     }
 except ImportError:
     pass
