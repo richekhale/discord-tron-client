@@ -32,7 +32,7 @@ def enable_sageattention(sageattention_mechanism: str = "sageattn"):
         try:
             return sage_mechanisms[sageattention_mechanism](query, key, value, attn_mask, dropout_p, is_causal, scale)
         except Exception as e:
-            logging.error(f"Could not SageAttn: {e}")
+            logging.error(f"Could not SageAttn: ", e)
             logging.error(
                 f"Inputs:"
                 f"query: {query.shape}, key: {key.shape}, value: {value.shape}, attn_mask: {attn_mask.shape if attn_mask is not None else None}"
