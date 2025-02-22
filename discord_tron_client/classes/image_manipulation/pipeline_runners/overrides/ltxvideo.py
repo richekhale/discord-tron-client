@@ -63,6 +63,7 @@ def teacache_forward(
         encoder_hidden_states = encoder_hidden_states.view(batch_size, -1, hidden_states.size(-1))
 
         if self.enable_teacache:
+            print(f'enabled teacache')
             inp = hidden_states.clone()
             temb_ = temb.clone()
             inp = self.transformer_blocks[0].norm1(inp)
@@ -82,6 +83,7 @@ def teacache_forward(
                 else:
                     should_calc = True
                     self.accumulated_rel_l1_distance = 0
+                print(f"should calc: {should_calc}")
             self.previous_modulated_input = modulated_inp  
             self.cnt += 1
             if self.cnt == self.num_steps:
