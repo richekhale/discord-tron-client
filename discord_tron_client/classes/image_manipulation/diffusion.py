@@ -480,7 +480,7 @@ class DiffusionPipelineManager:
         if hasattr(pipeline, "watermarker") and pipeline.watermarker is not None:
             pipeline.watermarker = None
 
-        pin_pipeline_memory(pipe=pipeline)
+        # pin_pipeline_memory(pipe=pipeline)
         return pipeline
 
     def upscale_image(self, image: Image):
