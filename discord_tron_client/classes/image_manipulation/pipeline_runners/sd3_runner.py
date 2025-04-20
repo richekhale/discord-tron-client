@@ -79,7 +79,7 @@ class SD3PipelineRunner(BasePipelineRunner):
                     print(f"Error configuring SLG: {e}")
                     args["skip_guidance_layers"] = None
 
-        self.apply_adapters(user_config, fuse_adapters=True)
+        self.apply_adapters(user_config, fuse_adapters=False)
         from diffusers import FlowMatchEulerDiscreteScheduler
 
         self.pipeline.scheduler = FlowMatchEulerDiscreteScheduler.from_config(
