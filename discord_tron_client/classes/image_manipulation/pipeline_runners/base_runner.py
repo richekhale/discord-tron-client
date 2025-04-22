@@ -138,8 +138,15 @@ class BasePipelineRunner:
         clean_adapter_name = self.clean_adapter_name(adapter_path)
         lycoris_wrapper = None
         if clean_adapter_name in self.loaded_adapters:
-            logging.info(f"Adapter {clean_adapter_name} is already loaded.")
-            return None
+            if self.loaded_adapters[clean_adapter_name]["adapter_strength"] == adapter_strength:
+                logging.info(f"Adapter {clean_adapter_name} is already loaded.")
+                return None
+            else:
+                # we have to unload it first
+                logging.info(
+                    f"Adapter {clean_adapter_name} is already loaded with different strength. Unloading it first."
+                )
+                self.clear_adapters(user_config=None)
         logging.info(f"Loading adapter: {clean_adapter_name}")
         logging.info(f"Previously-loaded adapters: {self.loaded_adapters.keys()}")
         if adapter_type == "lora":
