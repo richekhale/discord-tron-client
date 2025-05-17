@@ -6240,7 +6240,7 @@ dev = ["bandit", "black", "codecov", "flake8", "huggingface-hub", "hypothesis (>
 type = "git"
 url = "https://github.com/bghira/bghira-bark"
 reference = "HEAD"
-resolved_reference = "7a927205b2106f4d1348cd2ed87418fe4bc060af"
+resolved_reference = "9235da80fa1caf8d969c2afdb7fa04c23a7258ea"
 
 [[package]]
 name = "sympy"
