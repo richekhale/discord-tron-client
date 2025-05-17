@@ -6214,7 +6214,7 @@ reference = "default"
 
 [[package]]
 name = "suno-bark"
-version = "0.0.1a0"
+version = "0.0.1a"
 description = "Bark text to audio model"
 optional = false
 python-versions = ">=3.8"
@@ -6240,7 +6240,7 @@ dev = ["bandit", "black", "codecov", "flake8", "huggingface-hub", "hypothesis (>
 type = "git"
 url = "https://github.com/bghira/bghira-bark"
 reference = "HEAD"
-resolved_reference = "8283295d1ef2f7ccca8b9edc593d7dba2e25c435"
+resolved_reference = "7a927205b2106f4d1348cd2ed87418fe4bc060af"
 
 [[package]]
 name = "sympy"
