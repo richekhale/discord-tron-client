@@ -157,9 +157,7 @@ class DiffusionPipelineManager:
         self.device = torch.device(
             "cuda"
             if torch.cuda.is_available()
-            else "mps"
-            if torch.backends.mps.is_available()
-            else "cpu"
+            else "mps" if torch.backends.mps.is_available() else "cpu"
         )
 
         # Track concurrency
@@ -302,13 +300,13 @@ class DiffusionPipelineManager:
 
         self.clear_cuda_cache()
 
-    def _cleanup_cpu_memory_if_needed(self, pipeline = None):
+    def _cleanup_cpu_memory_if_needed(self, pipeline=None):
         """
         If CPU memory usage exceeds the threshold, remove the oldest pipelines.
         """
         usage_multiplier = 1.0
         if pipeline is not None:
-            if 'flux' in str(pipeline).lower():
+            if "flux" in str(pipeline).lower():
                 usage_multiplier = 2.0
         current_cpu_usage = self._get_current_cpu_mem_usage() * usage_multiplier
         if current_cpu_usage <= self.max_cpu_mem:
@@ -323,7 +321,11 @@ class DiffusionPipelineManager:
         )
 
         # Collect pipelines on CPU, sort by offload_score descending
-        candidates = [r for r in self.pipelines.values() if r.location == "cpu" and r.pipeline != pipeline]
+        candidates = [
+            r
+            for r in self.pipelines.values()
+            if r.location == "cpu" and r.pipeline != pipeline
+        ]
         candidates.sort(key=lambda x: x.get_offload_score(), reverse=True)
 
         idx = 0
@@ -456,16 +458,14 @@ class DiffusionPipelineManager:
                 **extra_args,
             )
 
-        self.pipelines[model_id] = PipelineRecord(
-            pipeline, model_id, location="cpu"
-        )
-
+        self.pipelines[model_id] = PipelineRecord(pipeline, model_id, location="cpu")
 
         quanto_quantized_models = [LTXPipeline, LTXImageToVideoPipeline, FluxPipeline]
         if type(pipeline) in quanto_quantized_models and not hasattr(
             pipeline, "quantized"
         ):
             from optimum.quanto import quantize, freeze, qint8
+
             logger.info(f"Quantizing the model for {model_id}")
             quantize(pipeline.transformer, weights=qint8, include=["*transformer*"])
             logger.info(f"Freezing the model for {model_id}")
@@ -590,11 +590,11 @@ class DiffusionPipelineManager:
         pipe_type = (
             "prompt_variation"
             if prompt_variation
-            else "variation"
-            if promptless_variation
-            else "upscaler"
-            if upscaler
-            else "text2img"
+            else (
+                "variation"
+                if promptless_variation
+                else "upscaler" if upscaler else "text2img"
+            )
         )
         if "kandinsky-2-2" in model_id:
             use_safetensors = False
@@ -655,7 +655,11 @@ class DiffusionPipelineManager:
             if record.location == "cuda":
                 logger.info(f"Offloading pipeline {model_id} to CPU (delete_pipes).")
                 self._move_pipeline_to_device(record, "cpu")
-        self._cleanup_cpu_memory_if_needed(pipeline=self.pipelines[keep_model].pipeline if keep_model is not None else None)
+        self._cleanup_cpu_memory_if_needed(
+            pipeline=(
+                self.pipelines[keep_model].pipeline if keep_model is not None else None
+            )
+        )
 
     def clear_cuda_cache(self):
         import ctypes

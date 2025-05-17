@@ -66,10 +66,18 @@ class SdxlBasePipelineRunner(BasePipelineRunner):
         with optimize_pipeline(
             pipeline=self.pipeline,
             enable_teacache=False,
-            enable_deepcache=prompt_parameters.get("enable_deepcache", user_config.get("enable_deepcache", False)),
-            deepcache_cache_interval=prompt_parameters.get("deepcache_interval", user_config.get("deepcache_interval", 3)),
-            deepcache_cache_branch_id=prompt_parameters.get("deepcache_branch_id", user_config.get("deepcache_branch_id", 0)),
-            deepcache_skip_mode=prompt_parameters.get("deepcache_skip_mode", user_config.get("deepcache_skip_mode", "uniform")),
+            enable_deepcache=prompt_parameters.get(
+                "enable_deepcache", user_config.get("enable_deepcache", False)
+            ),
+            deepcache_cache_interval=prompt_parameters.get(
+                "deepcache_interval", user_config.get("deepcache_interval", 3)
+            ),
+            deepcache_cache_branch_id=prompt_parameters.get(
+                "deepcache_branch_id", user_config.get("deepcache_branch_id", 0)
+            ),
+            deepcache_skip_mode=prompt_parameters.get(
+                "deepcache_skip_mode", user_config.get("deepcache_skip_mode", "uniform")
+            ),
         ):
             result = self.pipeline(**args).images
         torch.cuda.synchronize()

@@ -73,7 +73,7 @@ class BasePipelineRunner:
             prompts = [prompts]
 
         def normalize_prompt(prompt):
-            return prompt.replace("\u00A0", " ").replace("\u200B", " ")
+            return prompt.replace("\u00a0", " ").replace("\u200b", " ")
 
         for idx, prompt in enumerate(prompts):
             prompt = normalize_prompt(prompt)
@@ -138,7 +138,10 @@ class BasePipelineRunner:
         clean_adapter_name = self.clean_adapter_name(adapter_path)
         lycoris_wrapper = None
         if clean_adapter_name in self.loaded_adapters:
-            if self.loaded_adapters[clean_adapter_name]["adapter_strength"] == adapter_strength:
+            if (
+                self.loaded_adapters[clean_adapter_name]["adapter_strength"]
+                == adapter_strength
+            ):
                 logging.info(f"Adapter {clean_adapter_name} is already loaded.")
                 return None
             else:
@@ -153,7 +156,7 @@ class BasePipelineRunner:
             self.pipeline.load_lora_weights(
                 pretrained_model_name_or_path_or_dict=adapter_path,
                 adapter_name=clean_adapter_name,
-                weight_name="pytorch_lora_weights.safetensors"
+                weight_name="pytorch_lora_weights.safetensors",
             )
             if fuse_adapter:
                 self.pipeline.fuse_lora(

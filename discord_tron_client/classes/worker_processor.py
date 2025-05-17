@@ -46,7 +46,7 @@ class WorkerProcessor:
             "llama": {"predict": llamarunner.predict_handler},
             "stablelm": {"predict": stablelmrunner.predict_handler},
             "stablevicuna": {"predict": stablevicunarunner.predict_handler},
-            "tts_bark": {"generate": BarkFactory.get().generate_handler}
+            "tts_bark": {"generate": BarkFactory.get().generate_handler},
             # Add more command handlers as needed
         }
 

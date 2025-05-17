@@ -9,9 +9,7 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.s
 
 sage_mechanisms = {}
 try:
-    from sageattention import (
-        sageattn, sageattn_qk_int8_pv_fp8_cuda
-    )
+    from sageattention import sageattn, sageattn_qk_int8_pv_fp8_cuda
 
     sage_mechanisms = {
         # "sageattn_qk_int8_pv_fp16_triton": sageattn_qk_int8_pv_fp16_triton,
@@ -24,11 +22,15 @@ try:
 except ImportError:
     pass
 
+
 def enable_sageattention(sageattention_mechanism: str = "sageattn"):
     from torch.nn import functional as F
 
     original_attention = F.scaled_dot_product_attention
-    def sdpa_hijack_flash(query, key, value, attn_mask=None, dropout_p=0.0, is_causal=False, scale=None):
+
+    def sdpa_hijack_flash(
+        query, key, value, attn_mask=None, dropout_p=0.0, is_causal=False, scale=None
+    ):
         try:
             return sage_mechanisms[sageattention_mechanism](query, key, value)
         except Exception as e:
@@ -47,6 +49,7 @@ def enable_sageattention(sageattention_mechanism: str = "sageattn"):
                 scale=scale,
             )
         return hidden_states
+
     logging.info(f"Enabled SageAttention mechanism: {sageattention_mechanism}")
     F.scaled_dot_product_attention = sdpa_hijack_flash
 
@@ -122,7 +125,9 @@ def optimize_pipeline(
                 rel_l1_thresh=teacache_rel_l1_thresh,
                 disable=(not enable_teacache),
             )
-        logging.info(f"TeaCache enabled: {enable_teacache}, pipeline type: {type(pipeline.transformer)}")
+        logging.info(
+            f"TeaCache enabled: {enable_teacache}, pipeline type: {type(pipeline.transformer)}"
+        )
 
     # --------------------------
     # 2. DeepCache Setup
