@@ -7892,8 +7892,4 @@ reference = "default"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.12"
-<<<<<<< HEAD
 content-hash = "7ae0a2b5c43484ceeb6f32059f6efbf3e6912665296be803c59f491343fe2879"
-=======
-content-hash = "2cd419896f2a8aa7fcafffffba841cccef9300fbd3ba88d0b116d4d3c56356ee"
->>>>>>> c64e6496a5f0563906f68dd6595430c865d46c7d
