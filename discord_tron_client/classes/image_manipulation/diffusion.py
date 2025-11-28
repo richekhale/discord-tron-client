@@ -29,6 +29,10 @@ from diffusers import (
     FluxPipeline,
 )
 from diffusers.models.attention_processor import AttnProcessor2_0
+import torch, gc, logging, diffusers, transformers, os, time, psutil
+
+logger = logging.getLogger("DiffusionPipelineManager")
+logger.setLevel("DEBUG")
 try:
     from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.pixart import (
         PixArtSigmaPipeline,
@@ -89,12 +93,9 @@ from typing import Dict
 from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.classes.app_config import AppConfig
 from PIL import Image
-import torch, gc, logging, diffusers, transformers, os, time, psutil
 from torch import OutOfMemoryError
 import json
 
-logger = logging.getLogger("DiffusionPipelineManager")
-logger.setLevel("DEBUG")
 if not torch.backends.mps.is_available():
     torch.backends.cudnn.deterministic = False
     torch.backends.cuda.matmul.allow_tf32 = True
@@ -660,16 +661,28 @@ class DiffusionPipelineManager:
             )
         )
         model_id_lower = model_id.lower()
-        if "z-image" in model_id_lower or "zimage" in model_id_lower or "z_image" in model_id_lower:
+        if (
+            "z-image" in model_id_lower
+            or "zimage" in model_id_lower
+            or "z_image" in model_id_lower
+        ):
             pipe_type = "z_image"
         elif "stable-cascade" in model_id_lower or "cascade" in model_id_lower:
             pipe_type = "stable_cascade"
-        elif "ace-step" in model_id_lower or "acestep" in model_id_lower or "ace_step" in model_id_lower:
+        elif (
+            "ace-step" in model_id_lower
+            or "acestep" in model_id_lower
+            or "ace_step" in model_id_lower
+        ):
             pipe_type = "ace_step"
         elif "flux.2" in model_id_lower or "flux2" in model_id_lower:
             pipe_type = "flux2"
         elif "kandinsky5" in model_id_lower or "kandinsky-5" in model_id_lower:
-            if "video" in model_id_lower or "t2v" in model_id_lower or "i2v" in model_id_lower:
+            if (
+                "video" in model_id_lower
+                or "t2v" in model_id_lower
+                or "i2v" in model_id_lower
+            ):
                 pipe_type = "kandinsky5_video"
             else:
                 pipe_type = "kandinsky5_image"
