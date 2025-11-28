@@ -31,11 +31,6 @@ from diffusers.models.modeling_utils import ModelMixin
 from diffusers.models.normalization import RMSNorm
 from diffusers.utils import USE_PEFT_BACKEND, is_torchvision_available, scale_lora_layers, unscale_lora_layers
 
-try:
-    from simpletuner.helpers.training.tread import TREADRouter
-except ImportError:
-    TREADRouter = None
-
 from ..utils.patching import MutableModuleList, PatchableModule
 
 if is_torchvision_available():
@@ -582,14 +577,12 @@ class CosmosTransformer3DModel(PatchableModule, ModelMixin, ConfigMixin, FromOri
 
         self.gradient_checkpointing = False
 
-        # TREAD support
+        # Optional router state used only during training
         self._tread_router = None
         self._tread_routes = None
 
     def set_router(self, router: Any, routes: Optional[List[Dict]] = None):
-        """Set TREAD router and routes for token reduction during training."""
-        if TREADRouter is None:
-            raise ImportError("TREADRouter is unavailable; install training extras to enable routing.")
+        """Set router and routes for token reduction during training."""
         self._tread_router = router
         self._tread_routes = routes
 

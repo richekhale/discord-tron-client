@@ -29,8 +29,6 @@ from diffusers.models.modeling_utils import ModelMixin
 from diffusers.utils import logging
 from torch import Tensor
 
-from simpletuner.helpers.training.tread import TREADRouter
-
 try:
     from diffusers.models.attention_dispatch import _CAN_USE_FLEX_ATTN, dispatch_attention_fn
 except Exception:
@@ -578,7 +576,7 @@ class Kandinsky5Transformer3DModel(
     A 3D Diffusion Transformer model for video-like data.
     """
 
-    _tread_router: Optional[TREADRouter] = None
+    _tread_router: Optional[Any] = None
     _tread_routes: Optional[List[Dict[str, Any]]] = None
 
     _repeated_blocks = [
@@ -648,8 +646,8 @@ class Kandinsky5Transformer3DModel(
         self.out_layer = Kandinsky5OutLayer(model_dim, time_dim, out_visual_dim, patch_size)
         self.gradient_checkpointing = False
 
-    def set_router(self, router: TREADRouter, routes: List[Dict[str, Any]]):
-        """Attach a TREAD router and route definitions."""
+    def set_router(self, router: Any, routes: List[Dict[str, Any]]):
+        """Attach a router and route definitions."""
         self._tread_router = router
         self._tread_routes = routes
 

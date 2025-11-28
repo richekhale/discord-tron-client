@@ -1,6 +1,6 @@
 # Copyright 2025 SimpleTuner contributors
 # Reuse the Flux LoRA loader to provide Kandinsky-compatible LoRA handling without relying on diffusers' mixin.
-from simpletuner.helpers.models.flux.pipeline import FluxLoraLoaderMixin
+from diffusers.pipelines.flux.pipeline_flux import FluxLoraLoaderMixin
 
 
 class KandinskyLoraLoaderMixin(FluxLoraLoaderMixin):

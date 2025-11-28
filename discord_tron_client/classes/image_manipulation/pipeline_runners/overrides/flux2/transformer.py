@@ -796,16 +796,16 @@ class Flux2Transformer2DModel(
 
         self.gradient_checkpointing = False
 
-        # TREAD router for efficient training
+        # Optional router state for efficient training (unused during inference)
         self._tread_router = None
         self._tread_routes = None
 
     def set_router(self, router, routes: List[Dict[str, Any]]):
         """
-        Set the TREAD router for efficient token routing during training.
+        Set the router for efficient token routing during training.
 
         Args:
-            router: TREADRouter instance
+            router: Router instance
             routes: List of route configurations, each containing:
                 - selection_ratio: Fraction of tokens to keep (0.0-1.0)
                 - start_layer_idx: First layer to apply routing (can be negative)

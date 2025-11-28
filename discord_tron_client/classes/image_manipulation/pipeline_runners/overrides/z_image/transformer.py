@@ -36,12 +36,6 @@ from diffusers.models.normalization import RMSNorm
 from diffusers.utils import USE_PEFT_BACKEND, logging, scale_lora_layers, unscale_lora_layers
 from diffusers.utils.torch_utils import maybe_allow_in_graph
 
-try:
-    # Optional at runtime; only required when using token routing during training.
-    from simpletuner.helpers.training.tread import TREADRouter
-except ImportError:
-    TREADRouter = None
-
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
 ADALN_EMBED_DIM = 256
@@ -498,9 +492,7 @@ class ZImageTransformer2DModel(ModelMixin, ConfigMixin, PeftAdapterMixin, FromOr
         self.rope_embedder = RopeEmbedder(theta=rope_theta, axes_dims=axes_dims, axes_lens=axes_lens)
 
     def set_router(self, router: Any, routes: List[Dict[str, Any]]):
-        """Attach a TREAD router and routing plan for token dropping during training."""
-        if TREADRouter is None:
-            raise ImportError("TREADRouter is unavailable; install SimpleTuner training extras to enable routing.")
+        """Attach a router and routing plan for token dropping during training."""
         self._tread_router = router
         self._tread_routes = routes
 

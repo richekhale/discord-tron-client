@@ -29,11 +29,6 @@ from diffusers.models.modeling_utils import ModelMixin
 from diffusers.models.normalization import FP32LayerNorm
 from diffusers.utils import USE_PEFT_BACKEND, logging, scale_lora_layers, unscale_lora_layers
 
-try:
-    from simpletuner.helpers.training.tread import TREADRouter
-except ImportError:
-    TREADRouter = None
-
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
 WAN_FEED_FORWARD_CHUNK_SIZE = int(os.getenv("WAN_FEED_FORWARD_CHUNK_SIZE", "0") or 0)
@@ -519,7 +514,7 @@ class WanTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin, FromOrigi
     """
 
     _supports_gradient_checkpointing = True
-    _tread_router: Optional[TREADRouter] = None
+    _tread_router: Optional[Any] = None
     _tread_routes: Optional[List[Dict[str, Any]]] = None
     _skip_layerwise_casting_patterns = ["patch_embedding", "condition_embedder", "norm"]
     _no_split_modules = ["WanTransformerBlock"]
@@ -637,9 +632,7 @@ class WanTransformer3DModel(ModelMixin, ConfigMixin, PeftAdapterMixin, FromOrigi
             logger.info("WanTransformer3DModel: Forcing Wan 2.1 style time embedding.")
 
     def set_router(self, router: Any, routes: List[Dict[str, Any]]):
-        """Set the TREAD router and routing configuration."""
-        if TREADRouter is None:
-            raise ImportError("TREADRouter is unavailable; install training extras to enable routing.")
+        """Set the routing configuration for token reduction during training."""
         self._tread_router = router
         self._tread_routes = routes
 

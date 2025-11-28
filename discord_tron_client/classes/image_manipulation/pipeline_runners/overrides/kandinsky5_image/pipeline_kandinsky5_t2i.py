@@ -13,7 +13,7 @@ from diffusers.utils.torch_utils import randn_tensor
 from torch.nn import functional as F
 from transformers import CLIPTextModel, CLIPTokenizer, Qwen2_5_VLForConditionalGeneration, Qwen2VLProcessor
 
-from simpletuner.helpers.models.kandinsky_lora_loader import KandinskyLoraLoaderMixin
+from ..kandinsky_lora_loader import KandinskyLoraLoaderMixin
 
 from .pipeline_output import KandinskyPipelineOutput
 from .transformer_kandinsky5 import Kandinsky5Transformer3DModel

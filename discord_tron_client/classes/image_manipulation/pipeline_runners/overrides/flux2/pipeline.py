@@ -28,8 +28,8 @@ from diffusers.utils.torch_utils import randn_tensor
 from huggingface_hub.utils import validate_hf_hub_args
 from transformers import AutoProcessor, Mistral3ForConditionalGeneration
 
-from simpletuner.helpers.models.flux2.autoencoder import AutoencoderKLFlux2
-from simpletuner.helpers.models.flux2.transformer import Flux2Transformer2DModel
+from .autoencoder import AutoencoderKLFlux2
+from .transformer import Flux2Transformer2DModel
 
 if is_torch_xla_available():
     import torch_xla.core.xla_model as xm
