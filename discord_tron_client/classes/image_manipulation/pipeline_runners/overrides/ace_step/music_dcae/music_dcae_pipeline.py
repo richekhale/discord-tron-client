@@ -21,15 +21,7 @@ from diffusers.configuration_utils import ConfigMixin, register_to_config
 from diffusers.loaders import FromOriginalModelMixin
 from diffusers.models.modeling_utils import ModelMixin
 
-try:
-    from .music_vocoder import ADaMoSHiFiGANV1
-except ImportError:
-    try:
-        ADaMoSHiFiGANV1 = importlib.import_module(
-            "discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.ace_step.music_dcae.music_vocoder"
-        ).ADaMoSHiFiGANV1
-    except Exception as exc:
-        raise ImportError("ADaMoSHiFiGANV1 could not be imported") from exc
+from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.ace_step.music_dcae.music_vocoder import ADaMoSHiFiGANV1
 
 
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
