@@ -6,6 +6,64 @@ from discord_tron_client.classes.hardware import HardwareInfo
 from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.pixart import (
     PixArtSigmaPipeline,
 )
+from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.z_image import (
+    ZImagePipeline,
+)
+try:
+    from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.stable_cascade.pipeline_combined import (
+        StableCascadeCombinedPipeline,
+    )
+except Exception:
+    StableCascadeCombinedPipeline = None
+try:
+    from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.ace_step.pipeline import (
+        ACEStepPipeline,
+    )
+except Exception:
+    ACEStepPipeline = None
+try:
+    from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.flux2.pipeline import (
+        Flux2Pipeline,
+    )
+except Exception:
+    Flux2Pipeline = None
+try:
+    from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.kandinsky5_image.pipeline_kandinsky5_t2i import (
+        Kandinsky5T2IPipeline,
+    )
+    from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.kandinsky5_image.pipeline_kandinsky5_i2i import (
+        Kandinsky5I2IPipeline,
+    )
+except Exception:
+    Kandinsky5T2IPipeline = None
+    Kandinsky5I2IPipeline = None
+try:
+    from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.kandinsky5_video.pipeline_kandinsky5_t2v import (
+        Kandinsky5T2VPipeline,
+    )
+    from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.kandinsky5_video.pipeline_kandinsky5_i2v import (
+        Kandinsky5I2VPipeline,
+    )
+except Exception:
+    Kandinsky5T2VPipeline = None
+    Kandinsky5I2VPipeline = None
+try:
+    from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.cosmos.pipeline import (
+        Cosmos2TextToImagePipeline,
+    )
+except Exception:
+    Cosmos2TextToImagePipeline = None
+try:
+    from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.wan.pipeline import (
+        WanPipeline,
+    )
+except Exception:
+    WanPipeline = None
+try:
+    from diffusers import Lumina2Pipeline, OmniGenPipeline
+except Exception:
+    Lumina2Pipeline = None
+    OmniGenPipeline = None
 from discord_tron_client.classes.image_manipulation.resolution import ResolutionManager
 from discord_tron_client.classes.image_manipulation import upscaler as upscaling_helper
 from discord_tron_client.classes.image_manipulation.prompt_manipulation import (
@@ -325,6 +383,28 @@ class PipelineRunner:
                     pipeline_manager=self.pipeline_manager,
                     diffusion_manager=self,
                 )
+            elif StableCascadeCombinedPipeline is not None and isinstance(
+                pipe, StableCascadeCombinedPipeline
+            ):
+                pipeline_runner = runner_map["text2img"](pipeline=pipe)
+                use_latent_result = False
+                image_return_type = "pil"
+            elif ACEStepPipeline is not None and isinstance(pipe, ACEStepPipeline):
+                pipeline_runner = runner_map["text2img"](pipeline=pipe)
+                use_latent_result = False
+                image_return_type = "pil"
+            elif Flux2Pipeline is not None and isinstance(pipe, Flux2Pipeline):
+                pipeline_runner = runner_map["text2img"](pipeline=pipe)
+                use_latent_result = False
+                image_return_type = "pil"
+            elif isinstance(pipe, ZImagePipeline):
+                pipeline_runner = runner_map["z_image"](
+                    pipeline=pipe,
+                    pipeline_manager=self.pipeline_manager,
+                    diffusion_manager=self,
+                )
+                use_latent_result = False
+                image_return_type = "pil"
             elif type(pipe) is diffusers.FluxPipeline:
                 from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.flux import (
                     FluxPipeline as FluxPipelineOverride,
@@ -336,6 +416,33 @@ class PipelineRunner:
                     pipeline_manager=self.pipeline_manager,
                     diffusion_manager=self,
                 )
+            elif (
+                (Kandinsky5T2IPipeline is not None and isinstance(pipe, Kandinsky5T2IPipeline))
+                or (Kandinsky5I2IPipeline is not None and isinstance(pipe, Kandinsky5I2IPipeline))
+                or (Kandinsky5T2VPipeline is not None and isinstance(pipe, Kandinsky5T2VPipeline))
+                or (Kandinsky5I2VPipeline is not None and isinstance(pipe, Kandinsky5I2VPipeline))
+            ):
+                pipeline_runner = runner_map["text2img"](pipeline=pipe)
+                use_latent_result = False
+                image_return_type = "pil"
+            elif Cosmos2TextToImagePipeline is not None and isinstance(
+                pipe, Cosmos2TextToImagePipeline
+            ):
+                pipeline_runner = runner_map["text2img"](pipeline=pipe)
+                use_latent_result = False
+                image_return_type = "pil"
+            elif WanPipeline is not None and isinstance(pipe, WanPipeline):
+                pipeline_runner = runner_map["text2img"](pipeline=pipe)
+                use_latent_result = False
+                image_return_type = "pil"
+            elif Lumina2Pipeline is not None and isinstance(pipe, Lumina2Pipeline):
+                pipeline_runner = runner_map["text2img"](pipeline=pipe)
+                use_latent_result = False
+                image_return_type = "pil"
+            elif OmniGenPipeline is not None and isinstance(pipe, OmniGenPipeline):
+                pipeline_runner = runner_map["text2img"](pipeline=pipe)
+                use_latent_result = False
+                image_return_type = "pil"
             elif type(pipe) is PixArtSigmaPipeline:
                 use_latent_result = False
                 pipeline_runner = runner_map["pixart"](

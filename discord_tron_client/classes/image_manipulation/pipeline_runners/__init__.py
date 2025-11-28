@@ -37,6 +37,20 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners.flux import
 from discord_tron_client.classes.image_manipulation.pipeline_runners.ltxvideo import (
     LtxVideoPipelineRunner,
 )
+from discord_tron_client.classes.image_manipulation.pipeline_runners.extra import (
+    StableCascadePipelineRunner,
+    Flux2PipelineRunner,
+    Kandinsky5ImagePipelineRunner,
+    Kandinsky5VideoPipelineRunner,
+    CosmosPipelineRunner,
+    WanPipelineRunner,
+    Lumina2PipelineRunner,
+    OmniGenPipelineRunner,
+    ACEStepPipelineRunner,
+)
+from discord_tron_client.classes.image_manipulation.pipeline_runners.z_image import (
+    ZImagePipelineRunner,
+)
 
 runner_map = {
     "text2img": Text2ImgPipelineRunner,
@@ -51,4 +65,14 @@ runner_map = {
     "aura": AuraPipelineRunner,
     "flux": FluxPipelineRunner,
     "ltxvideo": LtxVideoPipelineRunner,
+    "z_image": ZImagePipelineRunner,
+    "stable_cascade": StableCascadePipelineRunner,
+    "flux2": Flux2PipelineRunner,
+    "kandinsky5_image": Kandinsky5ImagePipelineRunner,
+    "kandinsky5_video": Kandinsky5VideoPipelineRunner,
+    "cosmos": CosmosPipelineRunner,
+    "wan": WanPipelineRunner,
+    "lumina2": Lumina2PipelineRunner,
+    "omnigen": OmniGenPipelineRunner,
+    "ace_step": ACEStepPipelineRunner,
 }
