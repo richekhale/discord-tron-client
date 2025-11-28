@@ -627,6 +627,7 @@ class ZImageTransformer2DModel(ModelMixin, ConfigMixin, PeftAdapterMixin, FromOr
         joint_attention_kwargs: Optional[Dict[str, Any]] = None,
         skip_layers: Optional[List[int]] = None,
         force_keep_mask: Optional[torch.Tensor] = None,
+        **kwargs,
     ):
 
         assert patch_size in self.all_patch_size
