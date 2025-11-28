@@ -565,9 +565,9 @@ class DeepFloydPipelineRunner(BasePipelineRunner):
                 generators=generators,
                 width=width,
                 height=height,
-                output_type="pil"
-                if not user_config.get("df_x4_upscaler", True)
-                else "pt",
+                output_type=(
+                    "pil" if not user_config.get("df_x4_upscaler", True) else "pt"
+                ),
             )
             stage3_output = None
             df_x4_upscaler = user_config.get("df_x4_upscaler", True)

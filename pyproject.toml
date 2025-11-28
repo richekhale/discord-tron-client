@@ -20,11 +20,11 @@ websocket = "^0.2.1"
 diffusers = {git = "https://github.com/huggingface/diffusers"}
 transformers = "^4.47.1"
 tensorflow = {extras = ["cuda"], version = "^2.17.0"}
-accelerate = "^0.29.3"
+accelerate = "^1.7.0"
 
 numpy = "<2.0.0"
-torch = {version = "^2.5.1+cu124", source = "pytorch"}
-torchaudio = {version = "^2.5.1+cu124", source = "pytorch"}
+torch = {version = "^2.6.0+cu124", source = "pytorch"}
+torchaudio = {version = "^2.6.0+cu124", source = "pytorch"}
 colorama = "^0.4.6"
 compel = "^2.0.2"
 llama-cpp-python = "^0.1.74"
@@ -36,7 +36,7 @@ pydub = "^0.25.1"
 tiktoken = "^0.3.3"
 pyopenssl = "^23.1.1"
 black = "^23.3.0"
-torchvision = {version = "^0.20.1+cu124", source = "pytorch"}
+torchvision = {version = "^0.21.0+cu124", source = "pytorch"}
 torchmetrics = "^0.11.4"
 opencv-contrib-python = "^4.7.0.72"
 controlnet-aux = "^0.0.3"
@@ -48,7 +48,7 @@ invisible-watermark = "^0.2.0"
 discord-py-slash-command = "^4.2.1"
 dadaptation = "^3.1"
 virtualenv = "^20.26.4"
-xformers = {version = "^0.0.28.post3", source = "pytorch"}
+xformers = {version = "^0.0.29.post3", source = "pytorch"}
 importlib = "^1.0.4"
 clip-anytorch = "^2.6.0"
 protobuf = "<5.0.0"
@@ -58,7 +58,7 @@ imageio-ffmpeg = "^0.5.1"
 optimum-quanto = "^0.2.6"
 triton = {version = "^3.1.0", source = "pytorch"}
 pytorch-triton = {version = "^3.0.0", source = "pytorch"}
-torchao = "^0.8.0"
+torchao = "^0.11.0"
 deepcache = "^0.1.1"
 
 [[tool.poetry.source]]

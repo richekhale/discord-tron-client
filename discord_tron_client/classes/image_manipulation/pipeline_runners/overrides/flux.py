@@ -1336,12 +1336,16 @@ class FluxPipeline(DiffusionPipeline, FluxLoraLoaderMixin):
                     encoder_hidden_states=prompt_embeds_input.to(
                         device=self.transformer.device
                     ),
-                    txt_ids=text_ids_input.to(device=self.transformer.device)
-                    if text_ids is not None
-                    else None,
-                    img_ids=latent_image_ids_input.to(device=self.transformer.device)
-                    if latent_image_ids is not None
-                    else None,
+                    txt_ids=(
+                        text_ids_input.to(device=self.transformer.device)
+                        if text_ids is not None
+                        else None
+                    ),
+                    img_ids=(
+                        latent_image_ids_input.to(device=self.transformer.device)
+                        if latent_image_ids is not None
+                        else None
+                    ),
                     joint_attention_kwargs=self.joint_attention_kwargs,
                     return_dict=False,
                     **extra_transformer_args,
@@ -1367,12 +1371,16 @@ class FluxPipeline(DiffusionPipeline, FluxLoraLoaderMixin):
                             encoder_hidden_states=negative_prompt_embeds.to(
                                 device=self.transformer.device
                             ),
-                            txt_ids=negative_text_ids.to(device=self.transformer.device)
-                            if negative_text_ids is not None
-                            else None,
-                            img_ids=latent_image_ids.to(device=self.transformer.device)
-                            if latent_image_ids is not None
-                            else None,
+                            txt_ids=(
+                                negative_text_ids.to(device=self.transformer.device)
+                                if negative_text_ids is not None
+                                else None
+                            ),
+                            img_ids=(
+                                latent_image_ids.to(device=self.transformer.device)
+                                if latent_image_ids is not None
+                                else None
+                            ),
                             joint_attention_kwargs=self.joint_attention_kwargs,
                             return_dict=False,
                         )[0]

@@ -79,7 +79,7 @@ class SD3PipelineRunner(BasePipelineRunner):
                     print(f"Error configuring SLG: {e}")
                     args["skip_guidance_layers"] = None
 
-        self.apply_adapters(user_config, fuse_adapters=True)
+        self.apply_adapters(user_config, fuse_adapters=False)
         from diffusers import FlowMatchEulerDiscreteScheduler
 
         self.pipeline.scheduler = FlowMatchEulerDiscreteScheduler.from_config(
@@ -90,24 +90,25 @@ class SD3PipelineRunner(BasePipelineRunner):
 
         # Call the pipeline with arguments and return the images
         start_time = perf_counter()
-        deepcache_params = {
-            "cache_interval": int(prompt_parameters.get("cache_interval", 3)),
-            "cache_branch_id": int(prompt_parameters.get("cache_branch_id", 0)),
-            "skip_mode": str(prompt_parameters.get("skip_mode", "uniform")),
-        }
+        enable_sageattn = user_config.get("enable_sageattn", True)
+        enable_teacache = user_config.get("enable_teacache", False)
+        if "enable_teacache" in prompt_parameters:
+            enable_teacache = True
+            del prompt_parameters["teacache"]
         with optimize_pipeline(
             pipeline=self.pipeline,
-            enable_teacache=True
-            if prompt_parameters.get("enable_teacache") is not None
-            else False,
+            enable_teacache=enable_teacache,
             teacache_num_inference_steps=args.get("num_inference_steps"),
             teacache_rel_l1_thresh=float(
-                prompt_parameters.get("teacache_distance", 0.6)
+                prompt_parameters.get(
+                    "teacache_distance", user_config.get("teacache_distance", 0.6)
+                )
             ),
             enable_deepcache=False,
             deepcache_cache_interval=3,
             deepcache_cache_branch_id=0,
             deepcache_skip_mode="uniform",
+            enable_sageattn=enable_sageattn,
         ):
             result = self.pipeline(**args).images
         torch.cuda.synchronize()

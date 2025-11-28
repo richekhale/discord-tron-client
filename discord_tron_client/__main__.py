@@ -44,9 +44,9 @@ def main():
         identifier = HardwareInfo.get_identifier()
         register_data = hardware_info.get_register_data(worker_id=identifier)
         register_data["hardware"] = hardware_info.get_simple_hardware_info()
-        register_data[
-            "available_resolutions"
-        ] = ResolutionManager.get_resolutions_with_extra_data()
+        register_data["available_resolutions"] = (
+            ResolutionManager.get_resolutions_with_extra_data()
+        )
         hello_world_message = WebsocketMessage(
             message_type="hello_world",
             module_name="worker",

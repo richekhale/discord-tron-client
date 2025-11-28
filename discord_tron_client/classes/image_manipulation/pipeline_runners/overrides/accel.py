@@ -1,4 +1,4 @@
-import contextlib
+import contextlib, logging
 from DeepCache import DeepCacheSDHelper
 from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.flux import (
     flux_teacache_monkeypatch,
@@ -6,6 +6,60 @@ from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.f
 from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.sd3 import (
     sd3_teacache_monkeypatch,
 )
+
+sage_mechanisms = {}
+try:
+    from sageattention import sageattn, sageattn_qk_int8_pv_fp8_cuda
+
+    sage_mechanisms = {
+        # "sageattn_qk_int8_pv_fp16_triton": sageattn_qk_int8_pv_fp16_triton,
+        # "sageattn_qk_int8_pv_fp16_cuda": sageattn_qk_int8_pv_fp16_cuda,
+        # "sageattn_qk_int8_pv_fp8_cuda": sageattn_qk_int8_pv_fp8_cuda,
+        # "sageattn_qk_int8_pv_fp8_cuda_sm90": sageattn_qk_int8_pv_fp8_cuda_sm90,
+        # "sageattn_varlen": sageattn_varlen,
+        "sageattn": sageattn_qk_int8_pv_fp8_cuda,
+    }
+except ImportError:
+    pass
+
+
+def enable_sageattention(sageattention_mechanism: str = "sageattn"):
+    from torch.nn import functional as F
+
+    original_attention = F.scaled_dot_product_attention
+
+    def sdpa_hijack_flash(
+        query, key, value, attn_mask=None, dropout_p=0.0, is_causal=False, scale=None
+    ):
+        try:
+            return sage_mechanisms[sageattention_mechanism](query, key, value)
+        except Exception as e:
+            logging.error(f"Could not SageAttn: ", e)
+            logging.error(
+                f"Inputs:"
+                f"query: {query.shape}, key: {key.shape}, value: {value.shape}, attn_mask: {attn_mask.shape if attn_mask is not None else None}"
+            )
+            hidden_states = original_attention(
+                query=query,
+                key=key,
+                value=value,
+                attn_mask=attn_mask,
+                dropout_p=dropout_p,
+                is_causal=is_causal,
+                scale=scale,
+            )
+        return hidden_states
+
+    logging.info(f"Enabled SageAttention mechanism: {sageattention_mechanism}")
+    F.scaled_dot_product_attention = sdpa_hijack_flash
+
+    return original_attention
+
+
+def disable_sageattention(original_attention):
+    from torch.nn import functional as F
+
+    F.scaled_dot_product_attention = original_attention
 
 
 @contextlib.contextmanager
@@ -20,6 +74,8 @@ def optimize_pipeline(
     deepcache_cache_interval: int = 3,
     deepcache_cache_branch_id: int = 0,
     deepcache_skip_mode: str = "uniform",
+    enable_sageattn: bool = False,
+    sageattention_mechanism: str = "sageattn",
 ):
     """
     A unified context manager that enables TeaCache on `pipeline.transformer` (if present)
@@ -34,6 +90,8 @@ def optimize_pipeline(
         deepcache_cache_interval: Interval at which the unet forward pass is cached.
         deepcache_cache_branch_id: Branch ID for DeepCache.
         deepcache_skip_mode: Strategy for skipping unet blocks (e.g. "uniform").
+        enable_sageattn: If True, will enable SageAttention mechanism.
+        sageattention_mechanism: The SageAttention mechanism to use.
     """
 
     # --------------------------
@@ -47,25 +105,29 @@ def optimize_pipeline(
         yield pipeline
 
     teacache_ctx = _nullctx()
-    if hasattr(pipeline, "transformer") and getattr(pipeline, "transformer") is not None:
-        if "flux" in str(
-            type(pipeline.transformer)
-        ):
+    if (
+        hasattr(pipeline, "transformer")
+        and getattr(pipeline, "transformer") is not None
+    ):
+        if "flux" in str(type(pipeline.transformer)).casefold():
+            logging.info("Optimizing Flux pipeline with TeaCache")
             teacache_ctx = flux_teacache_monkeypatch(
                 pipeline,
                 num_inference_steps=teacache_num_inference_steps,
                 rel_l1_thresh=teacache_rel_l1_thresh,
                 disable=(not enable_teacache),
             )
-        elif "sd3" in str(
-            type(pipeline.transformer)
-        ):
+        elif "sd3" in str(type(pipeline.transformer)).casefold():
+            logging.info("Optimizing SD3 pipeline with TeaCache")
             teacache_ctx = sd3_teacache_monkeypatch(
                 pipeline,
                 num_inference_steps=teacache_num_inference_steps,
                 rel_l1_thresh=teacache_rel_l1_thresh,
                 disable=(not enable_teacache),
             )
+        logging.info(
+            f"TeaCache enabled: {enable_teacache}, pipeline type: {type(pipeline.transformer)}"
+        )
 
     # --------------------------
     # 2. DeepCache Setup
@@ -92,7 +154,8 @@ def optimize_pipeline(
     # 3. Combine context managers
     # --------------------------
     with teacache_ctx:
-        # If we have a .deepcache_helper and user wants to enable, do so
+        if enable_sageattn:
+            original_attention = enable_sageattention(sageattention_mechanism)
         if enable_deepcache and hasattr(pipeline, "deepcache_helper"):
             pipeline.deepcache_helper.set_params(
                 cache_interval=deepcache_cache_interval,
@@ -108,3 +171,5 @@ def optimize_pipeline(
             # Cleanup / disable
             if deepcache_active:
                 pipeline.deepcache_helper.disable()
+            if enable_sageattn:
+                disable_sageattention(original_attention)
