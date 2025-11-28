@@ -29,33 +29,60 @@ from diffusers import (
     FluxPipeline,
 )
 from diffusers.models.attention_processor import AttnProcessor2_0
-from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.pixart import (
-    PixArtSigmaPipeline,
-)
-from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.z_image import (
-    ZImagePipeline,
-)
-from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.stable_cascade.pipeline_combined import (
-    StableCascadeCombinedPipeline,
-)
-from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.ace_step.pipeline import (
-    ACEStepPipeline,
-)
-from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.flux2.pipeline import (
-    Flux2Pipeline,
-)
-from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.kandinsky5_image.pipeline_kandinsky5_t2i import (
-    Kandinsky5T2IPipeline,
-)
-from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.kandinsky5_video.pipeline_kandinsky5_t2v import (
-    Kandinsky5T2VPipeline,
-)
-from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.cosmos.pipeline import (
-    Cosmos2TextToImagePipeline,
-)
-from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.wan.pipeline import (
-    WanPipeline,
-)
+try:
+    from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.pixart import (
+        PixArtSigmaPipeline,
+    )
+except Exception as e:
+    logging.error(f"Could not import dependency: {e}")
+try:
+    from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.z_image import (
+        ZImagePipeline,
+    )
+except Exception as e:
+    logging.error(f"Could not import dependency: {e}")
+try:
+    from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.stable_cascade.pipeline_combined import (
+        StableCascadeCombinedPipeline,
+    )
+except Exception as e:
+    logging.error(f"Could not import dependency: {e}")
+try:
+    from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.ace_step.pipeline import (
+        ACEStepPipeline,
+    )
+except Exception as e:
+    logging.error(f"Could not import dependency: {e}")
+try:
+    from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.flux2.pipeline import (
+        Flux2Pipeline,
+    )
+except Exception as e:
+    logging.error(f"Could not import dependency: {e}")
+try:
+    from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.kandinsky5_image.pipeline_kandinsky5_t2i import (
+        Kandinsky5T2IPipeline,
+    )
+except Exception as e:
+    logging.error(f"Could not import dependency: {e}")
+try:
+    from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.kandinsky5_video.pipeline_kandinsky5_t2v import (
+        Kandinsky5T2VPipeline,
+    )
+except Exception as e:
+    logging.error(f"Could not import dependency: {e}")
+try:
+    from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.cosmos.pipeline import (
+        Cosmos2TextToImagePipeline,
+    )
+except Exception as e:
+    logging.error(f"Could not import dependency: {e}")
+try:
+    from discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.wan.pipeline import (
+        WanPipeline,
+    )
+except Exception as e:
+    logging.error(f"Could not import dependency: {e}")
 from diffusers import Lumina2Pipeline, OmniGenPipeline
 from diffusers import DiffusionPipeline as Pipeline
 from typing import Dict
