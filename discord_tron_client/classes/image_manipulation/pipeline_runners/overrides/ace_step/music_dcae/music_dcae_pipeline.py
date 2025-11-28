@@ -11,6 +11,7 @@ Apache 2.0 License
 """
 
 import os
+import importlib
 
 import torch
 import torchaudio
@@ -23,7 +24,12 @@ from diffusers.models.modeling_utils import ModelMixin
 try:
     from .music_vocoder import ADaMoSHiFiGANV1
 except ImportError:
-    from music_vocoder import ADaMoSHiFiGANV1
+    try:
+        ADaMoSHiFiGANV1 = importlib.import_module(
+            "discord_tron_client.classes.image_manipulation.pipeline_runners.overrides.ace_step.music_dcae.music_vocoder"
+        ).ADaMoSHiFiGANV1
+    except Exception as exc:
+        raise ImportError("ADaMoSHiFiGANV1 could not be imported") from exc
 
 
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
