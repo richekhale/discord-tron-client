@@ -745,7 +745,7 @@ class ZImagePipeline(DiffusionPipeline, ZImageLoraLoaderMixin, FromSingleFileMix
         device = self._execution_device
 
         self._guidance_scale = guidance_scale
-        self._joint_attention_kwargs = joint_attention_kwargs
+        self._joint_attention_kwargs = None
         self._interrupt = False
         self._cfg_normalization = cfg_normalization
         self._cfg_truncation = cfg_truncation
@@ -758,7 +758,7 @@ class ZImagePipeline(DiffusionPipeline, ZImageLoraLoaderMixin, FromSingleFileMix
         else:
             batch_size = prompt_embeds.shape[0]
 
-        lora_scale = self.joint_attention_kwargs.get("scale", None) if self.joint_attention_kwargs is not None else None
+        lora_scale = None
         (
             prompt_embeds,
             negative_prompt_embeds,
@@ -854,7 +854,6 @@ class ZImagePipeline(DiffusionPipeline, ZImageLoraLoaderMixin, FromSingleFileMix
                     latent_model_input_list,
                     timestep_model_input,
                     prompt_embeds_model_input,
-                    joint_attention_kwargs=self.joint_attention_kwargs,
                 )[0]
 
                 if apply_cfg:
