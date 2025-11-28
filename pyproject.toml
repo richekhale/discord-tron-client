@@ -11,9 +11,8 @@ packages = [{include = "discord_tron_client"}]
 client = "discord_tron_client.__main__:main"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.12"
+python = ">=3.10,<3.13"
 websockets = "^10.4"
-poetry = "^1.4.1"
 flask = "^2.2.3"
 psutil = "^5.9.4"
 websocket = "^0.2.1"
@@ -23,8 +22,8 @@ tensorflow = {extras = ["cuda"], version = "^2.17.0"}
 accelerate = "^1.7.0"
 
 numpy = "<2.0.0"
-torch = {version = "^2.6.0+cu124", source = "pytorch"}
-torchaudio = {version = "^2.6.0+cu124", source = "pytorch"}
+torch = {version = "^2.9.1+cu128", source = "pytorch"}
+torchaudio = {version = "^2.9.1+cu128", source = "pytorch"}
 colorama = "^0.4.6"
 compel = "^2.0.2"
 llama-cpp-python = "^0.1.74"
@@ -33,10 +32,10 @@ sentencepiece = "^0.2.0"
 tokenizers = "^0.21.0"
 suno-bark = {git = "https://github.com/bghira/bghira-bark"}
 pydub = "^0.25.1"
-tiktoken = "^0.3.3"
+tiktoken = "^0.12.0"
 pyopenssl = "^23.1.1"
 black = "^23.3.0"
-torchvision = {version = "^0.21.0+cu124", source = "pytorch"}
+torchvision = {version = "^0.24.1+cu128", source = "pytorch"}
 torchmetrics = "^0.11.4"
 opencv-contrib-python = "^4.7.0.72"
 controlnet-aux = "^0.0.3"
@@ -48,7 +47,6 @@ invisible-watermark = "^0.2.0"
 discord-py-slash-command = "^4.2.1"
 dadaptation = "^3.1"
 virtualenv = "^20.26.4"
-xformers = {version = "^0.0.29.post3", source = "pytorch"}
 importlib = "^1.0.4"
 clip-anytorch = "^2.6.0"
 protobuf = "<5.0.0"
@@ -57,7 +55,6 @@ beautifulsoup4 = "^4.12.3"
 imageio-ffmpeg = "^0.5.1"
 optimum-quanto = "^0.2.6"
 triton = {version = "^3.1.0", source = "pytorch"}
-pytorch-triton = {version = "^3.0.0", source = "pytorch"}
 torchao = "^0.11.0"
 deepcache = "^0.1.1"
 
@@ -69,12 +66,12 @@ priority = "primary"
 [[tool.poetry.source]]
 name = "pytorch"
 priority = "supplemental"
-url = "https://download.pytorch.org/whl/cu124"
+url = "https://download.pytorch.org/whl/cu128"
 
 [[tool.poetry.source]]
 name = "pytorch-nightly"
 priority = "supplemental"
-url = "https://download.pytorch.org/whl/nightly/cu124"
+url = "https://download.pytorch.org/whl/nightly/cu128"
 
 [[tool.poetry.source]]
 name = "PyPI"
