@@ -580,10 +580,6 @@ class ZImagePipeline(DiffusionPipeline, ZImageLoraLoaderMixin, FromSingleFileMix
         return self._guidance_scale > 1
 
     @property
-    def joint_attention_kwargs(self):
-        return self._joint_attention_kwargs
-
-    @property
     def num_timesteps(self):
         return self._num_timesteps
 
@@ -631,7 +627,6 @@ class ZImagePipeline(DiffusionPipeline, ZImageLoraLoaderMixin, FromSingleFileMix
         negative_prompt_embeds: Optional[List[torch.FloatTensor]] = None,
         output_type: Optional[str] = "pil",
         return_dict: bool = True,
-        joint_attention_kwargs: Optional[Dict[str, Any]] = None,
         callback_on_step_end: Optional[Callable[[int, int, Dict], None]] = None,
         callback_on_step_end_tensor_inputs: List[str] = ["latents"],
         max_sequence_length: int = 512,
@@ -699,10 +694,6 @@ class ZImagePipeline(DiffusionPipeline, ZImageLoraLoaderMixin, FromSingleFileMix
             return_dict (`bool`, *optional*, defaults to `True`):
                 Whether or not to return a [`~pipelines.stable_diffusion.ZImagePipelineOutput`] instead of a
                 plain tuple.
-            joint_attention_kwargs (`dict`, *optional*):
-                A kwargs dictionary that if specified is passed along to the `AttentionProcessor` as defined under
-                `self.processor` in
-                [diffusers.models.attention_processor](https://github.com/huggingface/diffusers/blob/main/src/diffusers/models/attention_processor.py).
             callback_on_step_end (`Callable`, *optional*):
                 A function that calls at the end of each denoising steps during the inference. The function is called
                 with the following arguments: `callback_on_step_end(self: DiffusionPipeline, step: int, timestep: int,
@@ -745,7 +736,6 @@ class ZImagePipeline(DiffusionPipeline, ZImageLoraLoaderMixin, FromSingleFileMix
         device = self._execution_device
 
         self._guidance_scale = guidance_scale
-        self._joint_attention_kwargs = None
         self._interrupt = False
         self._cfg_normalization = cfg_normalization
         self._cfg_truncation = cfg_truncation
@@ -907,7 +897,6 @@ class ZImagePipeline(DiffusionPipeline, ZImageLoraLoaderMixin, FromSingleFileMix
                         timestep,
                         prompt_embeds,
                         skip_layers=skip_guidance_layers,
-                        joint_attention_kwargs=self.joint_attention_kwargs,
                     )[0]
                     skip_pred = torch.stack([out.float() for out in skip_out], dim=0).squeeze(2)
                     skip_pred = -skip_pred
