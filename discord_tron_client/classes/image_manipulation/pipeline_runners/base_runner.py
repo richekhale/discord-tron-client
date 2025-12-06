@@ -197,8 +197,11 @@ class BasePipelineRunner:
     def clear_adapters(self, user_config: dict = None):
         """remove any loaded_adapters from the pipeline"""
         logging.info(f"Running clear_adapters with {type(user_config)} userconfig")
+        if not self.loaded_adapters:
+            logging.debug("No adapters loaded; skipping clear_adapters.")
+            return
         loaded_adapters = dict(self.loaded_adapters.items())
-        user_adapters_to_keep = []
+        user_adapters_to_keep = set()
         if user_config is not None and type(user_config) is dict:
             for i in range(1, 11, 1):
                 user_adapter = user_config.get(f"model_adapter_{i}", None)
@@ -207,12 +210,18 @@ class BasePipelineRunner:
                 clean_user_adapter_name = self.clean_adapter_name(user_adapter)
                 if user_adapter != "":
                     logging.info(f"Keeping user adapter {clean_user_adapter_name}")
-                    user_adapters_to_keep.append(clean_user_adapter_name)
+                    user_adapters_to_keep.add(clean_user_adapter_name)
+        adapters_to_remove = [
+            clean_adapter_name
+            for clean_adapter_name in loaded_adapters.keys()
+            if clean_adapter_name not in user_adapters_to_keep
+        ]
+        if not adapters_to_remove:
+            logging.debug("Loaded adapters already match requested adapters; skipping unload.")
+            return
         for clean_adapter_name, config in loaded_adapters.items():
-            if clean_adapter_name in user_adapters_to_keep:
-                logging.info(
-                    f"Not unloading: {clean_adapter_name}. It is in the current request."
-                )
+            if not config:
+                logging.error(f"Adapter {clean_adapter_name} is missing config.")
                 continue
             if config.get("adapter_type") == "lora":
                 if config.get("is_fused", False):
@@ -230,15 +239,12 @@ class BasePipelineRunner:
                     lycoris_wrapper.restore()
                     lycoris_wrapper.to("meta")
                     logging.debug("Sent lycoris to the abyss, meta tensors.")
-                    self.loaded_adapters[clean_adapter_name] = None
-                    del self.loaded_adapters[clean_adapter_name]
                 else:
                     logging.debug(f"Restoring lycoris wrapper for {clean_adapter_name}")
                     lycoris_wrapper.restore()
                     lycoris_wrapper.to("meta")
                     logging.debug("Sent lycoris to the abyss, meta tensors.")
-                    self.loaded_adapters[clean_adapter_name] = None
-                    del self.loaded_adapters[clean_adapter_name]
+        self.loaded_adapters.clear()
         self.pipeline.unload_lora_weights()
 
     def apply_adapters(
@@ -253,7 +259,7 @@ class BasePipelineRunner:
             user_adapter = user_config.get(f"{model_prefix}_adapter_{i}", None)
             if user_adapter is not None and user_adapter != "":
                 pieces = user_adapter.split(":")
-                adapter_strength = 1
+                adapter_strength = 1.0
                 adapter_type = "lora"
                 if len(pieces) == 1:
                     adapter_path = pieces[0]
@@ -262,6 +268,7 @@ class BasePipelineRunner:
                 elif len(pieces) == 3:
                     adapter_type, adapter_path, adapter_strength = pieces
                 try:
+                    adapter_strength = float(adapter_strength)
                     self.load_adapter(
                         adapter_type,
                         adapter_path,
