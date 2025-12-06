@@ -39,7 +39,7 @@ class ZImagePipelineRunner(BasePipelineRunner):
 
         # Z-Image currently only supports a single image per prompt
         args["num_images_per_prompt"] = 1
-        self.apply_adapters(user_config)
+        self.apply_adapters(user_config, fuse_adapters=False)
 
         logging.debug(f"Args (minus user_config) for Z-Image: {args}")
         return self.pipeline(**args).images
